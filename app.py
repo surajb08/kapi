@@ -4,9 +4,13 @@ from flask import Flask, request, jsonify
 from kubernetes import config, client
 from typing import List
 
-config.load_kube_config()
-COREV1API = client.CoreV1Api()
-APPSV1API = client.AppsV1Api()
+try:
+    config.load_kube_config()
+    COREV1API = client.CoreV1Api()
+    APPSV1API = client.AppsV1Api()
+except:
+  print("Failed to load kube config.")
+
 
 HOST = '0.0.0.0'
 PORT = 5000
