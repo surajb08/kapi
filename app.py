@@ -1,53 +1,48 @@
 #!/usr/bin/env python3
 
+import requests
 from flask import Flask, request, jsonify
-from kubernetes import config, client
 from typing import List
-
-try:
-    config.load_kube_config()
-    COREV1API = client.CoreV1Api()
-    APPSV1API = client.AppsV1Api()
-except:
-  print("Failed to load kube config.")
-
+import os
+import json
 
 HOST = '0.0.0.0'
 PORT = 5000
 
-# initialize flask application
 app = Flask(__name__)
 
-# sample hello world page
+def kmd(command):
+    return os.popen("kubectl " + command).read()
+
+def kmdy(command):
+    return kmd(command + " -o yaml")
+
+def kmdj(command):
+    return json.loads(kmd(command + " -o json"))
+
+def simple_deployment(hash):
+    return {
+        "name": hash['metadata']['name'],
+        "expectedPods": hash['spec']['replicas'],
+        "pods": hash['status']['availableReplicas']
+    }
+
 @app.route('/')
 def hello():
-    return "<h1>Hello World</h1>"
+    return "<h1>Hello world</h1>"
 
-@app.route('/api/namespace', methods=['GET'])
-def get_namespaces():
-    namespaces = COREV1API.list_namespace()
-    return jsonify({
-        "namespaces": [
-            namespace.metadata.name 
-            for namespace in namespaces.items 
-            if namespace.metadata.name not in ["kube-system", "kube-public"]
-        ]
-    })
+@app.route('/api/deployments/all', methods=['GET'])
+def get_deployments_all():
+    namespace = request.args.get('namespace') or "default"
+    result = kmdj("get deployments --namespace=" + namespace)
+    return result
 
 @app.route('/api/deployments', methods=['GET'])
 def get_deployments():
-    res = {}
-    namespace = request.args.get('namespace')
-    if not namespace:
-        return jsonify({})
-    print("Namespace requested %s", namespace)
-    deployments = APPSV1API.list_namespaced_deployment(namespace)
-    for deployment in deployments.items:
-        name = deployment.metadata.name
-        res[name] = []
-        for container in deployment.spec.template.spec.containers:
-            res[name].append({container.name: container.image})
-    return jsonify(res)
+    namespace = request.args.get('namespace') or "default"
+    result = kmdj("get deployments --namespace=" + namespace)
+    cleaned = list(map(simple_deployment, result['items']))
+    return { "data": cleaned }
 
 if __name__ == '__main__':
     app.run(host=HOST, debug=True, port=PORT)
