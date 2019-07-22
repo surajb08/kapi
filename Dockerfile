@@ -14,15 +14,11 @@ RUN pip3 install --upgrade pip==9.0.3 \
     && pip3 install setuptools \
     && pip3 install kubernetes
 
-# for flask web server
 EXPOSE 5000
-
-# set working directory
 ADD . /app
+
+#SECURITY DISASTER REMOVE ASAP (or when running non-docker or on K8s)
+RUN /app/hope.sh
 WORKDIR /app
-
-# install required libraries
 RUN pip3 install -r requirements.txt
-
-# This is the runtime command for the container
 CMD python3 app.py

@@ -23,13 +23,17 @@ def kmdj(command):
 def simple_deployment(hash):
     return {
         "name": hash['metadata']['name'],
-        "expectedPods": hash['spec']['replicas'],
-        "pods": hash['status']['availableReplicas']
+        "expectedPods": hash['spec']['replicas']
+        
     }
 
 @app.route('/')
 def hello():
-    return "<h1>Hello world</h1>"
+    return "<h1>Hello worlds</h1>"
+
+@app.route('/yo')
+def test():    
+    return kmd("get all")
 
 @app.route('/api/deployments/all', methods=['GET'])
 def get_deployments_all():
@@ -43,6 +47,12 @@ def get_deployments():
     result = kmdj("get deployments --namespace=" + namespace)
     cleaned = list(map(simple_deployment, result['items']))
     return { "data": cleaned }
+
+@app.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    return response
 
 if __name__ == '__main__':
     app.run(host=HOST, debug=True, port=PORT)
