@@ -4,6 +4,7 @@ from http import HTTPStatus
 import os
 import json
 from kubernetes import client, config
+import utils
 
 # Configs can be set in Configuration class directly or using helper utility
 config.load_kube_config()
@@ -36,6 +37,9 @@ def simple_deployment(hash):
         "expectedPods": hash['spec']['replicas']
         
     }
+
+POD_STATUS_ACTIVE = 'active'
+POD_STATUS_INACTIVE = 'inactive'
 
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['GET'])
 def get_namespaced_deployment(namespace, deployment_name):
@@ -70,6 +74,19 @@ def get_namespaced_deployment(namespace, deployment_name):
 
         containers.append(returned_container)
 
+    returned_pods = []
+    if deployment.spec.selector.match_labels is not None:
+        match_labels_selector = utils.dict_to_comma_separated_values(deployment.spec.selector.match_labels)
+        returned_pods = coreV1.list_pod_for_all_namespaces(label_selector=match_labels_selector)
+
+    pods = []
+    for returned_pod in returned_pods.items:
+        pod_status = POD_STATUS_ACTIVE if returned_pod.status.phase == 'Running' else POD_STATUS_ACTIVE
+        pods.append({
+            "name": returned_pod.metadata.name,
+            "status": pod_status
+        })
+
     return {
         "name": deployment.metadata.name,
         "namespace": namespace,
@@ -89,11 +106,8 @@ def get_namespaced_deployment(namespace, deployment_name):
         #         type: String,
         #     },
         # },
-        # pods: [{
-        #     id: String
-        #     status: String, ('active', 'inactive')
-        # }],
-        #"labels": [{id: String, value: String}]
+        "pods": pods,
+        "labels": deployment.spec.selector.match_labels
     }
 
 
