@@ -41,16 +41,8 @@ def simple_deployment(hash):
 POD_STATUS_ACTIVE = 'active'
 POD_STATUS_INACTIVE = 'inactive'
 
-@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['GET'])
-def get_namespaced_deployment(namespace, deployment_name):
-    response = extensionsV1Beta.list_namespaced_deployment(namespace)
-    items = response.items
-    matches = list([item for item in items if item.metadata.name == deployment_name])
-    if len(matches) == 0:
-        make_response({ "message": "Deployment not found"}, HTTPStatus.NOT_FOUND)
 
-    # kuberenetes names are unique: there will be only 1 deployment if any
-    deployment = matches[0]
+def get_deployment_details(deployment):
     isodate = deployment.metadata.creation_timestamp.isoformat()
 
     containers = []
@@ -89,7 +81,7 @@ def get_namespaced_deployment(namespace, deployment_name):
 
     return {
         "name": deployment.metadata.name,
-        "namespace": namespace,
+        "namespace": deployment.metadata.namespace,
         # "language": String,
         # "githubRepo": String,
         "createdAt": isodate,
@@ -109,6 +101,19 @@ def get_namespaced_deployment(namespace, deployment_name):
         "pods": pods,
         "labels": deployment.spec.selector.match_labels
     }
+
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['GET'])
+def get_namespaced_deployment(namespace, deployment_name):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        make_response({ "message": "Deployment not found"}, HTTPStatus.NOT_FOUND)
+
+    # kuberenetes names are unique: there will be only 1 deployment if any
+    deployment = matches[0]
+    detailed_deployment = get_deployment_details(deployment)
+    return detailed_deployment
 
 
 @app.route('/api/namespaces', methods=['GET'])
