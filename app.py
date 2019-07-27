@@ -103,6 +103,21 @@ def get_deployment_details(deployment):
     }
 
 
+@app.route('/api/namespaces/<namespace>/deployments', methods=['GET'])
+def get_namespaced_deployments(namespace):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace)
+    matches = list(response.items)
+
+    items = []
+    for match in matches:
+        detailed_deployment = get_deployment_details(match)
+        items.append(detailed_deployment)
+
+    return {
+        "items": items,
+        "total": len(items)
+    }
+
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['GET'])
 def get_namespaced_deployment(namespace, deployment_name):
     response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
