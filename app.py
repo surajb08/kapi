@@ -47,15 +47,20 @@ def get_deployment_details(deployment):
 
     containers = []
     for container in deployment.spec.template.spec.containers:
-        returned_ports = [{"number": port.container_port, "type": port.protocol} for port in container.ports]
+
+        returned_ports = []
+        if container.ports is not None:
+            returned_ports = [{"number": port.container_port, "type": port.protocol} for port in container.ports]
 
         resources = []
-        resource_requests = deployment.spec.template.spec.containers[0].resources.requests
-        for key in resource_requests.keys():
-            resources.append({
-                "type": key,
-                "requirement": resource_requests[key]
-            })
+        resource_requests = container.resources.requests
+
+        if resource_requests is not None:
+            for key in resource_requests.keys():
+                resources.append({
+                    "type": key,
+                    "requirement": resource_requests[key]
+                })
 
         returned_container = {
             "name": container.name,
