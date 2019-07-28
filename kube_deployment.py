@@ -14,6 +14,7 @@ def get_load_balancer_service_external_endpoint(returned_service):
             and returned_service.status.load_balancer.ingress is not None\
             and len(returned_service.status.load_balancer.ingress) > 0:
 
+        # assume that we only have 1 ingress that's relevant here
         first_ingress = returned_service.status.load_balancer.ingress[0]
         if first_ingress.hostname is not None:
             external_host = first_ingress.hostname
@@ -116,23 +117,12 @@ def get_deployment_details(deployment):
     return {
         "name": deployment.metadata.name,
         "namespace": deployment.metadata.namespace,
+        # TODO: implement the following fields by using the github-kubernetes correlation logic
         # "language": String,
         # "githubRepo": String,
         "createdAt": isodate,
         "containers": containers,
         "endpoints": endpoints,
-        # endpoints: {
-        #     external: {
-        #         host: String,
-        #         port: Int,
-        #         type: String,
-        #     },
-        #     internal: {
-        #         host: String,
-        #         port: Int,
-        #         type: String,
-        #     },
-        # },
         "pods": pods,
         "labels": deployment.spec.selector.match_labels
     }
