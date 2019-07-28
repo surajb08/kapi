@@ -135,6 +135,18 @@ def get_filtered_deployments():
         "total": len(items)
     }
 
+@app.route('/api/deployments/<deployment_name>', methods=['GET'])
+def get_deployment(deployment_name):
+    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({ "message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # kuberenetes names are unique: there will be only 1 deployment if any
+    deployment = matches[0]
+    detailed_deployment = get_deployment_details(deployment)
+    return detailed_deployment
+
 @app.route('/api/namespaces/<namespace>/deployments', methods=['GET'])
 def get_namespaced_deployments(namespace):
     response = extensionsV1Beta.list_namespaced_deployment(namespace)
@@ -155,7 +167,7 @@ def get_namespaced_deployment(namespace, deployment_name):
     response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
     matches = list(response.items)
     if len(matches) == 0:
-        make_response({ "message": "Deployment not found"}, HTTPStatus.NOT_FOUND)
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
 
     # kuberenetes names are unique: there will be only 1 deployment if any
     deployment = matches[0]
