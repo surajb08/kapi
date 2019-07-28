@@ -63,11 +63,9 @@ def get_deployment_load_balancer_endpoints(match_labels):
     return (external, internal)
 
 
-def get_deployment_details(deployment):
-    isodate = deployment.metadata.creation_timestamp.isoformat()
-
+def get_deployment_containers(returned_containers):
     containers = []
-    for container in deployment.spec.template.spec.containers:
+    for container in returned_containers:
 
         returned_ports = []
         if container.ports is not None:
@@ -91,6 +89,12 @@ def get_deployment_details(deployment):
         }
 
         containers.append(returned_container)
+    return containers
+
+def get_deployment_details(deployment):
+    isodate = deployment.metadata.creation_timestamp.isoformat()
+
+    containers = get_deployment_containers(deployment.spec.template.spec.containers)
 
     returned_pods = []
     if deployment.spec.selector.match_labels is not None:
