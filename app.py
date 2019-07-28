@@ -73,7 +73,7 @@ def get_deployment_details(deployment):
 
     returned_pods = []
     if deployment.spec.selector.match_labels is not None:
-        match_labels_selector = utils.dict_to_comma_separated_values(deployment.spec.selector.match_labels)
+        match_labels_selector = utils.label_dict_to_kube_api_label_selector(deployment.spec.selector.match_labels)
         returned_pods = coreV1.list_pod_for_all_namespaces(label_selector=match_labels_selector)
 
     pods = []
@@ -107,6 +107,33 @@ def get_deployment_details(deployment):
         "labels": deployment.spec.selector.match_labels
     }
 
+
+@app.route('/api/deployments', methods=['GET'])
+def get_filtered_deployments():
+    namespace_filters_set = set(request.args.getlist('namespace'))
+    label_filters_set = set(request.args.getlist('label'))
+
+    response = []
+    if len(label_filters_set) == 0:
+        response = extensionsV1Beta.list_deployment_for_all_namespaces()
+    else:
+        kube_label_selector = utils.api_label_filters_to_kube_api_label_selector(label_filters_set)
+        response = extensionsV1Beta.list_deployment_for_all_namespaces(label_selector=kube_label_selector)
+
+    received_deployments = list(response.items)
+
+    items = []
+    for received_deployment in received_deployments:
+        if len(namespace_filters_set) > 0\
+                and received_deployment.metadata.namespace not in namespace_filters_set:
+            continue
+        detailed_deployment = get_deployment_details(received_deployment)
+        items.append(detailed_deployment)
+
+    return {
+        "items": items,
+        "total": len(items)
+    }
 
 @app.route('/api/namespaces/<namespace>/deployments', methods=['GET'])
 def get_namespaced_deployments(namespace):
