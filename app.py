@@ -8,9 +8,6 @@ import utils
 from kube_deployment  import get_deployment_details
 from kube_apis import  coreV1, extensionsV1Beta
 
-# Configs can be set in Configuration class directly or using helper utilites
-ret = coreV1.list_namespace()
-
 
 HOST = '0.0.0.0'
 PORT = 5000
