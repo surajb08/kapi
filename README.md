@@ -18,11 +18,16 @@ To run the project locally follow the following steps:
 ### Example endpoint calls
 
 curl http://0.0.0.0:5000/api/namespaces
+
 curl http://0.0.0.0:5000/api/deployments/frontend
 
 curl "0.0.0.0:5000/api/deployments?namespace=default
+
 curl "0.0.0.0:5000/api/deployments?namespace=default&label=app:redis"
 
 curl 0.0.0.0:5000/api/namespaces/default/deployments
+
+curl 0.0.0.0:5000/api/namespaces/weave/deployments
+
 curl http://0.0.0.0:5000/api/namespaces/default/deployments/frontend
  
