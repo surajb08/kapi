@@ -3,7 +3,6 @@ from flask import Flask, request, make_response, jsonify
 from http import HTTPStatus
 import os
 import json
-from kubernetes import client, config
 import utils
 from kube_deployment  import get_deployment_details
 from kube_apis import  coreV1, extensionsV1Beta
