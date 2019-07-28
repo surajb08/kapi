@@ -76,6 +76,7 @@ def get_namespaced_deployments(namespace):
 
     items = []
     for match in matches:
+        # TODO: can execute this concurrently to speed up the endpoint
         detailed_deployment = get_deployment_details(match)
         items.append(detailed_deployment)
 
