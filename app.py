@@ -1,32 +1,25 @@
 #!/usr/bin/env python3
 from flask import Flask, request, make_response, jsonify
+from flask_cors import CORS
 from http import HTTPStatus
 import os
 import json
 import utils
-from kube_deployment  import get_deployment_details
-from kube_apis import  coreV1, extensionsV1Beta
+from kube_deployment import get_deployment_details
+from kube_apis import coreV1, extensionsV1Beta
 
 
 HOST = '0.0.0.0'
 PORT = 5000
 
 app = Flask(__name__)
+CORS(app)
 
-def kmd(command):
-    return os.popen("kubectl " + command).read()
-
-def kmdy(command):
-    return kmd(command + " -o yaml")
-
-def kmdj(command):
-    return json.loads(kmd(command + " -o json"))
 
 def simple_deployment(hash):
     return {
         "name": hash['metadata']['name'],
         "expectedPods": hash['spec']['replicas']
-        
     }
 
 @app.route('/api/deployments', methods=['GET'])
@@ -123,35 +116,10 @@ def get_namespaces():
         "total": len(namespaces)
     }
 
-
 @app.route('/')
 def hello():
     return "<h1>Hello worlds</h1>"
 
-
-@app.route('/yo')
-def test():    
-    return kmd("get all")
-
-
-@app.route('/api/deployments/all', methods=['GET'])
-def get_deployments_all():
-    namespace = request.args.get('namespace') or "default"
-    result = kmdj("get deployments --namespace=" + namespace)
-    return result
-
-@app.route('/api/deployments', methods=['GET'])
-def get_deployments():
-    namespace = request.args.get('namespace') or "default"
-    result = kmdj("get deployments --namespace=" + namespace)
-    cleaned = list(map(simple_deployment, result['items']))
-    return { "data": cleaned }
-
-@app.after_request
-def after_request(response):
-    header = response.headers
-    header['Access-Control-Allow-Origin'] = '*'
-    return response
 
 if __name__ == '__main__':
     app.run(host=HOST, debug=True, port=PORT)
