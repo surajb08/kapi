@@ -25,9 +25,12 @@ PORT = 5000
 
 app = Flask(__name__, template_folder=".", static_folder=".", static_url_path="")
 app.config["SECRET_KEY"] = "secret!"
-app.config["fd"] = None
-app.config["child_pid"] = None
+
+# app.config["child_pid"] = None
 CORS(app)
+
+
+sessions = {}
 
 
 def simple_deployment(hash):
@@ -141,16 +144,16 @@ def set_winsize(fd, row, col, xpix=0, ypix=0):
     fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
 
 
-def read_and_forward_pty_output():
+def read_and_forward_pty_output(fd, session_id):
     max_read_bytes = 1024 * 20
     while True:
         socketio.sleep(0.01)
-        if app.config["fd"]:
+        if fd:
             timeout_sec = 0
-            (data_ready, _, _) = select.select([app.config["fd"]], [], [], timeout_sec)
+            (data_ready, _, _) = select.select([fd], [], [], timeout_sec)
             if data_ready:
-                output = os.read(app.config["fd"], max_read_bytes).decode()
-                socketio.emit("pty-output", {"output": output}, namespace="/pty")
+                output = os.read(fd, max_read_bytes).decode()
+                socketio.emit("pty-output", {"output": output}, namespace="/pty", room=session_id)
 
 
 @app.route("/containersshpage")
@@ -163,24 +166,39 @@ def pty_input(data):
     """write to the child pty. The pty sees this as if you are typing in a real
     terminal.
     """
-    if app.config["fd"]:
+
+    currentSocketId = request.sid
+    if currentSocketId not in sessions:
+        print(f"Unknown session id '{currentSocketId}'. This should not happen")
+        return
+    session = sessions[currentSocketId]
+    fd = session["fd"]
+    print(f"Receiving INPUT for FD ${fd} and SOCKETID {currentSocketId}")
+    if fd:
         # print("writing to ptd: %s" % data["input"])
-        os.write(app.config["fd"], data["input"].encode())
+        os.write(fd, data["input"].encode())
 
 
 @socketio.on("resize", namespace="/pty")
 def resize(data):
-    if app.config["fd"]:
-        set_winsize(app.config["fd"], data["rows"], data["cols"])
+    currentSocketId = request.sid
+    if currentSocketId not in sessions:
+        print(f"Unknown session id '{currentSocketId}'. This should not happen")
+        return
+    session = sessions[currentSocketId]
+    fd = session["fd"]
+    print(f"Receiving RESIZE for FD ${fd} and SOCKETID {currentSocketId}")
+    if fd:
+        set_winsize(fd, data["rows"], data["cols"])
 
 
 @socketio.on("connect", namespace="/pty")
 def connect():
     """new client connected"""
-
-    if app.config["child_pid"]:
-        # already started child process, don't start another
-        return
+    #
+    # if app.config["child_pid"]:
+    #     # already started child process, don't start another
+    #     return
 
     # create child process attached to a pty we can read from and write to
     (child_pid, fd) = pty.fork()
@@ -192,8 +210,16 @@ def connect():
     else:
         # this is the parent process fork.
         # store child fd and pid
-        app.config["fd"] = fd
-        app.config["child_pid"] = child_pid
+        # app.config["fd"] = fd
+        # app.config["child_pid"] = child_pid
+
+        currentSocketId = request.sid
+        print(f"Creating session with FD ${fd}  and SOCKETID {currentSocketId}")
+        sessions[currentSocketId] = {
+            "fd": fd,
+            "child_pid": child_pid
+        }
+
         set_winsize(fd, 50, 50)
         cmd = " ".join(shlex.quote(c) for c in app.config["cmd"])
         print("child pid is", child_pid)
@@ -201,7 +227,10 @@ def connect():
             f"starting background task with command `{cmd}` to continously read "
             "and forward pty output to client"
         )
-        socketio.start_background_task(target=read_and_forward_pty_output)
+
+        def run_read_and_forward():
+            read_and_forward_pty_output(fd, currentSocketId)
+        socketio.start_background_task(target=run_read_and_forward)
         print("task started")
 
 
