@@ -5,6 +5,12 @@ You will need the following things properly installed on your computer:
 * [Git](http://git-scm.com/)
 * [Python 3](https://www.python.org/)
 * [Docker](https://www.docker.com/)
+* [GCloud SDK](https://cloud.google.com/sdk/)
+    * Run gcloud init
+    * Connect with your gmail account
+    * Select "codenectarproject", and "sample-cluster"
+    * Run:'gcloud container clusters get-credentials sample-cluster --project codenectar --region us-central1-a'
+    
 
 ## Running
 
