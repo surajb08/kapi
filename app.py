@@ -214,11 +214,15 @@ def connect():
         # app.config["child_pid"] = child_pid
 
         currentSocketId = request.sid
-        print(f"Creating session with FD ${fd}  and SOCKETID {currentSocketId}")
+
+        pod_name = request.args.get('podName')
+        print(f"Creating session with FD ${fd}  and SOCKETID {currentSocketId} for pod connection ${pod_name}")
         sessions[currentSocketId] = {
             "fd": fd,
             "child_pid": child_pid
         }
+
+
 
         set_winsize(fd, 50, 50)
         cmd = " ".join(shlex.quote(c) for c in app.config["cmd"])
