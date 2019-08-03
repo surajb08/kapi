@@ -7,6 +7,7 @@ import json
 import utils
 from kube_deployment import get_deployment_details
 from kube_apis import coreV1, extensionsV1Beta
+from kubernetes.client.rest import ApiException
 
 # container ssh specific imports
 from flask_socketio import SocketIO
@@ -29,7 +30,7 @@ app.config["SECRET_KEY"] = "secret!"
 # app.config["child_pid"] = None
 CORS(app)
 
-
+# contains a all ssh sessions initiated by users.
 sessions = {}
 
 
@@ -195,10 +196,19 @@ def resize(data):
 @socketio.on("connect", namespace="/pty")
 def connect():
     """new client connected"""
-    #
-    # if app.config["child_pid"]:
-    #     # already started child process, don't start another
-    #     return
+
+    pod_name = request.args.get('podName')
+    pod_namespace = request.args.get('podNamespace')
+    print(f"Requesting connection to pod {pod_name} in namespace {pod_namespace}")
+    try:
+        resp = coreV1.read_namespaced_pod(name=pod_name,
+                                       namespace=pod_namespace)
+    except ApiException as e:
+        if e.status != 404:
+            print("Unknown error: %s" % e)
+            return False
+        print("Error: Pod not found")
+        return False
 
     # create child process attached to a pty we can read from and write to
     (child_pid, fd) = pty.fork()
@@ -208,21 +218,13 @@ def connect():
         # of this subprocess
         subprocess.run(app.config["cmd"])
     else:
-        # this is the parent process fork.
-        # store child fd and pid
-        # app.config["fd"] = fd
-        # app.config["child_pid"] = child_pid
-
         currentSocketId = request.sid
 
-        pod_name = request.args.get('podName')
         print(f"Creating session with FD ${fd}  and SOCKETID {currentSocketId} for pod connection ${pod_name}")
         sessions[currentSocketId] = {
             "fd": fd,
             "child_pid": child_pid
         }
-
-
 
         set_winsize(fd, 50, 50)
         cmd = " ".join(shlex.quote(c) for c in app.config["cmd"])
@@ -237,6 +239,10 @@ def connect():
         socketio.start_background_task(target=run_read_and_forward)
         print("task started")
 
+        print(f"ssh-ing into remote pod {pod_name}")
+
+        pod_ssh_command = f'source shell_to_pod.sh "{pod_name}"\n'
+        os.write(fd, pod_ssh_command.encode())
 
 if __name__ == '__main__':
     app.config["cmd"] = ["bash"]
