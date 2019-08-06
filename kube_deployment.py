@@ -37,7 +37,11 @@ def get_load_balancer_service_internal_endpoint(returned_service):
     internal_type = None
 
     if len(returned_service.spec.ports) > 0:
-        internal_port = returned_service.spec.ports[0].node_port
+        port_data = returned_service.spec.ports[0]
+        if port_data.node_port is not None:
+            internal_port = port_data.node_port
+        else:
+            internal_port = port_data.port
         internal_type = returned_service.spec.ports[0].protocol
     if internal_host is not None and internal_port is not None and internal_type is not None:
         return {
@@ -47,7 +51,7 @@ def get_load_balancer_service_internal_endpoint(returned_service):
         }
 
 
-def get_deployment_load_balancer_endpoints(match_labels):
+def get_deployment_external_internal_endpoints(match_labels):
     external = None
     internal = None
     match_labels_selector = utils.label_dict_to_kube_api_label_selector(match_labels)
@@ -59,6 +63,13 @@ def get_deployment_load_balancer_endpoints(match_labels):
             external = get_load_balancer_service_external_endpoint(returned_service)
             internal = get_load_balancer_service_internal_endpoint(returned_service)
             break
+
+    if external is None and external is None:
+        # couldn't find a load balancer
+        for returned_service in returned_services.items:
+            internal = get_load_balancer_service_internal_endpoint(returned_service)
+            if internal is not None:
+                break
 
     return (external, internal)
 
@@ -114,7 +125,7 @@ def get_deployment_details(deployment):
         "internal": None
     }
     if deployment.spec.selector.match_labels is not None:
-        (external, internal) = get_deployment_load_balancer_endpoints(deployment.spec.selector.match_labels)
+        (external, internal) = get_deployment_external_internal_endpoints(deployment.spec.selector.match_labels)
         endpoints["external"] = external
         endpoints["internal"] = internal
 
