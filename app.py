@@ -6,7 +6,7 @@ import os
 import json
 import utils
 from kube_deployment import get_deployment_details
-from kube_apis import coreV1, extensionsV1Beta
+from kube_apis import coreV1, extensionsV1Beta, client
 
 
 HOST = '0.0.0.0'
@@ -76,6 +76,22 @@ def get_deployment(deployment_name):
     deployment = matches[0]
     detailed_deployment = get_deployment_details(deployment)
     return detailed_deployment
+
+
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['DELETE'])
+def delete_deployment(namespace, deployment_name):
+
+    print(f"Deleting deployment {deployment_name} under namespace {namespace}")
+    api_response = extensionsV1Beta.delete_namespaced_deployment(
+        name=deployment_name,
+        namespace=namespace,
+        body=client.V1DeleteOptions(
+            propagation_policy='Foreground',
+            grace_period_seconds=5))
+    print("Deployment deleted. status='%s'" % str(api_response.status))
+    return make_response({"name": deployment_name }, api_response.status)
+
 
 @app.route('/api/namespaces/<namespace>/deployments', methods=['GET'])
 def get_namespaced_deployments(namespace):
