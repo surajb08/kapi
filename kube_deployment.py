@@ -1,4 +1,4 @@
-from kube_apis import coreV1
+from kube_apis import coreV1, extensionsV1Beta, client
 import utils
 
 POD_STATUS_ACTIVE = 'active'
@@ -130,3 +130,35 @@ def get_deployment_details(deployment):
         "pods": pods,
         "labels": deployment.spec.selector.match_labels
     }
+
+def delete_deployment_and_matching_services(deployment):
+    deployment_name = deployment.metadata.name
+    namespace = deployment.metadata.namespace
+    match_labels = deployment.spec.selector.match_labels
+    match_labels_selector = utils.label_dict_to_kube_api_label_selector(match_labels)
+
+    print("Deleting services..")
+    returned_services = coreV1.list_service_for_all_namespaces(label_selector=match_labels_selector)
+
+    for returned_service in returned_services.items:
+        service_name = returned_service.metadata.name
+        service_namespace = returned_service.metadata.namespace
+        print(f"Deleting service {service_name} within namespace {service_namespace}")
+        api_response = coreV1.delete_namespaced_service(
+            name=service_name,
+            namespace=service_namespace,
+            body=client.V1DeleteOptions(
+                propagation_policy='Foreground',
+                grace_period_seconds=5))
+        print(f"Service deleted. status='{str(api_response.status)}'")
+
+    print(f"Services linked to deployment {deployment_name} under namespace {namespace} are deleted.")
+
+    print(f"Deleting deployment {deployment_name} under namespace {namespace}")
+    api_response = extensionsV1Beta.delete_namespaced_deployment(
+        name=deployment_name,
+        namespace=namespace,
+        body=client.V1DeleteOptions(
+            propagation_policy='Foreground',
+            grace_period_seconds=5))
+    print(f"Deployment deleted. status='{str(api_response.status)}'")
