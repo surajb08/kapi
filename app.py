@@ -78,6 +78,29 @@ def get_deployment(deployment_name):
     return detailed_deployment
 
 
+@app.route('/api/deployments/<deployment_name>/services', methods=['GET'])
+def get_deployment_services(deployment_name):
+    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # names are unique
+    deployment = matches[0]
+    match_labels = deployment.spec.selector.match_labels
+
+    match_labels_selector = utils.label_dict_to_kube_api_label_selector(match_labels)
+    returned_services = coreV1.list_service_for_all_namespaces(label_selector=match_labels_selector)
+    services = []
+    for returned_service in returned_services.items:
+        services.append({
+            "name": returned_service.metadata.name
+        })
+
+    return {
+        "items": services,
+        "total": len(services)
+    }
 
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['DELETE'])
 def delete_deployment(namespace, deployment_name):
