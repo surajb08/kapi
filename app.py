@@ -31,7 +31,7 @@ app.config["SECRET_KEY"] = "secret!"
 CORS(app)
 
 # contains a all ssh sessions initiated by users.
-sessions = {}
+ssh_sessions = {}
 
 
 def simple_deployment(hash):
@@ -169,10 +169,10 @@ def pty_input(data):
     """
 
     currentSocketId = request.sid
-    if currentSocketId not in sessions:
+    if currentSocketId not in ssh_sessions:
         print(f"Unknown session id '{currentSocketId}'. This should not happen")
         return
-    session = sessions[currentSocketId]
+    session = ssh_sessions[currentSocketId]
     fd = session["fd"]
     print(f"Receiving INPUT for FD ${fd} and SOCKETID {currentSocketId}")
     if fd:
@@ -183,10 +183,10 @@ def pty_input(data):
 @socketio.on("resize", namespace="/pty")
 def resize(data):
     currentSocketId = request.sid
-    if currentSocketId not in sessions:
+    if currentSocketId not in ssh_sessions:
         print(f"Unknown session id '{currentSocketId}'. This should not happen")
         return
-    session = sessions[currentSocketId]
+    session = ssh_sessions[currentSocketId]
     fd = session["fd"]
     print(f"Receiving RESIZE for FD ${fd} and SOCKETID {currentSocketId}")
     if fd:
@@ -221,7 +221,7 @@ def connect():
         currentSocketId = request.sid
 
         print(f"Creating session with FD ${fd}  and SOCKETID {currentSocketId} for pod connection ${pod_name}")
-        sessions[currentSocketId] = {
+        ssh_sessions[currentSocketId] = {
             "fd": fd,
             "child_pid": child_pid
         }
@@ -243,6 +243,67 @@ def connect():
 
         pod_ssh_command = f'source shell_to_pod.sh "{pod_name}"\n'
         os.write(fd, pod_ssh_command.encode())
+
+
+
+SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE = "/deployment_logs"
+
+logs_sessions = {}
+
+def read_and_forward_kubectl_logs(session_id, kubectl_process):
+    for line in iter(kubectl_process.stdout.readline, b''):
+        socketio.sleep(0.01)
+        print(f"Sending log line to receiver {line}")
+        socketio.emit("pty-output", {"output": line}, namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE, room=session_id)
+    # process.communicate()
+
+
+@socketio.on("connect", namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE)
+def on_deployment_logs_connect():
+    deployment_name = request.args.get('deploymentName')
+    namespace = request.args.get('deploymentNamespace')
+    print(f"Attempting to stream logs for ${deployment_name}")
+    deployment = None
+    try:
+        response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+        matches = list(response.items)
+        if len(matches) == 0:
+            print(f"Failed to find deployment {deployment_name}")
+            return False
+        else:
+            deployment = matches[0]
+    except ApiException as e:
+        if e.status != 404:
+            print("Unknown error: %s" % e)
+            return False
+        print("Error: Pod not found")
+        return False
+
+    session_id = request.sid
+
+    kubectl_process = subprocess.Popen(['kubectl', "logs", "-f", "deployment/frontend"], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+
+    logs_sessions[session_id] = {
+        "kubectl_process": kubectl_process
+    }
+
+    def run_read_and_forward_kubectl_logs():
+        read_and_forward_kubectl_logs(session_id, kubectl_process)
+    socketio.start_background_task(target=run_read_and_forward_kubectl_logs)
+
+@socketio.on("disconnect",  namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE)
+def on_deployment_logs_disconnect():
+    session_id = request.sid
+    print(f"Received 'disconnect' from {session_id}")
+
+    session = logs_sessions[session_id]
+    print(f"Killing kubectl process..")
+    session["kubectl_process"].kill()
+
+    del logs_sessions[session_id]
+    print("Disconnected successfully for {session_id}")
+
 
 if __name__ == '__main__':
     app.config["cmd"] = ["bash"]
