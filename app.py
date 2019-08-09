@@ -158,8 +158,8 @@ def read_and_forward_pty_output(fd, session_id):
 
 
 @app.route("/containersshpage")
-def index():
-    return render_template("index.html")
+def containersshpage():
+    return render_template("containersshpage.html")
 
 
 @socketio.on("pty-input", namespace="/pty")
