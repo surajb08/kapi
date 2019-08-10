@@ -208,6 +208,12 @@ def do_deployment_image_swap(namespace, deployment_name):
 
     if current_image != new_image:
         print(f"New image {new_image} is different from current image {current_image}. Replacing directly..")
+        deployment.spec.template.spec.containers[0].image = new_image
+        post_image_pull_policy_update_deployment = extensionsV1Beta.patch_namespaced_deployment(
+            name=deployment_name,
+            namespace="default",
+            body=deployment)
+        print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
     elif current_image == new_image: # image_pull_policy == ALWAYS_IMAGE_PULL_POLICY:
         print(f"Images are the same the the image pull policy is set to '{ALWAYS_IMAGE_PULL_POLICY}'.\
                 Deployment will be scaled to 0 and back to original replica count.")
