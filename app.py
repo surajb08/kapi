@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-from flask import Flask, request, make_response, jsonify, render_template
+from flask import Flask, request, make_response, render_template
 from flask_cors import CORS
 from http import HTTPStatus
-import os
-import json
 import utils
 
 # container ssh specific imports
@@ -18,8 +16,9 @@ import fcntl
 import shlex
 
 from kube_deployment import get_deployment_details, delete_deployment_and_matching_services
-from kube_apis import coreV1, extensionsV1Beta, client
+from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
+from kubernetes.stream import stream
 
 
 HOST = '0.0.0.0'
@@ -32,7 +31,7 @@ app.config["SECRET_KEY"] = "secret!"
 CORS(app)
 
 # contains a all ssh sessions initiated by users.
-sessions = {}
+ssh_sessions = {}
 
 
 def simple_deployment(hash):
@@ -84,18 +83,6 @@ def get_filtered_deployments():
         "total": len(items)
     }
 
-@app.route('/api/deployments/<deployment_name>', methods=['GET'])
-def get_deployment(deployment_name):
-    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
-    matches = list(response.items)
-    if len(matches) == 0:
-        return make_response({ "message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
-
-    # kuberenetes names are unique: there will be only 1 deployment if any
-    deployment = matches[0]
-    detailed_deployment = get_deployment_details(deployment)
-    return detailed_deployment
-
 
 @app.route('/api/deployments/<deployment_name>/services', methods=['GET'])
 def get_deployment_services(deployment_name):
@@ -123,8 +110,7 @@ def get_deployment_services(deployment_name):
 
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['DELETE'])
 def delete_deployment(namespace, deployment_name):
-
-    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
     matches = list(response.items)
     if len(matches) == 0:
         return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
@@ -165,6 +151,24 @@ def get_namespaced_deployment(namespace, deployment_name):
     return detailed_deployment
 
 
+@app.route('/api/namespaces/<namespace>/pods/<pod_name>/run_cmd', methods=['POST'])
+def run_pod_command(namespace, pod_name):
+    json_body = request.json
+    command = json_body["command"]
+    print(f"Running command on pod {pod_name} in namespace {namespace} - '{command}'")
+
+    exec_command = shlex.split(command)
+    print(f"List format command: {exec_command}")
+    response = stream(coreV1.connect_get_namespaced_pod_exec, pod_name, namespace,
+                  command=exec_command,
+                  stderr=True, stdin=False,
+                  stdout=True, tty=False)
+
+    print("Command response: " + response)
+    return {
+        "result": response
+    }
+
 @app.route('/api/namespaces', methods=['GET'])
 def get_namespaces():
     response = coreV1.list_namespace()
@@ -199,9 +203,12 @@ def read_and_forward_pty_output(fd, session_id):
 
 
 @app.route("/containersshpage")
-def index():
-    return render_template("index.html")
+def containersshpage():
+    return render_template("containersshpage.html")
 
+@app.route("/logstreamdemopage")
+def logstreamdemopage():
+    return render_template("logstreamdemopage.html")
 
 @socketio.on("pty-input", namespace="/pty")
 def pty_input(data):
@@ -210,10 +217,10 @@ def pty_input(data):
     """
 
     currentSocketId = request.sid
-    if currentSocketId not in sessions:
+    if currentSocketId not in ssh_sessions:
         print(f"Unknown session id '{currentSocketId}'. This should not happen")
         return
-    session = sessions[currentSocketId]
+    session = ssh_sessions[currentSocketId]
     fd = session["fd"]
     print(f"Receiving INPUT for FD ${fd} and SOCKETID {currentSocketId}")
     if fd:
@@ -224,10 +231,10 @@ def pty_input(data):
 @socketio.on("resize", namespace="/pty")
 def resize(data):
     currentSocketId = request.sid
-    if currentSocketId not in sessions:
+    if currentSocketId not in ssh_sessions:
         print(f"Unknown session id '{currentSocketId}'. This should not happen")
         return
-    session = sessions[currentSocketId]
+    session = ssh_sessions[currentSocketId]
     fd = session["fd"]
     print(f"Receiving RESIZE for FD ${fd} and SOCKETID {currentSocketId}")
     if fd:
@@ -262,9 +269,11 @@ def connect():
         currentSocketId = request.sid
 
         print(f"Creating session with FD ${fd}  and SOCKETID {currentSocketId} for pod connection ${pod_name}")
-        sessions[currentSocketId] = {
+        ssh_sessions[currentSocketId] = {
             "fd": fd,
-            "child_pid": child_pid
+            "child_pid": child_pid,
+            "pod_name": pod_name,
+            "namespace": pod_namespace
         }
 
         set_winsize(fd, 50, 50)
@@ -284,6 +293,70 @@ def connect():
 
         pod_ssh_command = f'source shell_to_pod.sh "{pod_name}"\n'
         os.write(fd, pod_ssh_command.encode())
+
+
+
+SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE = "/deployment-logs"
+
+logs_sessions = {}
+
+def read_and_forward_kubectl_logs(session_id, kubectl_process):
+    for line in iter(kubectl_process.stdout.readline, b''):
+        socketio.sleep(0.01)
+        print(f"Sending log line to receiver {line}")
+        decoded_line = line.decode("utf-8")
+        socketio.emit("deployment-logs-output",
+                      {"output": decoded_line},
+                      namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE,
+                      room=session_id)
+    # process.communicate()
+
+
+@socketio.on("connect", namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE)
+def on_deployment_logs_connect():
+    deployment_name = request.args.get('deploymentName')
+    namespace = request.args.get('deploymentNamespace')
+    print(f"Attempting to stream logs for ${deployment_name}")
+    try:
+        response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+        matches = list(response.items)
+        if len(matches) == 0:
+            print(f"Failed to find deployment {deployment_name}")
+            return False
+    except ApiException as e:
+        if e.status != 404:
+            print("Unknown error: %s" % e)
+            return False
+        print("Error: Pod not found")
+        return False
+
+    session_id = request.sid
+
+    kubectl_process = subprocess.Popen(['kubectl', "logs", "-f", "deployment/frontend"], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+
+    logs_sessions[session_id] = {
+        "kubectl_process": kubectl_process,
+        "deployment_name": deployment_name,
+        "namespace": namespace
+    }
+
+    def run_read_and_forward_kubectl_logs():
+        read_and_forward_kubectl_logs(session_id, kubectl_process)
+    socketio.start_background_task(target=run_read_and_forward_kubectl_logs)
+
+@socketio.on("disconnect",  namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE)
+def on_deployment_logs_disconnect():
+    session_id = request.sid
+    print(f"Received 'disconnect' from {session_id}")
+
+    session = logs_sessions[session_id]
+    print(f"Killing kubectl process..")
+    session["kubectl_process"].kill()
+
+    del logs_sessions[session_id]
+    print("Disconnected successfully for {session_id}")
+
 
 if __name__ == '__main__':
     app.config["cmd"] = ["bash"]
