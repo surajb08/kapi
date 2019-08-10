@@ -226,7 +226,9 @@ def connect():
         print(f"Creating session with FD ${fd}  and SOCKETID {currentSocketId} for pod connection ${pod_name}")
         ssh_sessions[currentSocketId] = {
             "fd": fd,
-            "child_pid": child_pid
+            "child_pid": child_pid,
+            "pod_name": pod_name,
+            "namespace": pod_namespace
         }
 
         set_winsize(fd, 50, 50)
@@ -257,7 +259,11 @@ def read_and_forward_kubectl_logs(session_id, kubectl_process):
     for line in iter(kubectl_process.stdout.readline, b''):
         socketio.sleep(0.01)
         print(f"Sending log line to receiver {line}")
-        socketio.emit("deployment-logs-output", {"output": line}, namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE, room=session_id)
+        decoded_line = line.decode("utf-8")
+        socketio.emit("deployment-logs-output",
+                      {"output": decoded_line},
+                      namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE,
+                      room=session_id)
     # process.communicate()
 
 
@@ -266,15 +272,12 @@ def on_deployment_logs_connect():
     deployment_name = request.args.get('deploymentName')
     namespace = request.args.get('deploymentNamespace')
     print(f"Attempting to stream logs for ${deployment_name}")
-    deployment = None
     try:
         response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
         matches = list(response.items)
         if len(matches) == 0:
             print(f"Failed to find deployment {deployment_name}")
             return False
-        else:
-            deployment = matches[0]
     except ApiException as e:
         if e.status != 404:
             print("Unknown error: %s" % e)
@@ -288,7 +291,9 @@ def on_deployment_logs_connect():
                                stderr=subprocess.PIPE)
 
     logs_sessions[session_id] = {
-        "kubectl_process": kubectl_process
+        "kubectl_process": kubectl_process,
+        "deployment_name": deployment_name,
+        "namespace": namespace
     }
 
     def run_read_and_forward_kubectl_logs():
