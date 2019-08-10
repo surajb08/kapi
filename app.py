@@ -19,6 +19,7 @@ from kube_deployment import get_deployment_details, delete_deployment_and_matchi
 from kube_pod import get_deployment_pods
 from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
+from kubernetes.stream import stream
 
 
 HOST = '0.0.0.0'
@@ -166,6 +167,23 @@ def get_namespaced_deployment_pods(namespace, deployment_name):
         "pods": pods
     }
 
+@app.route('/api/namespaces/<namespace>/pods/<pod_name>/run_cmd', methods=['POST'])
+def run_pod_command(namespace, pod_name):
+    json_body = request.json
+    command = json_body["command"]
+    print(f"Running command on pod {pod_name} in namespace {namespace} - '{command}'")
+
+    exec_command = shlex.split(command)
+    print(f"List format command: {exec_command}")
+    response = stream(coreV1.connect_get_namespaced_pod_exec, pod_name, namespace,
+                  command=exec_command,
+                  stderr=True, stdin=False,
+                  stdout=True, tty=False)
+
+    print("Command response: " + response)
+    return {
+        "result": response
+    }
 
 @app.route('/api/namespaces', methods=['GET'])
 def get_namespaces():

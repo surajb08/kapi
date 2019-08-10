@@ -46,5 +46,10 @@ curl "0.0.0.0:5000/api/deployments?label=app:guestbook&label=tier:frontend"
 
 # next one throws a 400 for malformed input
 curl "0.0.0.0:5000/api/deployments?label=app:guestbook&label=tierfrontend"
+
+# run a command inside pod
+curl --header "Content-Type: application/json" -X "POST" --data '{"command": "ls -la"}' 0.0.0.0:5000/api/namespaces/default/pods/frontend-654c699bc8-fnshk/run_cmd
 ```
+ 
+ 
  
