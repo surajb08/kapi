@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-from flask import Flask, request, make_response, jsonify, render_template
+from flask import Flask, request, make_response, render_template
 from flask_cors import CORS
 from http import HTTPStatus
-import os
-import json
 import utils
 
 # container ssh specific imports
@@ -18,7 +16,7 @@ import fcntl
 import shlex
 
 from kube_deployment import get_deployment_details, delete_deployment_and_matching_services
-from kube_apis import coreV1, extensionsV1Beta, client
+from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
 
 
@@ -123,8 +121,7 @@ def get_deployment_services(deployment_name):
 
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['DELETE'])
 def delete_deployment(namespace, deployment_name):
-
-    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
     matches = list(response.items)
     if len(matches) == 0:
         return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
