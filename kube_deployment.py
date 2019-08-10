@@ -1,5 +1,6 @@
 from kube_apis import coreV1, extensionsV1Beta, client
 import utils
+import time
 
 POD_STATUS_ACTIVE = 'active'
 POD_STATUS_INACTIVE = 'inactive'
@@ -173,3 +174,61 @@ def delete_deployment_and_matching_services(deployment):
             propagation_policy='Foreground',
             grace_period_seconds=5))
     print(f"Deployment deleted. status='{str(api_response.status)}'")
+
+
+def wait_for_desired_replica_count(deployment, desired_replica_count):
+    deployment_name = deployment.metadata.name
+    namespace = deployment.metadata.namespace
+    while True:
+        response = extensionsV1Beta.list_namespaced_deployment(namespace,
+                                                                        field_selector=f'metadata.name={deployment_name}')
+        polled_deployment = list(response.items)[0]
+
+        current_replicas = polled_deployment.spec.replicas
+        if current_replicas != desired_replica_count:
+            print(f" Deployment {namespace}/{deployment_name} is currently at {current_replicas} replicas. Not yet at {desired_replica_count}")
+
+            WAIT_SLEEP_TIME_SECONDS = 3
+            print(f"Sleeping for {WAIT_SLEEP_TIME_SECONDS}")
+            time.sleep(WAIT_SLEEP_TIME_SECONDS)
+
+        else:
+            print(
+                f"Deployment {namespace}/{deployment_name} is currently at desired {current_replicas} replicas.")
+            return polled_deployment
+
+def scale_to_zero_and_back(deployment):
+    deployment_name = deployment.metadata.name
+    namespace = deployment.metadata.namespace
+    current_replica_count = deployment.spec.replicas
+    print(f"Deployment {namespace}/{deployment_name} currently has {current_replica_count}. Scaling to 0..")
+
+    deployment.spec.replicas = 0
+    post_replica_0_deployment = extensionsV1Beta.patch_namespaced_deployment(
+        name=deployment_name,
+        namespace="default",
+        body=deployment)
+    print("Deployment updated. status='%s'" % str(post_replica_0_deployment.status))
+    print(f"Deployment scaled to 0. Polling until change is in effect..")
+
+    post_poll_replica_0_deployment = wait_for_desired_replica_count(post_replica_0_deployment, 0)
+
+    print(" Scaling back to {current_replica_count} ..")
+
+    post_poll_replica_0_deployment.spec.replicas = current_replica_count
+    post_scale_back_deployment = extensionsV1Beta.patch_namespaced_deployment(
+        name=deployment_name,
+        namespace="default",
+        body=post_poll_replica_0_deployment)
+    print("Deployment updated. status='%s'" % str(post_scale_back_deployment.status))
+
+    post_poll_scale_back_deployment = wait_for_desired_replica_count(post_scale_back_deployment, current_replica_count)
+    print(f"Deployment scaled back to {current_replica_count}.")
+
+    return post_poll_scale_back_deployment
+
+
+
+
+
+
