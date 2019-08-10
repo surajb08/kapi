@@ -185,6 +185,38 @@ def run_pod_command(namespace, pod_name):
         "result": response
     }
 
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/image_swap', methods=['POST'])
+def do_deployment_image_swap(namespace, deployment_name):
+    json_body = request.json
+    new_image = json_body["image"]
+
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # names are unique
+    deployment = matches[0]
+
+    current_image = deployment.spec.template.spec.containers[0].image
+
+    print(f"Attempting to swap for {namespace}/{deployment_name} new image {new_image} instead of {current_image}")
+
+    image_pull_policy = None
+    if current_image != new_image:
+        print(f"New image {new_image} is different from current image {current_image}. Replacing directly..")
+    elif current_image == new_image and image_pull_policy == 'Always':
+        print(f"Images are the same the the image pull policy is set to 'Always'.\
+                Deployment will be scaled to 0 and back to original replica count.")
+
+    else:
+        print(f"Images are the same the the image pull policy is not set to 'Always'.")
+        print("Updating image pull policy to 'Always'..")
+        print("Deployment will be scaled to 0 and back to original replica count.")
+    result = {
+        "name": deployment.metadata.name
+    }
+
 @app.route('/api/namespaces', methods=['GET'])
 def get_namespaces():
     response = coreV1.list_namespace()
