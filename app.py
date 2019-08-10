@@ -82,18 +82,6 @@ def get_filtered_deployments():
         "total": len(items)
     }
 
-@app.route('/api/deployments/<deployment_name>', methods=['GET'])
-def get_deployment(deployment_name):
-    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
-    matches = list(response.items)
-    if len(matches) == 0:
-        return make_response({ "message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
-
-    # kuberenetes names are unique: there will be only 1 deployment if any
-    deployment = matches[0]
-    detailed_deployment = get_deployment_details(deployment)
-    return detailed_deployment
-
 
 @app.route('/api/deployments/<deployment_name>/services', methods=['GET'])
 def get_deployment_services(deployment_name):
