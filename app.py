@@ -16,6 +16,7 @@ import fcntl
 import shlex
 
 from kube_deployment import get_deployment_details, delete_deployment_and_matching_services
+from kube_pod import get_deployment_pods
 from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
 
@@ -148,6 +149,22 @@ def get_namespaced_deployment(namespace, deployment_name):
     deployment = matches[0]
     detailed_deployment = get_deployment_details(deployment)
     return detailed_deployment
+
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/pods', methods=['GET'])
+def get_namespaced_deployment_pods(namespace, deployment_name):
+
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # kuberenetes names are unique: there will be only 1 deployment if any
+    deployment = matches[0]
+    pods = get_deployment_pods(deployment)
+    return {
+        "pods": pods
+    }
 
 
 @app.route('/api/namespaces', methods=['GET'])
