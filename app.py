@@ -5,9 +5,6 @@ from http import HTTPStatus
 import os
 import json
 import utils
-from kube_deployment import get_deployment_details
-from kube_apis import coreV1, extensionsV1Beta
-from kubernetes.client.rest import ApiException
 
 # container ssh specific imports
 from flask_socketio import SocketIO
@@ -19,6 +16,10 @@ import termios
 import struct
 import fcntl
 import shlex
+
+from kube_deployment import get_deployment_details, delete_deployment_and_matching_services
+from kube_apis import coreV1, extensionsV1Beta, client
+from kubernetes.client.rest import ApiException
 
 
 HOST = '0.0.0.0'
@@ -94,6 +95,46 @@ def get_deployment(deployment_name):
     deployment = matches[0]
     detailed_deployment = get_deployment_details(deployment)
     return detailed_deployment
+
+
+@app.route('/api/deployments/<deployment_name>/services', methods=['GET'])
+def get_deployment_services(deployment_name):
+    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # names are unique
+    deployment = matches[0]
+    match_labels = deployment.spec.selector.match_labels
+    match_labels_selector = utils.label_dict_to_kube_api_label_selector(match_labels)
+
+    returned_services = coreV1.list_service_for_all_namespaces(label_selector=match_labels_selector)
+    services = []
+    for returned_service in returned_services.items:
+        services.append({
+            "name": returned_service.metadata.name
+        })
+
+    return {
+        "items": services,
+        "total": len(services)
+    }
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>', methods=['DELETE'])
+def delete_deployment(namespace, deployment_name):
+
+    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # names are unique
+    deployment = matches[0]
+    delete_deployment_and_matching_services(deployment)
+
+    return make_response({"name": deployment_name })
+
 
 @app.route('/api/namespaces/<namespace>/deployments', methods=['GET'])
 def get_namespaced_deployments(namespace):
