@@ -161,6 +161,9 @@ def read_and_forward_pty_output(fd, session_id):
 def containersshpage():
     return render_template("containersshpage.html")
 
+@app.route("/logstreamdemopage")
+def logstreamdemopage():
+    return render_template("logstreamdemopage.html")
 
 @socketio.on("pty-input", namespace="/pty")
 def pty_input(data):
@@ -246,7 +249,7 @@ def connect():
 
 
 
-SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE = "/deployment_logs"
+SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE = "/deployment-logs"
 
 logs_sessions = {}
 
@@ -254,7 +257,7 @@ def read_and_forward_kubectl_logs(session_id, kubectl_process):
     for line in iter(kubectl_process.stdout.readline, b''):
         socketio.sleep(0.01)
         print(f"Sending log line to receiver {line}")
-        socketio.emit("pty-output", {"output": line}, namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE, room=session_id)
+        socketio.emit("deployment-logs-output", {"output": line}, namespace=SOCKETIO_DEPLOYMENT_LOGS_NAMESPACE, room=session_id)
     # process.communicate()
 
 
