@@ -66,10 +66,18 @@ def get_deployment_pods(deployment):
 
         restarts = None
         age = None
+        container_status = None
         if returned_pod.status.container_statuses is not None and len(returned_pod.status.container_statuses) > 0:
             first_container = returned_pod.status.container_statuses[0]
             restarts = first_container.restart_count
-            age = first_container.restart_count
+            if first_container.state.running is not None:
+                naive_started_at = first_container.state.running.started_at.replace(tzinfo=None)
+                age = utils.get_age_string_from_datetime(naive_started_at)
+                container_status = "RUNNING"
+            if first_container.state.terminated is not None:
+                container_status = "TERMINATED"
+            if first_container.state.waiting is not None:
+                container_status = "WAITING"
 
         pod_namespace = returned_pod.metadata.namespace
         pod_name = returned_pod.metadata.name
@@ -78,7 +86,7 @@ def get_deployment_pods(deployment):
         pods.append({
             "name": returned_pod.metadata.name,
             "status": pod_status,
-            # "container_status": WAITING | RUNNING | TERMINATED,
+            "container_status": container_status,
             "events": events,
             "restarts": restarts,
             "age": age,
