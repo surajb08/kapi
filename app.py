@@ -85,9 +85,9 @@ def get_filtered_deployments():
     }
 
 
-@app.route('/api/deployments/<deployment_name>/services', methods=['GET'])
-def get_deployment_services(deployment_name):
-    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/services', methods=['GET'])
+def get_deployment_services(namespace, deployment_name):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
     matches = list(response.items)
     if len(matches) == 0:
         return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
