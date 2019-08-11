@@ -66,7 +66,7 @@ def get_deployment_pods(deployment):
 
         restarts = None
         age = None
-        if returned_pod.status.container_statuses is not None and len(returned_pod.status.container_statuses) < 0:
+        if returned_pod.status.container_statuses is not None and len(returned_pod.status.container_statuses) > 0:
             first_container = returned_pod.status.container_statuses[0]
             restarts = first_container.restart_count
             age = first_container.restart_count
