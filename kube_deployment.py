@@ -1,5 +1,7 @@
 from kube_apis import coreV1, extensionsV1Beta, client, appsV1beta1Api
 import utils
+from kubernetes.stream import stream
+from typing import List
 
 POD_STATUS_ACTIVE = 'active'
 POD_STATUS_INACTIVE = 'inactive'
@@ -174,7 +176,7 @@ def delete_deployment_and_matching_services(deployment):
             grace_period_seconds=5))
     print(f"Deployment deleted. status='{str(api_response.status)}'")
 
-def create_test_curl_deployment_object(deployment_name):
+def create_test_curl_deployment_object(deployment_name: str):
     # Configure Pod template container
     container = client.V1Container(
         name="nginx",
@@ -204,3 +206,35 @@ def create_deployment(deployment):
         namespace="default")
     print("Deployment created. status='%s'" % str(api_response.status))
     return api_response
+
+
+def run_curl_from_test_deployment(namespace: str, deployment_name: str, exec_command: List[str]):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        print(f"The curl test deployment {deployment_name} does not exist yet. Creating..")
+        deployment_object = create_test_curl_deployment_object(deployment_name)
+        deployment = create_deployment(deployment_object)
+        print("Deployment created successfully.")
+    else:
+        deployment = matches[0]
+        print(f"Curl test deployment {deployment_name} already present.")
+
+    match_labels_selector = utils.label_dict_to_kube_api_label_selector(deployment.spec.selector.match_labels)
+    deployment_pod_response = coreV1.list_namespaced_pod(namespace, label_selector=match_labels_selector)
+    pod_matches = list(deployment_pod_response.items)
+
+    deployment_pod = pod_matches[0]
+    pod_name = deployment_pod.metadata.name
+
+    command_as_string = " ".join(exec_command)
+    print(f"Exec inside {pod_name} the following curl command: {exec_command}")
+    print(f"Command string: {command_as_string}")
+    response = stream(coreV1.connect_get_namespaced_pod_exec, pod_name, namespace,
+                  command=exec_command,
+                  stderr=False, stdin=False,
+                  stdout=True, tty=False)
+
+    print("Command response: " + response)
+    parsed_curl_response = utils.parse_curl_code_headers_body_output(response)
+    return parsed_curl_response

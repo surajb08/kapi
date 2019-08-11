@@ -16,7 +16,8 @@ import fcntl
 import shlex
 
 from kube_deployment import get_deployment_details, delete_deployment_and_matching_services,\
-    create_test_curl_deployment_object, create_deployment
+    get_deployment_external_internal_endpoints,\
+    run_curl_from_test_deployment
 from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
@@ -176,54 +177,34 @@ ALLOWED_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE", "GET"}
 CURL_RUNNER_DEPLOYMENT = "curl-test"
 CURL_TIMEOUT_SECONDS = "30"
 
-@app.route('/api/namespaces/<namespace>/run_curl', methods=['POST'])
-def run_curl_command(namespace):
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/http_request', methods=['POST'])
+def run_curl_command(namespace, deployment_name):
     json_body = request.json
-    http_method = json_body["httpMethod"]
-    request_host = json_body["requestHost"]
-    request_headers = json_body["requestHeaders"]
-    request_body = json_body["requestBody"]
+    http_method = json_body["method"]
+    request_path = json_body["path"]
+    request_headers = json_body["headers"]
+    request_body = json_body["body"]
 
     if http_method not in ALLOWED_HTTP_METHODS:
         return make_response({"message": f"HTTP method {http_method} not supported."}, HTTPStatus.BAD_REQUEST)
 
-    deployment = None
-    try:
-        response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={CURL_RUNNER_DEPLOYMENT}')
-        matches = list(response.items)
-        if len(matches) == 0:
-            print(f"The curl test deployment {CURL_RUNNER_DEPLOYMENT} does not exist yet. Creating..")
-            deployment_object = create_test_curl_deployment_object(CURL_RUNNER_DEPLOYMENT)
-            deployment = create_deployment(deployment_object)
-            print("Deployment created successfully.")
-        else:
-            deployment = matches[0]
-            print(f"Curl test deployment {CURL_RUNNER_DEPLOYMENT} already present.")
-    except ApiException as e:
-        if e.status != 404:
-            print("Unknown error: %s" % e)
-            return make_response({"message": f"Failed when looking up the {CURL_RUNNER_DEPLOYMENT} deployment"}, HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    match_labels_selector = utils.label_dict_to_kube_api_label_selector(deployment.spec.selector.match_labels)
-    deployment_pod_response = coreV1.list_namespaced_pod(namespace, label_selector=match_labels_selector)
-    pod_matches = list(deployment_pod_response.items)
-    if len(pod_matches) == 0:
-        return make_response({"message": f"Failed to find pod for {CURL_RUNNER_DEPLOYMENT}."}, HTTPStatus.BAD_REQUEST)
-    deployment_pod = pod_matches[0]
-    pod_name = deployment_pod.metadata.name
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+    target_deployment = matches[0]
+    (external, internal) = get_deployment_external_internal_endpoints(target_deployment.spec.selector.match_labels)
+    if internal is None:
+        return make_response({"message": f'Deployment "{deployment_name}" does not have an internal host and port.'}, HTTPStatus.CONFLICT)
+    internal_host = internal["host"]
+    internal_port = internal["port"]
+    request_host = f"{internal_host}:{internal_port}{request_path}"
+    print(f"The request host being targeted is {request_host}")
 
     exec_command = utils.curl_params_to_curl_exec_command(
         request_host, http_method, request_headers, request_body, CURL_TIMEOUT_SECONDS)
-    command_as_string = " ".join(exec_command)
-    print(f"Exec inside {pod_name} the following curl command: {exec_command}")
-    print(f"Command string: {command_as_string}")
-    response = stream(coreV1.connect_get_namespaced_pod_exec, pod_name, namespace,
-                  command=exec_command,
-                  stderr=False, stdin=False,
-                  stdout=True, tty=False)
 
-    print("Command response: " + response)
-    parsed_curl_response = utils.parse_curl_code_headers_body_output(response)
+    parsed_curl_response = run_curl_from_test_deployment(namespace, CURL_RUNNER_DEPLOYMENT, exec_command)
 
     return parsed_curl_response
 
