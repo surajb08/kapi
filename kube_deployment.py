@@ -40,6 +40,22 @@ def get_load_balancer_service_internal_endpoint(returned_service):
 
     if len(returned_service.spec.ports) > 0:
         port_data = returned_service.spec.ports[0]
+        internal_port = port_data.port
+        internal_type = returned_service.spec.ports[0].protocol
+    if internal_host is not None and internal_port is not None and internal_type is not None:
+        return {
+            "host": internal_host,
+            "port": internal_port,
+            "type": internal_type
+        }
+
+def get_nodeport_service_internal_endpoint(returned_service):
+    internal_host = returned_service.spec.cluster_ip
+    internal_port = None
+    internal_type = None
+
+    if len(returned_service.spec.ports) > 0:
+        port_data = returned_service.spec.ports[0]
         if port_data.node_port is not None:
             internal_port = port_data.node_port
         else:
@@ -51,7 +67,6 @@ def get_load_balancer_service_internal_endpoint(returned_service):
             "port": internal_port,
             "type": internal_type
         }
-
 
 def get_deployment_external_internal_endpoints(match_labels):
     external = None
@@ -66,10 +81,10 @@ def get_deployment_external_internal_endpoints(match_labels):
             internal = get_load_balancer_service_internal_endpoint(returned_service)
             break
 
-    if external is None and external is None:
+    if external is None and internal is None:
         # couldn't find a load balancer
         for returned_service in returned_services.items:
-            internal = get_load_balancer_service_internal_endpoint(returned_service)
+            internal = get_nodeport_service_internal_endpoint(returned_service)
             if internal is not None:
                 break
 
