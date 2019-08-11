@@ -52,7 +52,7 @@ curl --header "Content-Type: application/json" -X "POST" --data '{"command": "ls
 
  
  # run a curl command from the test-pod
- curl --header "Content-Type: application/json" -X "POST" --data '{"httpMethod": "GET", "requestHost": "http://35.239.162.125/guestbook.php?cmd=get&key=messages", "requestHeaders": {}, "requestBody": null }' 0.0.0.0:5000/api/namespaces/default/run_curl
+ curl --header "Content-Type: application/json" -X "POST" --data '{"method": "GET", "path": "/guestbook.php?cmd=get&key=messages", "headers": {}, "body": null }'  0.0.0.0:5000/api/namespaces/default/deployments/frontend/http_request
 ```
 
  
