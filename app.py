@@ -169,6 +169,62 @@ def run_pod_command(namespace, pod_name):
         "result": response
     }
 
+
+ALLOWED_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE", "GET"}
+
+CURL_RUNNER_DEPLOYMENT = "curl-test"
+CURL_TIMEOUT_SECONDS = "30"
+
+@app.route('/api/namespaces/<namespace>/run_curl', methods=['POST'])
+def run_curl_command(namespace):
+    json_body = request.json
+    http_method = json_body["httpMethod"]
+    request_host = json_body["requestHost"]
+    request_headers = json_body["requestHeaders"]
+    request_body = json_body["requestBody"]
+
+    if http_method not in ALLOWED_HTTP_METHODS:
+        return make_response({"message": f"HTTP method {http_method} not supported."}, HTTPStatus.BAD_REQUEST)
+
+    deployment = None
+    try:
+        response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={CURL_RUNNER_DEPLOYMENT}')
+        matches = list(response.items)
+        if len(matches) == 0:
+            print(f"The curl test deployment {CURL_RUNNER_DEPLOYMENT} does not exist yet. Creating..")
+
+        deployment = matches[0]
+        print(f"Curl test deployment {CURL_RUNNER_DEPLOYMENT} already present.")
+    except ApiException as e:
+        if e.status != 404:
+            print("Unknown error: %s" % e)
+            return make_response({"message": f"Failed when looking up the {CURL_RUNNER_DEPLOYMENT} deployment"}, HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    match_labels_selector = utils.label_dict_to_kube_api_label_selector(deployment.spec.selector.match_labels)
+    deployment_pod_response = coreV1.list_namespaced_pod(namespace, label_selector=match_labels_selector)
+    pod_matches = list(deployment_pod_response.items)
+    if len(pod_matches) == 0:
+        return make_response({"message": f"Failed to find pod for {CURL_RUNNER_DEPLOYMENT}."}, HTTPStatus.BAD_REQUEST)
+    deployment_pod = pod_matches[0]
+    pod_name = deployment_pod.metadata.name
+
+    exec_command = utils.curl_params_to_curl_exec_command(
+        request_host, http_method, request_headers, request_body, CURL_TIMEOUT_SECONDS)
+    command_as_string = " ".join(exec_command)
+    print(f"Exec inside {pod_name} the following curl command: {exec_command}")
+    print(f"Command string: {command_as_string}")
+    response = stream(coreV1.connect_get_namespaced_pod_exec, pod_name, namespace,
+                  command=exec_command,
+                  stderr=True, stdin=False,
+                  stdout=True, tty=False)
+
+    print("Command response: " + response)
+    return {
+        "statusCode": response
+    }
+
+
+
 @app.route('/api/namespaces', methods=['GET'])
 def get_namespaces():
     response = coreV1.list_namespace()

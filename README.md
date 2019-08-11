@@ -49,7 +49,10 @@ curl "0.0.0.0:5000/api/deployments?label=app:guestbook&label=tierfrontend"
 
 # run a command inside pod
 curl --header "Content-Type: application/json" -X "POST" --data '{"command": "ls -la"}' 0.0.0.0:5000/api/namespaces/default/pods/frontend-654c699bc8-fnshk/run_cmd
+
+ 
+ # run a curl command from the test-pod
+ curl --header "Content-Type: application/json" -X "POST" --data '{"httpMethod": "GET", "requestHost": "http://35.239.162.125/guestbook.php?cmd=get&key=messages", "requestHeaders": {}, "requestBody": null }' 0.0.0.0:5000/api/namespaces/default/run_curl
 ```
- 
- 
+
  
