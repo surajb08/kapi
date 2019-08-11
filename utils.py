@@ -24,7 +24,6 @@ def curl_params_to_curl_exec_command(request_host: str,
                                      request_body: str,
                                      timeout: str) -> List[str]:
     exec_command = ["curl",
-                    "--connect-timeout", timeout,
                     "-i"]
     for header_name, header_value in request_headers.items():
         exec_command.append("--header")

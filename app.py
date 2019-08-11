@@ -173,7 +173,7 @@ def run_pod_command(namespace, pod_name):
 
 ALLOWED_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE", "GET"}
 
-CURL_RUNNER_DEPLOYMENT = "curl-test-runner"
+CURL_RUNNER_DEPLOYMENT = "curl-test"
 CURL_TIMEOUT_SECONDS = "30"
 
 @app.route('/api/namespaces/<namespace>/run_curl', methods=['POST'])
@@ -219,14 +219,13 @@ def run_curl_command(namespace):
     print(f"Command string: {command_as_string}")
     response = stream(coreV1.connect_get_namespaced_pod_exec, pod_name, namespace,
                   command=exec_command,
-                  stderr=True, stdin=False,
+                  stderr=False, stdin=False,
                   stdout=True, tty=False)
 
     print("Command response: " + response)
-    return {
-        "statusCode": response
-    }
+    parsed_curl_response = utils.parse_curl_code_headers_body_output(response)
 
+    return parsed_curl_response
 
 
 @app.route('/api/namespaces', methods=['GET'])
