@@ -25,8 +25,7 @@ def curl_params_to_curl_exec_command(request_host: str,
                                      timeout: str) -> List[str]:
     exec_command = ["curl",
                     "--connect-timeout", timeout,
-                    "-s", "-o", "/dev/null",
-                    "-w", "'%{http_code}'"]
+                    "-i"]
     for header_name, header_value in request_headers.items():
         exec_command.append("--header")
         exec_command.append(f'"{header_name}: {header_value}"')
@@ -42,5 +41,31 @@ def curl_params_to_curl_exec_command(request_host: str,
 
     return exec_command
 
+def parse_curl_code_headers_body_output(curl_output):
+    remainder = curl_output
+    def get_next_line():
+        nonlocal remainder
+        chunks = remainder.split("\n", 1)
+        line = chunks[0]
+        remainder = chunks[1]
+        return line
 
+    current_line = get_next_line()
+    while not current_line.startswith("HTTP"):
+        current_line = get_next_line()
+    status_code = current_line.split(" ")[1]
 
+    current_line = get_next_line()
+    headers = {}
+    while current_line.strip() != "":
+        header_elems = current_line.split(":", 1)
+        headers[header_elems[0]] = header_elems[1]
+        current_line = get_next_line()
+
+    body = remainder
+
+    return {
+        "statusCode": status_code,
+        "body": body,
+        "headers": headers
+    }
