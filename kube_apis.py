@@ -10,5 +10,6 @@ except:
 coreV1 = client.CoreV1Api()
 extensionsV1Beta = client.ExtensionsV1beta1Api()
 extensions = client.ExtensionsApi()
+appsV1beta1Api = client.AppsV1beta1Api()
 
 ret = coreV1.list_namespace()

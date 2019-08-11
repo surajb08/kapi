@@ -15,7 +15,8 @@ import struct
 import fcntl
 import shlex
 
-from kube_deployment import get_deployment_details, delete_deployment_and_matching_services
+from kube_deployment import get_deployment_details, delete_deployment_and_matching_services,\
+    create_test_curl_deployment_object, create_deployment
 from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
@@ -192,6 +193,9 @@ def run_curl_command(namespace):
         matches = list(response.items)
         if len(matches) == 0:
             print(f"The curl test deployment {CURL_RUNNER_DEPLOYMENT} does not exist yet. Creating..")
+            deployment_object = create_test_curl_deployment_object(CURL_RUNNER_DEPLOYMENT)
+            deployment = create_deployment(deployment_object)
+            print("Deployment created successfully.")
         else:
             deployment = matches[0]
             print(f"Curl test deployment {CURL_RUNNER_DEPLOYMENT} already present.")

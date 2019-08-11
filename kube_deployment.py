@@ -1,4 +1,4 @@
-from kube_apis import coreV1, extensionsV1Beta, client
+from kube_apis import coreV1, extensionsV1Beta, client, appsV1beta1Api
 import utils
 
 POD_STATUS_ACTIVE = 'active'
@@ -173,3 +173,34 @@ def delete_deployment_and_matching_services(deployment):
             propagation_policy='Foreground',
             grace_period_seconds=5))
     print(f"Deployment deleted. status='{str(api_response.status)}'")
+
+def create_test_curl_deployment_object(deployment_name):
+    # Configure Pod template container
+    container = client.V1Container(
+        name="nginx",
+        image="nginx:1.15.4",
+        ports=[client.V1ContainerPort(container_port=80)])
+    # Create and configurate a spec section
+    template = client.V1PodTemplateSpec(
+        metadata=client.V1ObjectMeta(labels={"app": "nginx"}),
+        spec=client.V1PodSpec(containers=[container]))
+    # Create the specification of deployment
+    spec = client.AppsV1beta1DeploymentSpec(
+        replicas=1,
+        template=template)
+    # Instantiate the deployment object
+    deployment = client.AppsV1beta1Deployment(
+        api_version="apps/v1beta1",
+        kind="Deployment",
+        metadata=client.V1ObjectMeta(name=deployment_name),
+        spec=spec)
+
+    return deployment
+
+
+def create_deployment(deployment):
+    api_response = appsV1beta1Api.create_namespaced_deployment(
+        body=deployment,
+        namespace="default")
+    print("Deployment created. status='%s'" % str(api_response.status))
+    return api_response
