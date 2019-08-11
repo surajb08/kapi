@@ -172,7 +172,7 @@ def run_pod_command(namespace, pod_name):
 
 ALLOWED_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE", "GET"}
 
-CURL_RUNNER_DEPLOYMENT = "curl-test"
+CURL_RUNNER_DEPLOYMENT = "curl-test-runner"
 CURL_TIMEOUT_SECONDS = "30"
 
 @app.route('/api/namespaces/<namespace>/run_curl', methods=['POST'])
@@ -192,9 +192,9 @@ def run_curl_command(namespace):
         matches = list(response.items)
         if len(matches) == 0:
             print(f"The curl test deployment {CURL_RUNNER_DEPLOYMENT} does not exist yet. Creating..")
-
-        deployment = matches[0]
-        print(f"Curl test deployment {CURL_RUNNER_DEPLOYMENT} already present.")
+        else:
+            deployment = matches[0]
+            print(f"Curl test deployment {CURL_RUNNER_DEPLOYMENT} already present.")
     except ApiException as e:
         if e.status != 404:
             print("Unknown error: %s" % e)
