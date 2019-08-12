@@ -194,12 +194,12 @@ def delete_deployment_and_matching_services(deployment):
 def create_test_curl_deployment_object(deployment_name: str):
     # Configure Pod template container
     container = client.V1Container(
-        name="nginx",
-        image="nginx:1.15.4",
+        name="busybox-curl",
+        image="yauritux/busybox-curl",
         ports=[client.V1ContainerPort(container_port=80)])
     # Create and configurate a spec section
     template = client.V1PodTemplateSpec(
-        metadata=client.V1ObjectMeta(labels={"app": "nginx"}),
+        metadata=client.V1ObjectMeta(labels={"app": "busybox-curl"}),
         spec=client.V1PodSpec(containers=[container]))
     # Create the specification of deployment
     spec = client.AppsV1beta1DeploymentSpec(

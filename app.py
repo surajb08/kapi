@@ -174,7 +174,7 @@ def run_pod_command(namespace, pod_name):
 
 ALLOWED_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE", "GET"}
 
-CURL_RUNNER_DEPLOYMENT = "busybox-curl"
+CURL_RUNNER_DEPLOYMENT = "busybox-test-curl"
 CURL_TIMEOUT_SECONDS = "30"
 
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/http_request', methods=['POST'])
