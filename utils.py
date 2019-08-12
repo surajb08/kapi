@@ -46,10 +46,19 @@ def parse_curl_code_headers_body_output(curl_output):
         nonlocal remainder
         chunks = remainder.split("\n", 1)
         line = chunks[0]
-        remainder = chunks[1]
+        if len(chunks) > 1:
+            remainder = chunks[1]
+        else:
+            remainder = ""
         return line
 
     current_line = get_next_line()
+    if "Failed connect to" in current_line:
+        return {
+            "success": False,
+            "message": current_line
+        }
+
     while not current_line.startswith("HTTP"):
         current_line = get_next_line()
     status_code = current_line.split(" ")[1]
@@ -66,5 +75,6 @@ def parse_curl_code_headers_body_output(curl_output):
     return {
         "statusCode": status_code,
         "body": body,
-        "headers": headers
+        "headers": headers,
+        "success": True
     }
