@@ -192,11 +192,11 @@ def delete_deployment_and_matching_services(deployment):
     print(f"Deployment deleted. status='{str(api_response.status)}'")
 
 def create_test_curl_deployment_object(deployment_name: str):
-    # Configure Pod template container
     container = client.V1Container(
         name="busybox-curl",
         image="yauritux/busybox-curl",
-        ports=[client.V1ContainerPort(container_port=80)])
+        # make it run forever so it can receive curls as needed
+        command=[ "/bin/sh", "-ce", "tail -f /dev/null" ])
     # Create and configurate a spec section
     template = client.V1PodTemplateSpec(
         metadata=client.V1ObjectMeta(labels={"app": "busybox-curl"}),
