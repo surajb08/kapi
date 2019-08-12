@@ -204,9 +204,15 @@ def run_curl_command(namespace, deployment_name):
     exec_command = utils.curl_params_to_curl_exec_command(
         request_host, http_method, request_headers, request_body, CURL_TIMEOUT_SECONDS)
 
-    parsed_curl_response = run_curl_from_test_deployment(namespace, CURL_RUNNER_DEPLOYMENT, exec_command)
+    raw_curl_response = run_curl_from_test_deployment(namespace, CURL_RUNNER_DEPLOYMENT, exec_command)
 
-    return parsed_curl_response
+    try:
+        parsed_curl_response = utils.parse_curl_code_headers_body_output(raw_curl_response)
+        return parsed_curl_response
+    except:
+        err = f"Failed to parse raw curl response {raw_curl_response}"
+        print(err)
+        return make_response({"message": err}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @app.route('/api/namespaces', methods=['GET'])

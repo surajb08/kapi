@@ -251,5 +251,4 @@ def run_curl_from_test_deployment(namespace: str, deployment_name: str, exec_com
                   stdout=True, tty=False)
 
     print("Command response: " + response)
-    parsed_curl_response = utils.parse_curl_code_headers_body_output(response)
-    return parsed_curl_response
+    return response
