@@ -15,7 +15,8 @@ import struct
 import fcntl
 import shlex
 
-from kube_deployment import get_deployment_details, delete_deployment_and_matching_services
+from kube_deployment import get_deployment_details, delete_deployment_and_matching_services, scale_to_zero_and_back
+from kube_pod import get_deployment_pods
 from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
@@ -151,6 +152,21 @@ def get_namespaced_deployment(namespace, deployment_name):
     return detailed_deployment
 
 
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/pods', methods=['GET'])
+def get_namespaced_deployment_pods(namespace, deployment_name):
+
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # kuberenetes names are unique: there will be only 1 deployment if any
+    deployment = matches[0]
+    pods = get_deployment_pods(deployment)
+    return {
+        "pods": pods
+    }
+
 @app.route('/api/namespaces/<namespace>/pods/<pod_name>/run_cmd', methods=['POST'])
 def run_pod_command(namespace, pod_name):
     json_body = request.json
@@ -168,6 +184,57 @@ def run_pod_command(namespace, pod_name):
     return {
         "result": response
     }
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/image_swap', methods=['POST'])
+def do_deployment_image_swap(namespace, deployment_name):
+    json_body = request.json
+    new_image = json_body["image"]
+
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # names are unique
+    deployment = matches[0]
+
+    first_container = deployment.spec.template.spec.containers[0]
+    current_image = first_container.image
+    image_pull_policy = deployment.spec.template.spec.containers[0].image_pull_policy
+
+    print(f"Attempting to swap for {namespace}/{deployment_name} new image {new_image} instead of {current_image}")
+
+    ALWAYS_IMAGE_PULL_POLICY = 'Always'
+
+    if current_image != new_image:
+        print(f"New image {new_image} is different from current image {current_image}. Replacing directly..")
+        deployment.spec.template.spec.containers[0].image = new_image
+        post_image_pull_policy_update_deployment = extensionsV1Beta.patch_namespaced_deployment(
+            name=deployment_name,
+            namespace="default",
+            body=deployment)
+        print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
+    elif current_image == new_image: # image_pull_policy == ALWAYS_IMAGE_PULL_POLICY:
+        print(f"Images are the same the the image pull policy is set to '{ALWAYS_IMAGE_PULL_POLICY}'.\
+                Deployment will be scaled to 0 and back to original replica count.")
+        scale_to_zero_and_back(deployment)
+    else:
+        print(f"Images are the same the the image pull policy is not set to '{ALWAYS_IMAGE_PULL_POLICY}', currently set to {image_pull_policy}.")
+        print(f"Updating image pull policy to '{ALWAYS_IMAGE_PULL_POLICY}'..")
+
+        deployment.spec.template.spec.containers[0].image_pull_policy = ALWAYS_IMAGE_PULL_POLICY
+        post_image_pull_policy_update_deployment = extensionsV1Beta.patch_namespaced_deployment(
+            name=deployment_name,
+            namespace="default",
+            body=deployment)
+
+        print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
+        print("Deployment will be scaled to 0 and back to original replica count.")
+        scale_to_zero_and_back(post_image_pull_policy_update_deployment)
+    result = {
+        "name": deployment.metadata.name
+    }
+    return result
 
 @app.route('/api/namespaces', methods=['GET'])
 def get_namespaces():
