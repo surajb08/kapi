@@ -17,7 +17,8 @@ import shlex
 
 from kube_deployment import get_deployment_details, delete_deployment_and_matching_services,\
     get_deployment_external_internal_endpoints,\
-    run_curl_from_test_deployment
+    run_curl_from_test_deployment, scale_to_zero_and_back, restart_image
+from kube_pod import get_deployment_pods
 from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
@@ -86,9 +87,9 @@ def get_filtered_deployments():
     }
 
 
-@app.route('/api/deployments/<deployment_name>/services', methods=['GET'])
-def get_deployment_services(deployment_name):
-    response = extensionsV1Beta.list_deployment_for_all_namespaces(field_selector=f'metadata.name={deployment_name}')
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/services', methods=['GET'])
+def get_deployment_services(namespace, deployment_name):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
     matches = list(response.items)
     if len(matches) == 0:
         return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
@@ -153,6 +154,21 @@ def get_namespaced_deployment(namespace, deployment_name):
     return detailed_deployment
 
 
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/pods', methods=['GET'])
+def get_namespaced_deployment_pods(namespace, deployment_name):
+
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # kuberenetes names are unique: there will be only 1 deployment if any
+    deployment = matches[0]
+    pods = get_deployment_pods(deployment)
+    return {
+        "pods": pods
+    }
+
 @app.route('/api/namespaces/<namespace>/pods/<pod_name>/run_cmd', methods=['POST'])
 def run_pod_command(namespace, pod_name):
     json_body = request.json
@@ -192,6 +208,7 @@ def run_curl_command(namespace, deployment_name):
     matches = list(response.items)
     if len(matches) == 0:
         return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
     target_deployment = matches[0]
     (external, internal) = get_deployment_external_internal_endpoints(target_deployment.spec.selector.match_labels)
     if internal is None:
@@ -213,6 +230,58 @@ def run_curl_command(namespace, deployment_name):
         err = f"Failed to parse raw curl response {raw_curl_response}"
         print(err)
         return make_response({"message": err}, HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/image_swap', methods=['POST'])
+def do_deployment_image_swap(namespace, deployment_name):
+    json_body = request.json
+    new_image = json_body["image"]
+
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+
+    # names are unique
+    deployment = matches[0]
+
+    first_container = deployment.spec.template.spec.containers[0]
+    current_image = first_container.image
+
+    print(f"Attempting to swap for {namespace}/{deployment_name} new image {new_image} instead of {current_image}")
+
+    if current_image != new_image:
+        print(f"New image {new_image} is different from current image {current_image}. Replacing directly..")
+        deployment.spec.template.spec.containers[0].image = new_image
+        post_image_pull_policy_update_deployment = extensionsV1Beta.patch_namespaced_deployment(
+            name=deployment_name,
+            namespace="default",
+            body=deployment)
+        print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
+    else:
+        restart_image(deployment)
+
+    result = {
+        "name": deployment.metadata.name,
+        "success": True
+    }
+    return result
+
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/restart_image', methods=['POST'])
+def do_deployment_restart_image(namespace, deployment_name):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+    # names are unique
+    deployment = matches[0]
+    restart_image(deployment)
+    result = {
+        "name": deployment.metadata.name,
+        "success": True
+    }
+    return result
 
 
 @app.route('/api/namespaces', methods=['GET'])
