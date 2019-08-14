@@ -214,7 +214,7 @@ def do_deployment_image_swap(namespace, deployment_name):
             namespace="default",
             body=deployment)
         print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
-    elif current_image == new_image: # image_pull_policy == ALWAYS_IMAGE_PULL_POLICY:
+    elif current_image == new_image and image_pull_policy == ALWAYS_IMAGE_PULL_POLICY:
         print(f"Images are the same the the image pull policy is set to '{ALWAYS_IMAGE_PULL_POLICY}'.\
                 Deployment will be scaled to 0 and back to original replica count.")
         scale_to_zero_and_back(deployment)
@@ -235,6 +235,18 @@ def do_deployment_image_swap(namespace, deployment_name):
         "name": deployment.metadata.name
     }
     return result
+
+
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/restart_image', methods=['POST'])
+def do_deployment_restart_image(namespace, deployment_name):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+    # names are unique
+    deployment = matches[0]
+
+
 
 @app.route('/api/namespaces', methods=['GET'])
 def get_namespaces():
