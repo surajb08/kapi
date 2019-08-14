@@ -15,7 +15,8 @@ import struct
 import fcntl
 import shlex
 
-from kube_deployment import get_deployment_details, delete_deployment_and_matching_services, scale_to_zero_and_back
+from kube_deployment import get_deployment_details, delete_deployment_and_matching_services,\
+    scale_to_zero_and_back, restart_image
 from kube_pod import get_deployment_pods
 from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
@@ -200,11 +201,8 @@ def do_deployment_image_swap(namespace, deployment_name):
 
     first_container = deployment.spec.template.spec.containers[0]
     current_image = first_container.image
-    image_pull_policy = deployment.spec.template.spec.containers[0].image_pull_policy
 
     print(f"Attempting to swap for {namespace}/{deployment_name} new image {new_image} instead of {current_image}")
-
-    ALWAYS_IMAGE_PULL_POLICY = 'Always'
 
     if current_image != new_image:
         print(f"New image {new_image} is different from current image {current_image}. Replacing directly..")
@@ -214,23 +212,9 @@ def do_deployment_image_swap(namespace, deployment_name):
             namespace="default",
             body=deployment)
         print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
-    elif current_image == new_image and image_pull_policy == ALWAYS_IMAGE_PULL_POLICY:
-        print(f"Images are the same the the image pull policy is set to '{ALWAYS_IMAGE_PULL_POLICY}'.\
-                Deployment will be scaled to 0 and back to original replica count.")
-        scale_to_zero_and_back(deployment)
     else:
-        print(f"Images are the same the the image pull policy is not set to '{ALWAYS_IMAGE_PULL_POLICY}', currently set to {image_pull_policy}.")
-        print(f"Updating image pull policy to '{ALWAYS_IMAGE_PULL_POLICY}'..")
+        restart_image(deployment)
 
-        deployment.spec.template.spec.containers[0].image_pull_policy = ALWAYS_IMAGE_PULL_POLICY
-        post_image_pull_policy_update_deployment = extensionsV1Beta.patch_namespaced_deployment(
-            name=deployment_name,
-            namespace="default",
-            body=deployment)
-
-        print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
-        print("Deployment will be scaled to 0 and back to original replica count.")
-        scale_to_zero_and_back(post_image_pull_policy_update_deployment)
     result = {
         "name": deployment.metadata.name
     }
@@ -245,6 +229,7 @@ def do_deployment_restart_image(namespace, deployment_name):
         return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
     # names are unique
     deployment = matches[0]
+    restart_image(deployment)
 
 
 

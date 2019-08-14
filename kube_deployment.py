@@ -5,6 +5,7 @@ import time
 POD_STATUS_ACTIVE = 'active'
 POD_STATUS_INACTIVE = 'inactive'
 LOAD_BALANCER_SERVICE_TYPE = 'LoadBalancer'
+ALWAYS_IMAGE_PULL_POLICY = 'Always'
 
 
 def get_load_balancer_service_external_endpoint(returned_service):
@@ -228,6 +229,27 @@ def scale_to_zero_and_back(deployment):
     return post_poll_scale_back_deployment
 
 
+def restart_image(deployment):
+    deployment_name = deployment.metadata.name
+    image_pull_policy = deployment.spec.template.spec.containers[0].image_pull_policy
+    if image_pull_policy == ALWAYS_IMAGE_PULL_POLICY:
+        print(f"Images are the same the the image pull policy is set to '{ALWAYS_IMAGE_PULL_POLICY}'.\
+                       Deployment will be scaled to 0 and back to original replica count.")
+        scale_to_zero_and_back(deployment)
+    else:
+        print(
+            f"Images are the same the the image pull policy is not set to '{ALWAYS_IMAGE_PULL_POLICY}', currently set to {image_pull_policy}.")
+        print(f"Updating image pull policy to '{ALWAYS_IMAGE_PULL_POLICY}'..")
+
+        deployment.spec.template.spec.containers[0].image_pull_policy = ALWAYS_IMAGE_PULL_POLICY
+        post_image_pull_policy_update_deployment = extensionsV1Beta.patch_namespaced_deployment(
+            name=deployment_name,
+            namespace="default",
+            body=deployment)
+
+        print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
+        print("Deployment will be scaled to 0 and back to original replica count.")
+        scale_to_zero_and_back(post_image_pull_policy_update_deployment)
 
 
 
