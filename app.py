@@ -216,7 +216,8 @@ def do_deployment_image_swap(namespace, deployment_name):
         restart_image(deployment)
 
     result = {
-        "name": deployment.metadata.name
+        "name": deployment.metadata.name,
+        "success": True
     }
     return result
 
@@ -230,6 +231,12 @@ def do_deployment_restart_image(namespace, deployment_name):
     # names are unique
     deployment = matches[0]
     restart_image(deployment)
+    result = {
+        "name": deployment.metadata.name,
+        "success": True
+    }
+    return result
+
 
 
 
