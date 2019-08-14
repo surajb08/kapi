@@ -1,5 +1,8 @@
-from kube_apis import coreV1, extensionsV1Beta, client
+from kube_apis import coreV1, extensionsV1Beta, client, appsV1beta1Api
 import utils
+
+from kubernetes.stream import stream
+from typing import List
 import time
 
 POD_STATUS_ACTIVE = 'active'
@@ -40,6 +43,22 @@ def get_load_balancer_service_internal_endpoint(returned_service):
 
     if len(returned_service.spec.ports) > 0:
         port_data = returned_service.spec.ports[0]
+        internal_port = port_data.port
+        internal_type = returned_service.spec.ports[0].protocol
+    if internal_host is not None and internal_port is not None and internal_type is not None:
+        return {
+            "host": internal_host,
+            "port": internal_port,
+            "type": internal_type
+        }
+
+def get_nodeport_service_internal_endpoint(returned_service):
+    internal_host = returned_service.spec.cluster_ip
+    internal_port = None
+    internal_type = None
+
+    if len(returned_service.spec.ports) > 0:
+        port_data = returned_service.spec.ports[0]
         if port_data.node_port is not None:
             internal_port = port_data.node_port
         else:
@@ -51,7 +70,6 @@ def get_load_balancer_service_internal_endpoint(returned_service):
             "port": internal_port,
             "type": internal_type
         }
-
 
 def get_deployment_external_internal_endpoints(match_labels):
     external = None
@@ -66,10 +84,10 @@ def get_deployment_external_internal_endpoints(match_labels):
             internal = get_load_balancer_service_internal_endpoint(returned_service)
             break
 
-    if external is None and external is None:
+    if external is None and internal is None:
         # couldn't find a load balancer
         for returned_service in returned_services.items:
-            internal = get_load_balancer_service_internal_endpoint(returned_service)
+            internal = get_nodeport_service_internal_endpoint(returned_service)
             if internal is not None:
                 break
 
@@ -177,6 +195,69 @@ def delete_deployment_and_matching_services(deployment):
     print(f"Deployment deleted. status='{str(api_response.status)}'")
 
 
+def create_test_curl_deployment_object(deployment_name: str):
+    container = client.V1Container(
+        name="busybox-curl",
+        image="yauritux/busybox-curl",
+        # make it run forever so it can receive curls as needed
+        command=[ "/bin/sh", "-ce", "tail -f /dev/null" ])
+    # Create and configurate a spec section
+    template = client.V1PodTemplateSpec(
+        metadata=client.V1ObjectMeta(labels={"app": "busybox-curl"}),
+        spec=client.V1PodSpec(containers=[container]))
+    # Create the specification of deployment
+    spec = client.AppsV1beta1DeploymentSpec(
+        replicas=1,
+        template=template)
+    # Instantiate the deployment object
+    deployment = client.AppsV1beta1Deployment(
+        api_version="apps/v1beta1",
+        kind="Deployment",
+        metadata=client.V1ObjectMeta(name=deployment_name),
+        spec=spec)
+
+    return deployment
+
+
+def create_deployment(deployment):
+    api_response = appsV1beta1Api.create_namespaced_deployment(
+        body=deployment,
+        namespace="default")
+    print("Deployment created. status='%s'" % str(api_response.status))
+    return api_response
+
+
+def run_curl_from_test_deployment(namespace: str, deployment_name: str, exec_command: List[str]):
+    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
+    matches = list(response.items)
+    if len(matches) == 0:
+        print(f"The curl test deployment {deployment_name} does not exist yet. Creating..")
+        deployment_object = create_test_curl_deployment_object(deployment_name)
+        deployment = create_deployment(deployment_object)
+        print("Deployment created successfully.")
+    else:
+        deployment = matches[0]
+        print(f"Curl test deployment {deployment_name} already present.")
+
+    match_labels_selector = utils.label_dict_to_kube_api_label_selector(deployment.spec.selector.match_labels)
+    deployment_pod_response = coreV1.list_namespaced_pod(namespace, label_selector=match_labels_selector)
+    pod_matches = list(deployment_pod_response.items)
+
+    deployment_pod = pod_matches[0]
+    pod_name = deployment_pod.metadata.name
+
+    command_as_string = " ".join(exec_command)
+    print(f"Exec inside {pod_name} the following curl command: {exec_command}")
+    print(f"Command string: {command_as_string}")
+    response = stream(coreV1.connect_get_namespaced_pod_exec, pod_name, namespace,
+                  command=exec_command,
+                  stderr=False, stdin=False,
+                  stdout=True, tty=False)
+
+    print("Command response: " + response)
+    return response
+
+
 def wait_for_desired_replica_count(deployment, desired_replica_count):
     deployment_name = deployment.metadata.name
     namespace = deployment.metadata.namespace
@@ -250,7 +331,3 @@ def restart_image(deployment):
         print("Deployment updated. status='%s'" % str(post_image_pull_policy_update_deployment.status))
         print("Deployment will be scaled to 0 and back to original replica count.")
         scale_to_zero_and_back(post_image_pull_policy_update_deployment)
-
-
-
-
