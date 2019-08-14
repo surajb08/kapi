@@ -75,7 +75,7 @@ def get_deployment_pods(deployment):
                 age = utils.get_age_string_from_datetime(naive_started_at)
                 container_status = "RUNNING"
             if first_container.state.terminated is not None:
-                naive_started_at = first_container.state.running.started_at.replace(tzinfo=None)
+                naive_started_at = first_container.state.terminated.started_at.replace(tzinfo=None)
                 age = utils.get_age_string_from_datetime(naive_started_at)
                 container_status = "TERMINATED"
             if first_container.state.waiting is not None:
