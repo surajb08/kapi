@@ -6,9 +6,12 @@ RUN apt-get update \
   && ln -s /usr/bin/python3 python \
   && pip3 install --upgrade pip
 
-EXPOSE 5000
 ADD . /app
 
 WORKDIR /app
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
 RUN pip3 install -r requirements.txt
-CMD python3 app.py
+EXPOSE 5000
+
+CMD ["flask", "run", "--host", "0.0.0.0"]

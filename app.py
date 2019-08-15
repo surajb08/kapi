@@ -23,7 +23,6 @@ from kube_apis import coreV1, extensionsV1Beta
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
 
-
 HOST = '0.0.0.0'
 PORT = 5000
 
