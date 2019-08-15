@@ -162,6 +162,25 @@ def get_deployment_details(deployment):
         "labels": deployment.spec.selector.match_labels
     }
 
+def get_service_details(service):
+    name = service.metadata.name
+    namespace = service.metadata.namespace
+    port_obj = service.spec.ports[0]
+    try:
+        external_ip = service.status.load_balancer.ingress[0].ip
+    except:
+        external_ip = None
+    
+    return ({
+        "name": name,
+        "internalIp": service.spec.cluster_ip,
+        "externalIp": external_ip,
+        "fromPort": port_obj.port,
+        "toPort": port_obj.target_port,
+        "shortDns": name + "." + namespace,
+        "longDns": name + "." + namespace + ".svc.cluster.local",
+    })
+
 def delete_deployment_and_matching_services(deployment):
     deployment_name = deployment.metadata.name
     namespace = deployment.metadata.namespace

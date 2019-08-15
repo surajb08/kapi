@@ -36,13 +36,6 @@ CORS(app)
 # contains a all ssh sessions initiated by users.
 ssh_sessions = {}
 
-
-def simple_deployment(hash):
-    return {
-        "name": hash['metadata']['name'],
-        "expectedPods": hash['spec']['replicas']
-    }
-
 @app.route('/api/deployments', methods=['GET'])
 def get_filtered_deployments():
     namespace_filters_set = set(request.args.getlist('namespace'))
@@ -94,16 +87,29 @@ def get_deployment_services(namespace, deployment_name):
     if len(matches) == 0:
         return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
 
-    # names are unique
     deployment = matches[0]
     match_labels = deployment.spec.selector.match_labels
-    match_labels_selector = utils.label_dict_to_kube_api_label_selector(match_labels)
-
-    returned_services = coreV1.list_service_for_all_namespaces(label_selector=match_labels_selector)
+    returned_services = coreV1.list_service_for_all_namespaces()
+    filtered = list(filter(lambda x: x.spec.selector == match_labels, returned_services.items))
     services = []
-    for returned_service in returned_services.items:
+
+    for returned_service in filtered:
+        name = returned_service.metadata.name
+        namespace = returned_service.metadata.namespace
+        port_obj = returned_service.spec.ports[0]
+        try:
+            external_ip = returned_service.status.load_balancer.ingress[0].ip
+        except:
+            external_ip = None
+
         services.append({
-            "name": returned_service.metadata.name
+            "name": name,
+            "internalIp": returned_service.spec.cluster_ip,
+            "externalIp": external_ip,
+            "fromPort": port_obj.port,
+            "toPort": port_obj.target_port,
+            "shortDns": name + "." + namespace,
+            "longDns": name + "." + namespace + ".svc.cluster.local",
         })
 
     return {
