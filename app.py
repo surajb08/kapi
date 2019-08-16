@@ -14,6 +14,9 @@ import termios
 import struct
 import fcntl
 import shlex
+import requests
+import subprocess
+
 
 from kube_deployment import get_deployment_details, delete_deployment_and_matching_services,\
     get_deployment_external_internal_endpoints,\
@@ -202,40 +205,28 @@ CURL_TIMEOUT_SECONDS = "30"
 def run_curl_command(namespace, deployment_name):
     json_body = request.json
     http_method = json_body["method"]
-    request_path = json_body["path"]
     request_headers = json_body["headers"]
     request_body = json_body["body"]
+    request_url = "http://" + json_body["to"] + json_body["path"]
+    print("GOING FOR " + request_url)
+    print("GOING FOR " + request_url)
+    print("GOING FOR " + request_url)
+    print("GOING FOR " + request_url)
 
-    if http_method not in ALLOWED_HTTP_METHODS:
-        return make_response({"message": f"HTTP method {http_method} not supported."}, HTTPStatus.BAD_REQUEST)
+    # r = subprocess.Popen("curl " + request_url, shell=True, stdout=subprocess.PIPE).stdout.read()
+    r = os.popen("curl " + request_url).read()
 
-    response = extensionsV1Beta.list_namespaced_deployment(namespace, field_selector=f'metadata.name={deployment_name}')
-    matches = list(response.items)
-    if len(matches) == 0:
-        return make_response({"message": f'Deployment "{deployment_name}" not found'}, HTTPStatus.NOT_FOUND)
+    # r = requests.get(url="")
+    print("GONNA RETURN")
+    print(r)
 
-    target_deployment = matches[0]
-    (external, internal) = get_deployment_external_internal_endpoints(target_deployment.spec.selector.match_labels)
-    if internal is None:
-        return make_response({"message": f'Deployment "{deployment_name}" does not have an internal host and port.'}, HTTPStatus.CONFLICT)
-    internal_host = internal["host"]
-    internal_port = internal["port"]
-    request_host = f"{internal_host}:{internal_port}{request_path}"
-    print(f"The request host being targeted is {request_host}")
-
-    exec_command = utils.curl_params_to_curl_exec_command(
-        request_host, http_method, request_headers, request_body, CURL_TIMEOUT_SECONDS)
-
-    raw_curl_response = run_curl_from_test_deployment(namespace, CURL_RUNNER_DEPLOYMENT, exec_command)
-
-    try:
-        parsed_curl_response = utils.parse_curl_code_headers_body_output(raw_curl_response)
-        return parsed_curl_response
-    except:
-        err = f"Failed to parse raw curl response {raw_curl_response}"
-        print(err)
-        return make_response({"message": err}, HTTPStatus.INTERNAL_SERVER_ERROR)
-
+    return {
+        # "statusCode": r.status_code,
+        # "body": r.text,
+        # "headers": r.headers,
+        # "success": True,
+        r: r
+    }
 
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/image_swap', methods=['POST'])
 def do_deployment_image_swap(namespace, deployment_name):
