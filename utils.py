@@ -89,4 +89,21 @@ def get_age_string_from_datetime(past_datetime):
     minutes = (seconds % 3600) // 60
     seconds = seconds % 60
 
-    return f"{days}d{hours}h{minutes}m{seconds}s"
+
+    result = ""
+    if days != 0 and hours == 0:
+        return f"{days}d"
+    elif days != 0 and hours != 0:
+        result = f"{days}d{hours}h"
+    elif hours != 0 and minutes == 0:
+        result = f"{hours}h"
+    elif hours != 0 and minutes != 0:
+        result = f"{hours}h{minutes}m"
+    elif minutes != 0 and seconds == 0:
+        result = f"{minutes}m"
+    elif minutes != 0 and seconds != 0:
+        result = f"{minutes}m{seconds}s"
+    else:
+        result = f"{seconds}s"
+
+    return result
