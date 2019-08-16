@@ -15,7 +15,7 @@ def create():
             containers=[
                 client.V1Container(
                     name="nectar-stuntpod-img",
-                    image="nginx",
+                    image="byrnedo/alpine-curl",
                 )
             ]
         )
@@ -36,17 +36,18 @@ def find():
 
 
 def wait_until_running():
-    running = None
-    attempts = 0
-    while running is None and attempts < 9:
+    run_state = None
+    for attempts in range(0, 3):
         pod = find()
-        attempts = 0 if pod is None else attempts
         state = pod.status.container_statuses[0].state
-        time.sleep(1)
-        pprint(state)
-        attempts += 1
-        running = state.running
-    return running is not None
+        run_state = state.running
+        if run_state is not None:
+            break
+        else:
+            time.sleep(1)
+            pprint(state)
+            attempts += 1
+    return run_state is not None
 
 
 def run_cmd(cmd):
@@ -61,7 +62,10 @@ def run_cmd(cmd):
         tty=False
     )
 
-# create()
+create()
 if wait_until_running():
-    print(run_cmd("ls"))
-    print(run_cmd(['curl', "http://www.google.com"]))
+    print(run_cmd(['curl', "10.0.31.65:3000"]))
+    coreV1.delete_namespaced_pod(
+        name="nectar-stuntpod",
+        namespace="default"
+    )
