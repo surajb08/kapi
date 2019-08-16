@@ -239,6 +239,33 @@ def run_curl_command(namespace, deployment_name):
         print(err)
         return make_response({"message": err}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
+@app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/http_request2', methods=['POST'])
+def run_curl_command2(namespace, deployment_name):
+    json_body = request.json
+    http_method = json_body["method"]
+    request_headers = json_body["headers"]
+    request_body = json_body["body"]
+    request_url = "http://" + json_body["to"] + json_body["path"]
+    print("GOING FOR " + request_url)
+    print("GOING FOR " + request_url)
+    print("GOING FOR " + request_url)
+    print("GOING FOR " + request_url)
+
+    # r = subprocess.Popen("curl " + request_url, shell=True, stdout=subprocess.PIPE).stdout.read()
+    r = os.popen("curl " + request_url).read()
+
+    # r = requests.get(url="")
+    print("GONNA RETURN")
+    print(r)
+
+    return {
+        # "statusCode": r.status_code,
+        # "body": r.text,
+        # "headers": r.headers,
+        # "success": True,
+        r: r
+    }
+
 @app.route('/api/namespaces/<namespace>/deployments/<deployment_name>/image_swap', methods=['POST'])
 def do_deployment_image_swap(namespace, deployment_name):
     json_body = request.json
