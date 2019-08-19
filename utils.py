@@ -26,9 +26,9 @@ def curl_params_to_curl_exec_command(request_host: str,
                                      timeout: str) -> List[str]:
     exec_command = ["curl",
                     "-i"]
-    for header_name, header_value in request_headers.items():
-        exec_command.append("--header")
-        exec_command.append(f'"{header_name}: {header_value}"')
+    # for header_name, header_value in request_headers.items():
+    #     exec_command.append("--header")
+    #     exec_command.append(f'"{header_name}: {header_value}"')
 
     exec_command.append("-X")
     exec_command.append(f'"{request_method}"')

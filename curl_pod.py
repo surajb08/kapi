@@ -13,8 +13,10 @@ def random_string(string_len=10):
 
 class CurlPod:
 
-  def __init__(self):
+  def __init__(self, request_url=None, exec_command=None, namespace="default"):
     self.pod_name = f"curl-pod-{random_string(4)}"
+    self.exec_command = exec_command or ["curl", request_url]
+    self.namespace = namespace
 
   def create(self):
     pod = client.V1Pod(
@@ -36,12 +38,12 @@ class CurlPod:
 
     return coreV1.create_namespaced_pod(
       body=pod,
-      namespace="default"
+      namespace=self.namespace
     )
 
   def find(self):
     response = coreV1.list_namespaced_pod(
-      'default',
+      self.namespace,
       field_selector=f"metadata.name={self.pod_name}"
     )
     return response.items[0]
@@ -64,7 +66,7 @@ class CurlPod:
     return stream(
       coreV1.connect_get_namespaced_pod_exec,
       self.pod_name,
-      "default",
+      self.namespace,
       command=cmd,
       stderr=False,
       stdin=False,
@@ -75,19 +77,23 @@ class CurlPod:
   def delete(self):
     coreV1.delete_namespaced_pod(
       name=self.pod_name,
-      namespace="default"
+      namespace=self.namespace
     )
 
   def play(self):
     self.create()
     if self.wait_until_running():
-      resp = self.run_cmd(['curl', "10.0.31.65:3000"])
+      print("SENDING ")
+      print(self.exec_command)
+      resp = self.run_cmd(self.exec_command)
       print(resp)
       self.delete()
+      return resp
     else:
       print(f"Pod {self.pod_name} not found running")
+      return None
 
 
-curler = CurlPod()
-print(f"My pod {curler.pod_name}")
-curler.play()
+# curler = CurlPod(request_url="10.0.31.65:3000", namespace="default")
+# print(f"My pod {curler.pod_name}")
+# curler.play()

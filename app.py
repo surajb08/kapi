@@ -17,7 +17,7 @@ import shlex
 import requests
 import subprocess
 
-
+from curl_pod import CurlPod
 from kube_deployment import get_deployment_details, delete_deployment_and_matching_services,\
     get_deployment_external_internal_endpoints,\
     run_curl_from_test_deployment, scale_to_zero_and_back, restart_image
@@ -205,7 +205,6 @@ CURL_TIMEOUT_SECONDS = "30"
 def run_curl_command(namespace, deployment_name):
     json_body = request.json
     http_method = json_body["method"]
-    request_path = json_body["path"]
     request_headers = json_body["headers"]
     request_body = json_body["body"]
     request_url = "http://" + json_body["to"] + json_body["path"]
@@ -213,7 +212,8 @@ def run_curl_command(namespace, deployment_name):
     exec_command = utils.curl_params_to_curl_exec_command(
         request_url, http_method, request_headers, request_body, CURL_TIMEOUT_SECONDS)
 
-    raw_curl_response = run_curl_from_test_deployment(namespace, CURL_RUNNER_DEPLOYMENT, exec_command)
+    curl_pod = CurlPod(request_url=request_url, namespace="default")
+    raw_curl_response = curl_pod.play()
 
     try:
         parsed_curl_response = utils.parse_curl_code_headers_body_output(raw_curl_response)
