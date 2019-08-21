@@ -1,6 +1,5 @@
 from kube_apis import coreV1, client, extensionsV1Beta
 import time
-from pprint import pprint
 from kubernetes.stream import stream
 import string
 import random
@@ -57,7 +56,6 @@ class CurlPod:
       if run_state is not None:
         break
       else:
-        pprint(state)
         time.sleep(1)
         attempts += 1
     return run_state is not None
@@ -83,10 +81,7 @@ class CurlPod:
   def play(self):
     self.create()
     if self.wait_until_running():
-      print("SENDING ")
-      print(self.exec_command)
       resp = self.run_cmd(self.exec_command)
-      print(resp)
       self.delete()
       return resp
     else:
