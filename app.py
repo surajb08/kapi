@@ -23,9 +23,6 @@ app.config["SECRET_KEY"] = "secret!"
 
 CORS(app)
 
-
-
-
 if __name__ == '__main__':
   app.config["cmd"] = ["bash"]
   app.run(host=HOST, debug=True, port=PORT)
