@@ -1,6 +1,11 @@
 from kubernetes import config, client
 
 
+class BrokerNotConnectedException(Exception):
+  def __init__(self, message, errors):
+    super().__init__(message)
+    self.errors = errors
+
 class KubeBroker:
 
   def __init__(self):
@@ -27,6 +32,10 @@ class KubeBroker:
     self.last_error = str(error) if not is_connected else None
     self.coreV1 = client.CoreV1Api() if is_connected else None
     self.appsV1Api = client.AppsV1Api() if is_connected else None
+
+  def check_connected(self):
+    if not self.is_connected:
+      raise BrokerNotConnectedException(self.last_error)
 
 broker = KubeBroker()
 broker.connect()
