@@ -1,4 +1,4 @@
-from kube_apis import coreV1, client, extensionsV1Beta
+from kube_broker import broker
 import time
 from kubernetes.stream import stream
 import string
@@ -18,15 +18,15 @@ class CurlPod:
     self.namespace = namespace
 
   def create(self):
-    pod = client.V1Pod(
+    pod = broker.client.V1Pod(
       api_version='v1',
-      metadata=client.V1ObjectMeta(
+      metadata=broker.client.V1ObjectMeta(
         name=self.pod_name,
         labels={"nectar-type": "stunt-pod"}
       ),
-      spec=client.V1PodSpec(
+      spec=broker.client.V1PodSpec(
         containers=[
-          client.V1Container(
+          broker.client.V1Container(
             name="nectar-stuntpod-img",
             image="xnectar/curler",
             image_pull_policy="Always"
@@ -35,13 +35,13 @@ class CurlPod:
       )
     )
 
-    return coreV1.create_namespaced_pod(
+    return broker.create_namespaced_pod(
       body=pod,
       namespace=self.namespace
     )
 
   def find(self):
-    response = coreV1.list_namespaced_pod(
+    response = broker.coreV1.list_namespaced_pod(
       self.namespace,
       field_selector=f"metadata.name={self.pod_name}"
     )
@@ -62,7 +62,7 @@ class CurlPod:
 
   def run_cmd(self, cmd):
     return stream(
-      coreV1.connect_get_namespaced_pod_exec,
+      broker.coreV1.connect_get_namespaced_pod_exec,
       self.pod_name,
       self.namespace,
       command=cmd,
@@ -73,7 +73,7 @@ class CurlPod:
     )
 
   def delete(self):
-    coreV1.delete_namespaced_pod(
+    broker.coreV1.delete_namespaced_pod(
       name=self.pod_name,
       namespace=self.namespace
     )

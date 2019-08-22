@@ -3,17 +3,10 @@ from flask import Flask, request, make_response, g
 from flask_cors import CORS
 from http import HTTPStatus
 
-import broker_controller
-import utils
+import deployments_controller
+import status_controller
 
-import os
-import select
-import termios
-import struct
-import fcntl
-import shlex
-
-from kube_apis import KubeBroker
+from kube_broker import KubeBroker
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -21,7 +14,8 @@ PORT = 5000
 broker = KubeBroker()
 
 app = Flask(__name__, static_folder=".", static_url_path="")
-app.register_blueprint(broker_controller.status_controller)
+app.register_blueprint(status_controller.controller)
+app.register_blueprint(deployments_controller.controller)
 
 app.config["SECRET_KEY"] = "secret!"
 

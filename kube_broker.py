@@ -1,4 +1,4 @@
-from kubernetes import config
+from kubernetes import config, client
 
 
 class KubeBroker:
@@ -6,6 +6,8 @@ class KubeBroker:
   def __init__(self):
     self.is_connected = False
     self.last_error = None
+    self.coreV1 = None
+    self.appsV1Api = None
 
   def connect(self):
     is_connected = False
@@ -23,3 +25,8 @@ class KubeBroker:
 
     self.is_connected = is_connected
     self.last_error = str(error) if not is_connected else None
+    self.coreV1 = client.CoreV1Api() if is_connected else None
+    self.appsV1Api = client.AppsV1Api() if is_connected else None
+
+broker = KubeBroker()
+broker.connect()
