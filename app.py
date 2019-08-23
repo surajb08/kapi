@@ -21,6 +21,7 @@ app.register_blueprint(services_controller.controller)
 
 @app.errorhandler(BrokerNotConnectedException)
 def handle_bad_request(error):
+  print("HANDLING THE EX")
   return {"type": "k8s_api_conn_failed", "reason": str(error)}, 500
 
 app.config["SECRET_KEY"] = "secret!"
