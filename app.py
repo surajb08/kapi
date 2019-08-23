@@ -7,7 +7,7 @@ import deployments_controller
 import services_controller
 import status_controller
 
-from kube_broker import KubeBroker
+from kube_broker import KubeBroker, BrokerNotConnectedException
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -18,6 +18,10 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 app.register_blueprint(status_controller.controller)
 app.register_blueprint(deployments_controller.controller)
 app.register_blueprint(services_controller.controller)
+
+@app.errorhandler(BrokerNotConnectedException)
+def handle_bad_request(error):
+  return {"type": "k8s_api_conn_failed", "reason": str(error)}, 500
 
 app.config["SECRET_KEY"] = "secret!"
 

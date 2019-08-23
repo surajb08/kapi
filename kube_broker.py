@@ -2,9 +2,8 @@ from kubernetes import config, client
 
 
 class BrokerNotConnectedException(Exception):
-  def __init__(self, message, errors):
+  def __init__(self, message):
     super().__init__(message)
-    self.errors = errors
 
 class KubeBroker:
 
@@ -35,7 +34,7 @@ class KubeBroker:
 
   def check_connected(self):
     if not self.is_connected:
-      raise BrokerNotConnectedException(self.last_error)
+      raise BrokerNotConnectedException(self.last_error or "unknown")
 
 broker = KubeBroker()
 broker.connect()
