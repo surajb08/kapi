@@ -12,6 +12,7 @@ def status():
 @controller.route('/api/status/connect')
 def connect():
   broker.connect()
+  broker.check_connected()
   return status_body()
 
 def status_body():
