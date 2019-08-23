@@ -41,9 +41,9 @@ class CurlPod:
     )
 
   def find(self):
-    response = broker.coreV1.list_namespaced_pod(
-      self.namespace,
-      field_selector=f"metadata.name={self.pod_name}"
+    response = broker.coreV1.read_namespaced_pod(
+      self.pod_name,
+      self.namespace
     )
     return response.items[0]
 
@@ -66,10 +66,7 @@ class CurlPod:
       self.pod_name,
       self.namespace,
       command=cmd,
-      stderr=False,
-      stdin=False,
-      stdout=True,
-      tty=False
+      stderr=False
     )
 
   def delete(self):
