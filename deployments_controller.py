@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Blueprint
+from flask import Blueprint, request
 
 from kube_broker import broker
 
@@ -10,7 +10,7 @@ controller = Blueprint('deployments_controller', __name__)
 def across_namespaces():
   broker.check_connected()
   dump = broker.appsV1Api.list_deployment_for_all_namespaces().items
-  dump = list(filter(lambda d: d.metadata.namespace != 'kube-system', dump))
+  # dump = list(filter(lambda d: d.metadata.namespace != 'kube-system', dump))
   min_dep = lambda d: {"name": d.metadata.name, "namespace": d.metadata.namespace}
   serialized = list(map(min_dep, dump))
   unique_names = set(map(lambda d: d['name'], serialized))
@@ -25,3 +25,9 @@ def across_namespaces():
     })
 
   return { "data": output }
+
+@controller.route('/api/deployments/filter')
+def filtered():
+  username = request.args.get('username')
+  return 3
+
