@@ -17,23 +17,42 @@ class DepHelper:
     return list(filter(lambda x: x.spec.selector == match_labels, returned_services.items))
 
   @staticmethod
-  def ns_whitelist(whitelist, deps = None):
+  def ns_whitelist(whitelist, deps):
     disc = lambda d: d.metadata.namespace in whitelist
     return list(filter(disc, deps))
 
   @staticmethod
-  def ns_blacklist(blacklist, deps = None):
+  def ns_blacklist(blacklist, deps):
     disc = lambda d: d.metadata.namespace not in blacklist
     return list(filter(disc, deps))
 
   @staticmethod
   def ns_filter(filters, _type='whitelist'):
     deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
-    # print(deps)
     method = DepHelper.ns_whitelist if _type == 'whitelist' else DepHelper.ns_blacklist
     return method(filters, deps)
 
-# broker.connect()
-# res = DepHelper.ns_filter(['kube-system', None], "blacklist")
-# print(res)
-# print(len(res))
+  @staticmethod
+  def label_whitelist(whitelist, deps):
+    lm = lambda d: d.spec.selector.match_labels.items() <= whitelist.items()
+    return list(filter(lm, deps))
+
+  @staticmethod
+  def label_blacklist(whitelist, deps):
+    lm = lambda d: not d.spec.selector.match_labels.items() <= whitelist.items()
+    return list(filter(lm, deps))
+
+  @staticmethod
+  def label_filter(filters, _type='whitelist', deps=None):
+    if deps is None:
+      deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
+    method = DepHelper.label_whitelist if _type == 'whitelist' else DepHelper.label_blacklist
+    return method(filters, deps)
+
+  @staticmethod
+  def simple_ser(deployment):
+    return {
+      "name": deployment.metadata.name,
+      "namespace": deployment.metadata.namespace,
+      "labels": deployment.spec.selectors.match_labels
+    }

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from flask import Blueprint, request
 
+from dep_helper import DepHelper
 from kube_broker import broker
+from utils import Utils
 
 controller = Blueprint('deployments_controller', __name__)
 
@@ -10,7 +12,7 @@ controller = Blueprint('deployments_controller', __name__)
 def across_namespaces():
   broker.check_connected()
   dump = broker.appsV1Api.list_deployment_for_all_namespaces().items
-  # dump = list(filter(lambda d: d.metadata.namespace != 'kube-system', dump))
+  dump = list(filter(lambda d: d.metadata.namespace != 'kube-system', dump))
   min_dep = lambda d: {"name": d.metadata.name, "namespace": d.metadata.namespace}
   serialized = list(map(min_dep, dump))
   unique_names = set(map(lambda d: d['name'], serialized))
@@ -28,6 +30,22 @@ def across_namespaces():
 
 @controller.route('/api/deployments/filter')
 def filtered():
-  username = request.args.get('username')
-  return 3
+  ns_filter = request.args.getList('ns_filter')
+  ns_filter_type = request.args.get('ns_filter_type')
+
+  lb_filter = Utils.parse_dict(request.args.get('lb_filter'))
+  lb_filter_type = request.args.get('lb_filter_type')
+
+  print(ns_filter)
+  print(ns_filter_type)
+
+  print(lb_filter)
+  print(lb_filter_type)
+
+  ns_filtered = DepHelper.ns_filter(ns_filter, ns_filter_type)
+  lb_filtered = DepHelper.label_filter(lb_filter, lb_filter_type, ns_filtered)
+
+  result = list(map(DepHelper.simple_ser, lb_filtered))
+
+  return { "data": "lol" }
 
