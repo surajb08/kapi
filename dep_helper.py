@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 from kube_broker import broker
+from pod_helper import PodHelper
+from svc_helper import SvcHelper
 from utils import Utils
-
 
 class DepHelper:
   @staticmethod
@@ -11,12 +12,6 @@ class DepHelper:
       namespace=namespace,
       name=name
     )
-
-  @staticmethod
-  def services(deployment):
-    match_labels = deployment.spec.selector.match_labels
-    returned_services = broker.coreV1.list_service_for_all_namespaces()
-    return list(filter(lambda x: x.spec.selector == match_labels, returned_services.items))
 
   @staticmethod
   def ns_whitelist(whitelist, deps):
@@ -57,6 +52,10 @@ class DepHelper:
     # return DepHelper.lb_filter(deps, lb_filters, lb_filter_type)
 
   @staticmethod
+  def easy():
+    return broker.appsV1Api.list_namespaced_deployment(namespace='default').items
+
+  @staticmethod
   def simple_ser(dep):
     containers = dep.spec.template.spec.containers
     return {
@@ -64,14 +63,34 @@ class DepHelper:
       "namespace": dep.metadata.namespace,
       "labels": dep.spec.selector.match_labels,
       "std_container_count": len(containers) == 1,
-      "image_name": containers[0] and containers[0].image,
-      "image_pull_policy": containers[0] and containers[0].image_pull_policy
+      "image_name": Utils.try_or(lambda: containers[0].image),
+      "image_pull_policy": Utils.try_or(lambda: containers[0].image_pull_policy)
     }
 
   @staticmethod
-  def complex_ser(deployment):
-    return {
+  def full_list(deps):
+    all_pods = broker.coreV1.list_pod_for_all_namespaces().items
+    all_svc = broker.coreV1.list_service_for_all_namespaces().items
+    merger = lambda d: DepHelper.assoc_deps_pods_svc(d, all_pods, all_svc)
+    merged = list(map(merger, deps))
+    return list(map(DepHelper.complex_ser, merged))
 
+  @staticmethod
+  def assoc_deps_pods_svc(dep, all_pods, all_svcs):
+    assoc_pods = PodHelper.pods_for_dep(dep.metadata.name, all_pods)
+    assoc_svc = SvcHelper.svcs_for_dep(dep, all_svcs)
+    return {
+      "dep": dep,
+      "pods": assoc_pods,
+      "svcs": assoc_svc
     }
 
-
+  # noinspection PyTypeChecker
+  @staticmethod
+  def complex_ser(bundle):
+    base = DepHelper.simple_ser(bundle['dep'])
+    child_nodes = {
+      'pods': list(map(PodHelper.child_ser, bundle['pods'])),
+      'services': list(map(SvcHelper.child_ser, bundle['svcs'])),
+    }
+    return dict(list(base.items()) + list(child_nodes.items()))

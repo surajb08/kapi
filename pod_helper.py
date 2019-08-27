@@ -6,16 +6,9 @@ class PodHelper:
   POD_REGEX = "-([\w]{5,10})-([\w]{5,10})"
 
   @staticmethod
-  def pods_for_deps(deps):
+  def pods_for_dep(dep_name, pods):
     broker.check_connected()
-    pods = broker.coreV1.list_pod_for_all_namespaces().items
-    lm = lambda d: {'dep': d, 'pods': PodHelper.pods_for_dep(d, pods)}
-    return list(map(lm, deps))
-
-  @staticmethod
-  def pods_for_dep(dep, pods):
-    broker.check_connected()
-    target_regex = f"^{dep.metadata.name}{PodHelper.POD_REGEX}$"
+    target_regex = f"^{dep_name}{PodHelper.POD_REGEX}$"
 
     def finder(pod):
       re_result = re.search(target_regex, pod.metadata.name)
@@ -36,7 +29,7 @@ class PodHelper:
       return None
 
   @staticmethod
-  def deployment_ser(pod):
+  def child_ser(pod):
     return {
       "name": pod.metadata.name,
       "state": pod.spec.containers[0].image

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 from flask import Flask, request, make_response, g
 from flask_cors import CORS
-from pod_helper import PodHelper
 
 import cluster_controller
 import deployments_controller
-import services_controller
 import status_controller
 
 from kube_broker import KubeBroker, BrokerNotConnectedException
@@ -18,16 +16,16 @@ broker = KubeBroker()
 app = Flask(__name__, static_folder=".", static_url_path="")
 app.register_blueprint(status_controller.controller)
 app.register_blueprint(deployments_controller.controller)
-app.register_blueprint(services_controller.controller)
 app.register_blueprint(cluster_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():
-  return {'broker': broker, 'ph': PodHelper}
+  from pod_helper import PodHelper
+  from dep_helper import DepHelper
+  return {'broker': broker, 'ph': PodHelper, 'dh': DepHelper}
 
 @app.errorhandler(BrokerNotConnectedException)
 def handle_bad_request(error):
-  print("HANDLING THE EX")
   return {"type": "k8s_api_conn_failed", "reason": str(error)}, 500
 
 app.config["SECRET_KEY"] = "secret!"
