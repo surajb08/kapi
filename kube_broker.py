@@ -31,9 +31,13 @@ class KubeBroker:
     self.last_error = str(error) if not is_connected else None
     self.coreV1 = client.CoreV1Api() if is_connected else None
     self.appsV1Api = client.AppsV1Api() if is_connected else None
+    return is_connected
 
-  def check_connected(self):
+  def check_connected(self, attempt=True):
     if not self.is_connected:
+      if attempt:
+        if self.connect():
+          return
       raise BrokerNotConnectedException(self.last_error or "unknown")
 
 broker = KubeBroker()

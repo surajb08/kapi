@@ -28,12 +28,15 @@ def across_namespaces():
 
   return { "data": output }
 
-@controller.route('/api/deployments/filter')
+@controller.route('/api/deployments/filtered')
 def filtered():
-  ns_filter = request.args.getList('ns_filter')
+
+  print(request.args)
+
+  ns_filter = request.args.get('ns_filters', default='').split(',')
   ns_filter_type = request.args.get('ns_filter_type')
 
-  lb_filter = Utils.parse_dict(request.args.get('lb_filter'))
+  lb_filter = Utils.parse_dict(request.args.get('lb_filters', default=''))
   lb_filter_type = request.args.get('lb_filter_type')
 
   print(ns_filter)
@@ -42,10 +45,10 @@ def filtered():
   print(lb_filter)
   print(lb_filter_type)
 
-  ns_filtered = DepHelper.ns_filter(ns_filter, ns_filter_type)
-  lb_filtered = DepHelper.label_filter(lb_filter, lb_filter_type, ns_filtered)
+  filtered_deps = DepHelper.ns_filter(ns_filter, ns_filter_type)
+  # lb_filtered = DepHelper.label_filter(lb_filter, lb_filter_type, ns_filtered)
+  #
+  result = list(map(DepHelper.simple_ser, filtered_deps))
 
-  result = list(map(DepHelper.simple_ser, lb_filtered))
-
-  return { "data": "lol" }
+  return { "data": result }
 

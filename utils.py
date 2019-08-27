@@ -11,8 +11,12 @@ class Utils:
 
   @staticmethod
   def parse_dict(string):
-    result_dict = {}
-    for encoded_dict in string.split(','):
-      [key, value] = encoded_dict.split(':')
-      result_dict[key] = value
-    return result_dict
+    if string:
+      result_dict = {}
+      for encoded_dict in string.split(','):
+        [key, value] = encoded_dict.split(':')
+        result_dict[key] = value
+      return result_dict
+    else:
+      return {}
+

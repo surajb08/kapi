@@ -27,8 +27,7 @@ class DepHelper:
     return list(filter(disc, deps))
 
   @staticmethod
-  def ns_filter(filters, _type='whitelist'):
-    deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
+  def ns_filter(deps, filters, _type='whitelist'):
     method = DepHelper.ns_whitelist if _type == 'whitelist' else DepHelper.ns_blacklist
     return method(filters, deps)
 
@@ -43,16 +42,22 @@ class DepHelper:
     return list(filter(lm, deps))
 
   @staticmethod
-  def label_filter(filters, _type='whitelist', deps=None):
+  def lb_filter(filters, _type='whitelist', deps=None):
     if deps is None:
       deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
     method = DepHelper.label_whitelist if _type == 'whitelist' else DepHelper.label_blacklist
     return method(filters, deps)
 
   @staticmethod
+  def ns_lb_filter(ns_filters, ns_filter_type, lb_filters, lb_filter_type):
+    deps = broker.appsV1Api.list_deployment_for_all_namespaces().items()
+    deps = DepHelper.ns_filter(deps, ns_filters, ns_filter_type)
+    return DepHelper.lb_filter(deps, lb_filters, lb_filter_type)
+
+  @staticmethod
   def simple_ser(deployment):
     return {
       "name": deployment.metadata.name,
       "namespace": deployment.metadata.namespace,
-      "labels": deployment.spec.selectors.match_labels
+      "labels": deployment.spec.selector.match_labels
     }
