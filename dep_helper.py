@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from kube_broker import broker
+from utils import Utils
+
 
 class DepHelper:
   @staticmethod
@@ -51,13 +53,25 @@ class DepHelper:
   @staticmethod
   def ns_lb_filter(ns_filters, ns_filter_type, lb_filters, lb_filter_type):
     deps = broker.appsV1Api.list_deployment_for_all_namespaces().items()
-    deps = DepHelper.ns_filter(deps, ns_filters, ns_filter_type)
-    return DepHelper.lb_filter(deps, lb_filters, lb_filter_type)
+    return DepHelper.ns_filter(deps, ns_filters, ns_filter_type)
+    # return DepHelper.lb_filter(deps, lb_filters, lb_filter_type)
 
   @staticmethod
-  def simple_ser(deployment):
+  def simple_ser(dep):
+    containers = dep.spec.template.spec.containers
     return {
-      "name": deployment.metadata.name,
-      "namespace": deployment.metadata.namespace,
-      "labels": deployment.spec.selector.match_labels
+      "name": dep.metadata.name,
+      "namespace": dep.metadata.namespace,
+      "labels": dep.spec.selector.match_labels,
+      "std_container_count": len(containers) == 1,
+      "image_name": containers[0] and containers[0].image,
+      "image_pull_policy": containers[0] and containers[0].image_pull_policy
     }
+
+  @staticmethod
+  def complex_ser(deployment):
+    return {
+
+    }
+
+

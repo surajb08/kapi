@@ -35,3 +35,9 @@ class PodHelper:
       print(f"Found {len(matches)} matches for {target_pod_lbs}!")
       return None
 
+  @staticmethod
+  def deployment_ser(pod):
+    return {
+      "name": pod.metadata.name,
+      "state": pod.spec.containers[0].image
+    }
