@@ -30,25 +30,31 @@ def across_namespaces():
 
 @controller.route('/api/deployments/filtered')
 def filtered():
-
-  print(request.args)
-
-  ns_filter = request.args.get('ns_filters', default='').split(',')
-  ns_filter_type = request.args.get('ns_filter_type')
-
-  lb_filter = Utils.parse_dict(request.args.get('lb_filters', default=''))
-  lb_filter_type = request.args.get('lb_filter_type')
-
-  print(ns_filter)
-  print(ns_filter_type)
-
-  print(lb_filter)
-  print(lb_filter_type)
-
-  filtered_deps = DepHelper.ns_filter(ns_filter, ns_filter_type)
-  # lb_filtered = DepHelper.label_filter(lb_filter, lb_filter_type, ns_filtered)
-  #
-  result = list(map(DepHelper.simple_ser, filtered_deps))
-
+  broker.check_connected()
+  result = list(map(DepHelper.simple_ser, params_to_deps()))
   return { "data": result }
 
+@controller.route('/api/deployments')
+def index():
+  broker.check_connected()
+  deps = params_to_deps()
+
+  if request.args.get('full') == 'true':
+    payload = DepHelper.full_list(deps)
+  else:
+    payload = list(map(DepHelper.simple_ser, params_to_deps()))
+  return { 'data': payload }
+
+def params_to_deps():
+  ns_filters = request.args.get('ns_filters', default='default').split(',')
+  ns_filter_type = request.args.get('ns_filter_type', default='whitelist')
+
+  lb_filters = Utils.parse_dict(request.args.get('lb_filters', default=''))
+  lb_filter_type = request.args.get('lb_filter_type', default='blacklist')
+
+  return DepHelper.ns_lb_filter(
+    ns_filters,
+    ns_filter_type,
+    lb_filters,
+    lb_filter_type
+  )

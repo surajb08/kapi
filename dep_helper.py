@@ -47,13 +47,31 @@ class DepHelper:
 
   @staticmethod
   def ns_lb_filter(ns_filters, ns_filter_type, lb_filters, lb_filter_type):
-    deps = broker.appsV1Api.list_deployment_for_all_namespaces().items()
+    deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
     return DepHelper.ns_filter(deps, ns_filters, ns_filter_type)
     # return DepHelper.lb_filter(deps, lb_filters, lb_filter_type)
 
   @staticmethod
   def easy():
     return broker.appsV1Api.list_namespaced_deployment(namespace='default').items
+
+  @staticmethod
+  def full_list(deps):
+    all_pods = broker.coreV1.list_pod_for_all_namespaces().items
+    all_svc = broker.coreV1.list_service_for_all_namespaces().items
+    assoc_er = lambda d: DepHelper.assoc_deps_pods_svc(d, all_pods, all_svc)
+    assoc_ed = list(map(assoc_er, deps))
+    return list(map(DepHelper.complex_ser, assoc_ed))
+
+  @staticmethod
+  def assoc_deps_pods_svc(dep, all_pods, all_svcs):
+    assoc_pods = PodHelper.pods_for_dep(dep.metadata.name, all_pods)
+    assoc_svc = SvcHelper.svcs_for_dep(dep, all_svcs)
+    return {
+      "dep": dep,
+      "pods": assoc_pods,
+      "svcs": assoc_svc
+    }
 
   @staticmethod
   def simple_ser(dep):
@@ -65,24 +83,6 @@ class DepHelper:
       "std_container_count": len(containers) == 1,
       "image_name": Utils.try_or(lambda: containers[0].image),
       "image_pull_policy": Utils.try_or(lambda: containers[0].image_pull_policy)
-    }
-
-  @staticmethod
-  def full_list(deps):
-    all_pods = broker.coreV1.list_pod_for_all_namespaces().items
-    all_svc = broker.coreV1.list_service_for_all_namespaces().items
-    merger = lambda d: DepHelper.assoc_deps_pods_svc(d, all_pods, all_svc)
-    merged = list(map(merger, deps))
-    return list(map(DepHelper.complex_ser, merged))
-
-  @staticmethod
-  def assoc_deps_pods_svc(dep, all_pods, all_svcs):
-    assoc_pods = PodHelper.pods_for_dep(dep.metadata.name, all_pods)
-    assoc_svc = SvcHelper.svcs_for_dep(dep, all_svcs)
-    return {
-      "dep": dep,
-      "pods": assoc_pods,
-      "svcs": assoc_svc
     }
 
   # noinspection PyTypeChecker
