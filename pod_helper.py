@@ -1,5 +1,7 @@
 import re
 from kube_broker import broker
+from utils import Utils
+
 
 class PodHelper:
 
@@ -30,7 +32,9 @@ class PodHelper:
 
   @staticmethod
   def child_ser(pod):
+    container = Utils.try_or(lambda: pod.status)
     return {
       "name": pod.metadata.name,
-      "state": pod.spec.containers[0].image
+      "state": Utils.try_or(lambda: pod.status.phase),
+      "ip": Utils.try_or(lambda: pod.status.pod_ip)
     }
