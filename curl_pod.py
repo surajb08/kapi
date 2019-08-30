@@ -12,10 +12,25 @@ def random_string(string_len=10):
 
 class CurlPod:
 
-  def __init__(self, request_url=None, exec_command=None, namespace="default"):
+  def __init__(self, **kwargs):
     self.pod_name = f"curl-pod-{random_string(4)}"
-    self.exec_command = exec_command or ["curl", request_url]
-    self.namespace = namespace
+    self.exec_command = CurlPod.build_curl_cmd(**kwargs)
+    self.namespace = kwargs['namespace']
+
+  @staticmethod
+  def build_curl_cmd(**params):
+    raw_headers = params.get('headers', {})
+    headers = [f"{0}: {1}".format(k, v) for k, v in raw_headers]
+    body = params.get('body', None)
+
+    cmd = [
+      "curl",
+      f"-X {params.get('verb', 'GET')}",
+      f"-H {headers}" if bool(headers) else None,
+      f"-d {body}" if body else None,
+      f"{params['target_url']}"
+    ]
+    return list(filter(lambda p: p is not None, cmd))
 
   def create(self):
     pod = broker.client.V1Pod(

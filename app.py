@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask, request, make_response, g
 from flask_cors import CORS
-
 import cluster_controller
 import deployments_controller
 import status_controller
@@ -22,7 +21,8 @@ app.register_blueprint(cluster_controller.controller)
 def make_shell_context():
   from pod_helper import PodHelper
   from dep_helper import DepHelper
-  return {'broker': broker, 'ph': PodHelper, 'dh': DepHelper}
+  from curl_pod import CurlPod
+  return {'broker': broker, 'ph': PodHelper, 'dh': DepHelper, 'cp': CurlPod}
 
 @app.errorhandler(BrokerNotConnectedException)
 def handle_bad_request(error):

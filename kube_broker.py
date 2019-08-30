@@ -1,3 +1,4 @@
+import os
 from kubernetes import config, client
 
 
@@ -32,6 +33,13 @@ class KubeBroker:
     self.coreV1 = client.CoreV1Api() if is_connected else None
     self.appsV1Api = client.AppsV1Api() if is_connected else None
     return is_connected
+
+  def dev_config(self):
+    configuration = client.Configuration()
+    configuration.api_key["authorization"] = os.environ.get('DEV_K8S_AUTH')
+    configuration.api_key_prefix['authorization'] = 'Bearer'
+    configuration.host = '34.68.10.10'
+    configuration.ssl_ca_cert = '/home/xavier/Documents/dev_cluster_cert'
 
   def check_connected(self, attempt=True):
     if not self.is_connected:
