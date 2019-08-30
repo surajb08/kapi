@@ -27,9 +27,9 @@ class CurlPod:
 
     cmd = [
       "curl",
-      # f"-X {params.get('verb', 'GET')}",
-      # f"-H {headers}" if bool(headers) else None,
-      # f"-d {body}" if body else None,
+      '-X', f"{params.get('verb', 'GET')}",
+      '-H', f"{headers}",
+      '-d' if body else None, f"{body}" if body else None,
       f"{params['target_url']}"
     ]
     return list(filter(lambda p: p is not None, cmd))
