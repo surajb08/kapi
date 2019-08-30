@@ -27,9 +27,9 @@ class CurlPod:
 
     cmd = [
       "curl",
-      f"-X {params.get('verb', 'GET')}",
-      f"-H {headers}" if bool(headers) else None,
-      f"-d {body}" if body else None,
+      # f"-X {params.get('verb', 'GET')}",
+      # f"-H {headers}" if bool(headers) else None,
+      # f"-d {body}" if body else None,
       f"{params['target_url']}"
     ]
     return list(filter(lambda p: p is not None, cmd))
@@ -87,7 +87,10 @@ class CurlPod:
       self.pod_name,
       self.namespace,
       command=cmd,
-      stderr=False
+      stderr=False,
+      stdin=False,
+      stdout=True,
+      tty=False
     )
 
   def delete(self):
@@ -98,8 +101,11 @@ class CurlPod:
 
   def play(self):
     broker.connect()
+    CurlPod.cleanup() #TODO REMOVE ME WHEN DONE DEBUGGING
     self.create()
     if self.wait_until_running():
+      time.sleep(3)
+      print(f"Going in with {self.exec_command}")
       resp = self.run_cmd(self.exec_command)
       self.delete()
       return resp
@@ -118,7 +124,7 @@ class CurlPod:
       names.append(pod.metadata.name)
       broker.coreV1.delete_namespaced_pod(
         name=pod.metadata.name,
-         namespace=pod.metadata.namespace
+        namespace=pod.metadata.namespace
       )
     print(f"Killed following pods: {names}")
     return len(names)
