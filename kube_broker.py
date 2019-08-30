@@ -13,6 +13,7 @@ class KubeBroker:
     self.last_error = None
     self.coreV1 = None
     self.appsV1Api = None
+    self.client = None
 
   def connect(self):
     is_connected = False
@@ -30,6 +31,7 @@ class KubeBroker:
 
     self.is_connected = is_connected
     self.last_error = str(error) if not is_connected else None
+    self.client = client if is_connected else None
     self.coreV1 = client.CoreV1Api() if is_connected else None
     self.appsV1Api = client.AppsV1Api() if is_connected else None
     return is_connected

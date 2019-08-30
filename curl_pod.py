@@ -1,3 +1,5 @@
+from kubernetes.client.rest import ApiException
+
 from kube_broker import broker
 import time
 from kubernetes.stream import stream
@@ -15,7 +17,7 @@ class CurlPod:
   def __init__(self, **kwargs):
     self.pod_name = f"curl-pod-{random_string(4)}"
     self.exec_command = CurlPod.build_curl_cmd(**kwargs)
-    self.namespace = kwargs['namespace']
+    self.namespace = kwargs.get('namespace', 'default')
 
   @staticmethod
   def build_curl_cmd(**params):
@@ -50,25 +52,28 @@ class CurlPod:
       )
     )
 
-    return broker.create_namespaced_pod(
+    return broker.coreV1.create_namespaced_pod(
       body=pod,
       namespace=self.namespace
     )
 
   def find(self):
-    response = broker.coreV1.read_namespaced_pod(
-      self.pod_name,
-      self.namespace
-    )
-    return response.items[0]
+    try:
+      return broker.coreV1.read_namespaced_pod(
+        self.pod_name,
+        self.namespace
+      )
+    except ApiException as r:
+      return None
 
   def wait_until_running(self):
     run_state = None
     for attempts in range(0, 10):
       pod = self.find()
-      state = pod.status.container_statuses[0].state
-      run_state = state.running
-      if run_state is not None:
+      print(f"FOUND POD it {attempts}")
+      if pod:
+        print(pod.status.phase)
+      if pod and pod.status.phase == 'Running':
         break
       else:
         time.sleep(1)
@@ -91,6 +96,7 @@ class CurlPod:
     )
 
   def play(self):
+    broker.connect()
     self.create()
     if self.wait_until_running():
       resp = self.run_cmd(self.exec_command)
@@ -104,3 +110,4 @@ class CurlPod:
 # curler = CurlPod(request_url="10.0.31.65:3000", namespace="default")
 # print(f"My pod {curler.pod_name}")
 # curler.play()
+
