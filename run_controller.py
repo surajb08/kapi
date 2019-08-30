@@ -12,4 +12,4 @@ def run_curl_command():
   print(f"The thing {j_body}")
   curl_pod = CurlPod(**j_body)
   raw_curl_response = curl_pod.play()
-  return {'response': raw_curl_response}
+  return {'data': raw_curl_response}
