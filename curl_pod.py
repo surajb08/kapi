@@ -67,18 +67,19 @@ class CurlPod:
       return None
 
   def wait_until_running(self):
-    run_state = None
+    pod_ready = False
     for attempts in range(0, 10):
       pod = self.find()
       print(f"FOUND POD it {attempts}")
       if pod:
         print(pod.status.phase)
       if pod and pod.status.phase == 'Running':
+        pod_ready = True
         break
       else:
         time.sleep(1)
         attempts += 1
-    return run_state is not None
+    return pod_ready is not None
 
   def run_cmd(self, cmd):
     return stream(
@@ -106,8 +107,18 @@ class CurlPod:
       print(f"Pod {self.pod_name} not found running")
       return None
 
+  @staticmethod
+  def cleanup():
+    victims = broker.coreV1.list_pod_for_all_namespaces(
+      label_selector='nectar-type=stunt-pod'
+    ).items
 
-# curler = CurlPod(request_url="10.0.31.65:3000", namespace="default")
-# print(f"My pod {curler.pod_name}")
-# curler.play()
-
+    names = []
+    for pod in victims:
+      names.append(pod.metadata.name)
+      broker.coreV1.delete_namespaced_pod(
+        name=pod.metadata.name,
+         namespace=pod.metadata.namespace
+      )
+    print(f"Killed following pods: {names}")
+    return len(names)
