@@ -3,6 +3,7 @@ from flask import Flask, request, make_response, g
 from flask_cors import CORS
 import cluster_controller
 import deployments_controller
+import run_controller
 import status_controller
 
 from kube_broker import KubeBroker, BrokerNotConnectedException
@@ -16,6 +17,7 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 app.register_blueprint(status_controller.controller)
 app.register_blueprint(deployments_controller.controller)
 app.register_blueprint(cluster_controller.controller)
+app.register_blueprint(run_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():

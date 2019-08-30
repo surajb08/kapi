@@ -30,7 +30,7 @@ class CurlPod:
       '-X', f"{params.get('verb', 'GET')}",
       '-H', f"{headers}",
       '-d' if body else None, f"{body}" if body else None,
-      f"{params['target_url']}"
+      f"{params['url']}"
     ]
     return list(filter(lambda p: p is not None, cmd))
 
