@@ -5,6 +5,7 @@ import time
 from kubernetes.stream import stream
 import string
 import random
+import re
 
 HEADER_BODY_DELIM = "\r\n\r\n"
 
@@ -114,15 +115,22 @@ class CurlPod:
       print(f"Could not find or create curl pod {self.pod_name}")
       return None
 
+  @staticmethod
+  def parse_status(header):
+    out = re.search('HTTP/(\d*)\.(\d*) (\d*) .*', header)
+    return out.group(3)
+
   def parse_response(self, response):
     parts = response.split(HEADER_BODY_DELIM)
     headers = parts[0].split("\r\n")
     body_parts = parts[1:len(parts)]
     body = body_parts[0]
+
     return {
+      "raw": response,
       "headers": headers,
       "body": body,
-      "status": 200
+      "status": CurlPod.parse_status(headers[0])
     }
 
   @staticmethod
@@ -148,4 +156,4 @@ class CurlPod:
       url="http://10.0.20.109:80"
     )
     out = curler.run()
-    # print(f"OUT {out}")
+    print(out['status'])
