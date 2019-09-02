@@ -44,9 +44,13 @@ class KubeBroker:
       configuration = client.Configuration()
       configuration.host="https://34.68.10.10"
       configuration.verify_ssl = False
-      configuration.debug = True
+      configuration.debug = False
       configuration.api_key = { "authorization" : f"Bearer {user_token}" }
       client.Configuration.set_default(configuration)
+
+      import urllib3
+      urllib3.disable_warnings()
+
       return True
     except Exception as e:
       self.last_error = e

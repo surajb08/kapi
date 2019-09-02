@@ -7,9 +7,7 @@ controller = Blueprint('run_controller', __name__)
 
 @controller.route('/api/run/curl', methods=['POST'])
 def run_curl_command():
-  print(f"Untouched {request}")
   j_body = request.json
-  print(f"The thing {j_body}")
-  curl_pod = CurlPod(**j_body)
-  raw_curl_response = curl_pod.play()
+  curl_pod = CurlPod(**j_body, pod_name="curl-man", delete_after=False)
+  raw_curl_response = curl_pod.run()
   return {'data': raw_curl_response}

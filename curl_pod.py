@@ -6,6 +6,7 @@ from kubernetes.stream import stream
 import string
 import random
 
+HEADER_BODY_DELIM = "\r\n\r\n"
 
 def random_string(string_len=10):
   letters = string.ascii_lowercase
@@ -15,9 +16,10 @@ def random_string(string_len=10):
 class CurlPod:
 
   def __init__(self, **kwargs):
-    self.pod_name = f"curl-pod-{random_string(4)}"
+    self.pod_name = kwargs.get('pod_name', f"curl-pod-{random_string(4)}")
+    self.delete_after = kwargs.get('delete_after', True)
+    self.namespace = kwargs.get('namespace', 'nectar')
     self.exec_command = CurlPod.build_curl_cmd(**kwargs)
-    self.namespace = kwargs.get('namespace', 'default')
 
   @staticmethod
   def build_curl_cmd(**params):
@@ -26,7 +28,7 @@ class CurlPod:
     body = params.get('body', None)
 
     cmd = [
-      "curl",
+      "curl", "-s","-i",
       '-X', f"{params.get('verb', 'GET')}",
       '-H', f"{headers}",
       '-d' if body else None, f"{body}" if body else None,
@@ -70,15 +72,14 @@ class CurlPod:
     pod_ready = False
     for attempts in range(0, 10):
       pod = self.find()
-      print(f"FOUND POD it {attempts}")
-      if pod:
-        print(pod.status.phase)
       if pod and pod.status.phase == 'Running':
         pod_ready = True
         break
       else:
-        time.sleep(1)
+        time.sleep(0.5)
         attempts += 1
+        print(f"pod/{self.namespace}/{self.pod_name} nf {attempts}/10")
+
     return pod_ready is not None
 
   def run_cmd(self, cmd):
@@ -99,19 +100,30 @@ class CurlPod:
       namespace=self.namespace
     )
 
-  def play(self):
-    broker.connect()
-    CurlPod.cleanup() #TODO REMOVE ME WHEN DONE DEBUGGING
+  def create_and_wait(self):
     self.create()
-    if self.wait_until_running():
-      time.sleep(3)
-      print(f"Going in with {self.exec_command}")
-      resp = self.run_cmd(self.exec_command)
-      self.delete()
-      return resp
+    return self.wait_until_running()
+
+  def run(self):
+    broker.connect()
+    if self.find() or self.create_and_wait():
+      response = self.run_cmd(self.exec_command)
+      self.delete() if self.delete_after else None
+      return self.parse_response(response)
     else:
-      print(f"Pod {self.pod_name} not found running")
+      print(f"Could not find or create curl pod {self.pod_name}")
       return None
+
+  def parse_response(self, response):
+    parts = response.split(HEADER_BODY_DELIM)
+    headers = parts[0].split("\r\n")
+    body_parts = parts[1:len(parts)]
+    body = body_parts[0]
+    return {
+      "headers": headers,
+      "body": body,
+      "status": 200
+    }
 
   @staticmethod
   def cleanup():
@@ -126,5 +138,14 @@ class CurlPod:
         name=pod.metadata.name,
         namespace=pod.metadata.namespace
       )
-    print(f"Killed following pods: {names}")
     return len(names)
+
+  @staticmethod
+  def play():
+    curler = CurlPod(
+      pod_name="curl-man",
+      delete_after=False,
+      url="http://10.0.20.109:80"
+    )
+    out = curler.run()
+    # print(f"OUT {out}")
