@@ -29,10 +29,11 @@ class CurlPod:
     body = params.get('body', None)
 
     cmd = [
-      "curl", "-s","-i", "-m", "4"
+      "curl", "-s","-i",
       '-X', params.get('verb', 'GET'),
       '-H', headers,
       '-d' if body else None, body if body else None,
+      "--connect-timeout", "1",
       params['url']
     ]
     return list(filter(lambda p: p is not None, cmd))
@@ -168,7 +169,7 @@ class CurlPod:
     curler = CurlPod(
       pod_name="curl-man",
       delete_after=False,
-      url="10.0.20.109:81"
+      url="10.0.20.109:80"
     )
     out = curler.run()
     print(out['status'])
