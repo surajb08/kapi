@@ -6,6 +6,7 @@ import deployments_controller
 import run_controller
 import status_controller
 
+
 from kube_broker import KubeBroker, BrokerNotConnectedException
 
 HOST = '0.0.0.0'
@@ -24,7 +25,15 @@ def make_shell_context():
   from pod_helper import PodHelper
   from dep_helper import DepHelper
   from curl_pod import CurlPod
-  return {'broker': broker, 'ph': PodHelper, 'dh': DepHelper, 'cp': CurlPod}
+  from image_reloader import ImageReloader
+
+  return {
+    'broker': broker,
+    'ph': PodHelper,
+    'dh': DepHelper,
+    'cp': CurlPod,
+    'ir': ImageReloader
+  }
 
 @app.errorhandler(BrokerNotConnectedException)
 def handle_bad_request(error):

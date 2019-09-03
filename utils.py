@@ -10,6 +10,13 @@ class Utils:
       return fallback
 
   @staticmethod
+  def dict_to_eq_str(_dict):
+    return ",".join(
+      ["=".join([k, str(v)])
+       for k, v in _dict.items()]
+    )
+
+  @staticmethod
   def parse_dict(string):
     if string:
       result_dict = {}

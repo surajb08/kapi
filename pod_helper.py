@@ -5,34 +5,34 @@ from utils import Utils
 
 class PodHelper:
 
-  POD_REGEX = "-([\w]{5,10})-([\w]{5,10})"
+  POD_REGEX = "-([\w]{3,12})-([\w]{3,12})"
 
   @staticmethod
-  def pods_for_dep(dep_name, pods):
-    broker.check_connected()
+  def pods_for_dep_loaded(dep_name, pods):
+    predicate = lambda p: PodHelper.is_pod_from_dep(p, dep_name)
+    return list(filter(predicate, pods))
+
+  @staticmethod
+  def is_pod_from_dep(pod, dep_name):
     target_regex = f"^{dep_name}{PodHelper.POD_REGEX}$"
-
-    def finder(pod):
-      re_result = re.search(target_regex, pod.metadata.name)
-      return True if re_result else False
-
-    return list(filter(finder, pods))
+    re_result = re.search(target_regex, pod.metadata.name)
+    return True if re_result else False
 
   @staticmethod
-  def dep_for_pod(pod, deps):
-    target_pod_lbs = pod.metadata.labels
-    target_pod_lbs.pop('pod-template-hash')
-    finder = lambda d: d.spec.selector.match_labels == target_pod_lbs
-    matches = list(filter(finder, deps))
-    if len(matches) == 1:
-      return matches[0]
-    else:
-      print(f"Found {len(matches)} matches for {target_pod_lbs}!")
-      return None
+  def pods_for_dep(dep):
+    label_match = Utils.dict_to_eq_str(dep.spec.selector.match_labels)
+
+    pods = broker.coreV1.list_namespaced_pod(
+      namespace=dep.metadata.namespace,
+      label_selector=label_match
+    ).items
+
+    return PodHelper.pods_for_dep_loaded(
+      dep.metadata.name, pods
+    )
 
   @staticmethod
   def child_ser(pod):
-    container = Utils.try_or(lambda: pod.status)
     return {
       "name": pod.metadata.name,
       "state": Utils.try_or(lambda: pod.status.phase),

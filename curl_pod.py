@@ -79,7 +79,6 @@ class CurlPod:
         break
       else:
         time.sleep(0.5)
-        attempts += 1
         print(f"pod/{self.namespace}/{self.pod_name} nf {attempts}/10")
 
     return pod_ready is not None
