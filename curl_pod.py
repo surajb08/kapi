@@ -29,11 +29,11 @@ class CurlPod:
     body = params.get('body', None)
 
     cmd = [
-      "curl", "-s","-i",
-      '-X', f"{params.get('verb', 'GET')}",
-      '-H', f"{headers}",
-      '-d' if body else None, f"{body}" if body else None,
-      f"{params['url']}"
+      "curl", "-s","-i", "-m", "4"
+      '-X', params.get('verb', 'GET'),
+      '-H', headers,
+      '-d' if body else None, body if body else None,
+      params['url'][1:-1]
     ]
     return list(filter(lambda p: p is not None, cmd))
 
@@ -110,7 +110,7 @@ class CurlPod:
     if self.find() or self.create_and_wait():
       response = self.run_cmd(self.exec_command)
       self.delete() if self.delete_after else None
-      return self.parse_response(response)
+      return CurlPod.parse_response(response)
     else:
       print(f"Could not find or create curl pod {self.pod_name}")
       return None
@@ -120,17 +120,32 @@ class CurlPod:
     out = re.search('HTTP/(\d*)\.(\d*) (\d*) .*', header)
     return out.group(3)
 
-  def parse_response(self, response):
-    parts = response.split(HEADER_BODY_DELIM)
-    headers = parts[0].split("\r\n")
-    body_parts = parts[1:len(parts)]
-    body = body_parts[0]
+  @staticmethod
+  def parse_response(response):
+    if response:
+      parts = response.split(HEADER_BODY_DELIM)
+      headers = parts[0].split("\r\n")
+      body_parts = parts[1:len(parts)]
+      body = body_parts[0]
 
+      return {
+        "raw": response,
+        "headers": headers,
+        "body": body,
+        "status": CurlPod.parse_status(headers[0]),
+        "finished": True
+      }
+    else:
+      return CurlPod.format_empty_response()
+
+  @staticmethod
+  def format_empty_response():
     return {
-      "raw": response,
-      "headers": headers,
-      "body": body,
-      "status": CurlPod.parse_status(headers[0])
+      "raw": "N/A",
+      "headers": ["N/A"],
+      "body": "Could not connect",
+      "status": "N/A",
+      "finished": False
     }
 
   @staticmethod
@@ -153,7 +168,7 @@ class CurlPod:
     curler = CurlPod(
       pod_name="curl-man",
       delete_after=False,
-      url="http://10.0.20.109:80"
+      url="10.0.20.109:81"
     )
     out = curler.run()
     print(out['status'])
