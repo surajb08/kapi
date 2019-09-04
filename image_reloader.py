@@ -21,7 +21,7 @@ class ImageReloader:
     return list(map(work, pods))
 
   def await_old_pods_dead(self):
-    max_tries = len(self.init_pod_names) * 3
+    max_tries = len(self.init_pod_names) * 5
     all_dead = False
     for attempt in range(0, max_tries):
       crt_pod_names = self.load_pod_names()
@@ -29,14 +29,13 @@ class ImageReloader:
       print(f"Attempt {attempt} overlap({len(overlap)}): {overlap}")
       all_dead = len(overlap) == 0
       if all_dead: break;
-      time.sleep(1)
+      time.sleep(3)
 
     return all_dead
 
   def run(self):
     self.scale(0)
     self.scale(self.desired_replicas)
-    return self.await_old_pods_dead()
 
   def scale(self, replicas):
     broker.appsV1Api.patch_namespaced_deployment_scale(

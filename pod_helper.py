@@ -34,7 +34,18 @@ class PodHelper:
   @staticmethod
   def child_ser(pod):
     return {
-      "name": pod.metadata.name,
-      "state": Utils.try_or(lambda: pod.status.phase),
-      "ip": Utils.try_or(lambda: pod.status.pod_ip)
+      'name': pod.metadata.name,
+      'namespace': pod.metadata.namespace,
+      'state': Utils.try_or(lambda: pod.status.phase),
+      'ip': Utils.try_or(lambda: pod.status.pod_ip)
     }
+
+  @staticmethod
+  def full_ser(pod):
+    container = Utils.try_or(lambda: pod.spec.containers[0])
+    return {
+      **PodHelper.child_ser(pod),
+      'image_name': Utils.try_or(lambda: container.image)
+    }
+
+

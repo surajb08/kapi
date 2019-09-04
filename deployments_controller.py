@@ -3,6 +3,7 @@ from flask import Blueprint, request
 
 from dep_helper import DepHelper
 from kube_broker import broker
+from pod_helper import PodHelper
 from utils import Utils
 
 controller = Blueprint('deployments_controller', __name__)
@@ -37,13 +38,22 @@ def filtered():
 @controller.route('/api/deployments')
 def index():
   broker.check_connected()
-  deps = params_to_deps()
+  filtered_deployments = params_to_deps()
 
   if request.args.get('full') == 'true':
-    payload = DepHelper.full_list(deps)
+    payload = DepHelper.full_list(filtered_deployments)
   else:
     payload = list(map(DepHelper.simple_ser, params_to_deps()))
   return { 'data': payload }
+
+
+@controller.route('/api/deployments/<namespace>/<name>/pods')
+def list_pods(namespace, name):
+  deployment = DepHelper.find(namespace, name)
+  pods = PodHelper.pods_for_dep(deployment)
+  serialized = list(map(PodHelper.full_ser, pods))
+  return { 'data': serialized }
+
 
 def params_to_deps():
   ns_filters = request.args.get('ns_filters', default='default').split(',')
