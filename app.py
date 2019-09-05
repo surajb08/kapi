@@ -5,7 +5,7 @@ import cluster_controller
 import deployments_controller
 import run_controller
 import status_controller
-
+from image_changer import ImageChanger
 
 from kube_broker import KubeBroker, BrokerNotConnectedException
 
@@ -32,7 +32,8 @@ def make_shell_context():
     'ph': PodHelper,
     'dh': DepHelper,
     'cp': CurlPod,
-    'ir': ImageReloader
+    'ir': ImageReloader,
+    'ic': ImageChanger
   }
 
 @app.errorhandler(BrokerNotConnectedException)

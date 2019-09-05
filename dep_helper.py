@@ -80,7 +80,7 @@ class DepHelper:
       "name": dep.metadata.name,
       "namespace": dep.metadata.namespace,
       "labels": dep.spec.selector.match_labels,
-      "std_container_count": len(containers) == 1,
+      "replicas": dep.spec.replicas,
       "image_name": Utils.try_or(lambda: containers[0].image),
       "image_pull_policy": Utils.try_or(lambda: containers[0].image_pull_policy)
     }

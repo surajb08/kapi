@@ -2,6 +2,7 @@
 from flask import Blueprint, request
 
 from curl_pod import CurlPod
+from image_changer import ImageChanger
 from image_reloader import ImageReloader
 
 controller = Blueprint('run_controller', __name__)
@@ -18,10 +19,31 @@ def image_reload():
   body_args = request.json
   dep_namespace = body_args['dep_namespace']
   dep_name = body_args['dep_name']
-  worker = ImageReloader(dep_namespace, dep_name)
+  worker = ImageReloader(dep_namespace, dep_name, "reload")
   worker.run()
   return { "data": { 'status': 'working' } }
 
+@controller.route('/api/run/new_image', methods=['POST'])
+def new_image():
+  body_args = request.json
+  dep_namespace = body_args['dep_namespace']
+  dep_name = body_args['dep_name']
+  target_name = body_args['target_name']
+  worker = ImageChanger(dep_namespace, dep_name, target_name)
+  worker.run()
+  return { "data": { 'status': 'working' } }
+
+
+@controller.route('/api/run/scale_replicas', methods=['POST'])
+def scale_replicas():
+  body_args = request.json
+  dep_namespace = body_args['dep_namespace']
+  dep_name = body_args['dep_name']
+  scale_to = int(body_args['scale_to'])
+  print(f"SCALING TO {scale_to}")
+  worker = ImageReloader(dep_namespace, dep_name,  "scale", scale_to)
+  worker.run()
+  return { "data": { 'status': 'working' } }
 
 @controller.route('/api/run/image_change`', methods=['POST'])
 def change_image():
