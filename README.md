@@ -10,7 +10,8 @@ You will need the following things properly installed on your computer:
     * Connect with your gmail account
     * Select "codenectarproject", and "sample-cluster"
     * Run:'gcloud container clusters get-credentials sample-cluster --project codenectar --region us-central1-a'
-    
+ 
+   
 
 ## Running
 
