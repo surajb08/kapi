@@ -35,6 +35,13 @@ def filtered():
   result = list(map(DepHelper.simple_ser, params_to_deps()))
   return { "data": result }
 
+
+@controller.route('/api/deployments/<namespace>/<name>')
+def show(namespace, name):
+  broker.check_connected()
+  deployment = DepHelper.find(namespace, name)
+  return DepHelper.full_single(deployment)
+
 @controller.route('/api/deployments')
 def index():
   broker.check_connected()
@@ -45,7 +52,6 @@ def index():
   else:
     payload = list(map(DepHelper.simple_ser, params_to_deps()))
   return { 'data': payload }
-
 
 @controller.route('/api/deployments/<namespace>/<name>/pods')
 def list_pods(namespace, name):

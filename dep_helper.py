@@ -59,9 +59,16 @@ class DepHelper:
   def full_list(deps):
     all_pods = broker.coreV1.list_pod_for_all_namespaces().items
     all_svc = broker.coreV1.list_service_for_all_namespaces().items
-    assoc_er = lambda d: DepHelper.assoc_deps_pods_svc(d, all_pods, all_svc)
-    assoc_ed = list(map(assoc_er, deps))
-    return list(map(DepHelper.complex_ser, assoc_ed))
+    bundler = lambda d: DepHelper.assoc_deps_pods_svc(d, all_pods, all_svc)
+    bundles = list(map(bundler, deps))
+    return list(map(DepHelper.complex_ser, bundles))
+
+  @staticmethod
+  def full_single(dep):
+    all_pods = broker.coreV1.list_pod_for_all_namespaces().items
+    all_svc = broker.coreV1.list_service_for_all_namespaces().items
+    bundle = DepHelper.assoc_deps_pods_svc(dep, all_pods, all_svc)
+    return DepHelper.complex_ser(bundle)
 
   @staticmethod
   def assoc_deps_pods_svc(dep, all_pods, all_svcs):
