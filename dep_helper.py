@@ -83,13 +83,19 @@ class DepHelper:
   @staticmethod
   def simple_ser(dep):
     containers = dep.spec.template.spec.containers
+
     return {
       "name": dep.metadata.name,
       "namespace": dep.metadata.namespace,
       "labels": dep.spec.selector.match_labels,
       "replicas": dep.spec.replicas,
       "image_name": Utils.try_or(lambda: containers[0].image),
-      "image_pull_policy": Utils.try_or(lambda: containers[0].image_pull_policy)
+      "image_pull_policy": Utils.try_or(lambda: containers[0].image_pull_policy),
+      "commit": {
+        "sha": dep.metadata.annotations.get('commit_sha'),
+        "branch": dep.metadata.annotations.get('commit_branch'),
+        "message": dep.metadata.annotations.get('commit_msg'),
+      }
     }
 
   # noinspection PyTypeChecker
