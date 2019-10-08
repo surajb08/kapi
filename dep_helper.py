@@ -92,9 +92,9 @@ class DepHelper:
       "image_name": Utils.try_or(lambda: containers[0].image),
       "image_pull_policy": Utils.try_or(lambda: containers[0].image_pull_policy),
       "commit": {
-        "sha": dep.metadata.annotations.get('commit_sha'),
-        "branch": dep.metadata.annotations.get('commit_branch'),
-        "message": dep.metadata.annotations.get('commit_msg'),
+        "sha": dep.metadata.annotations.get('commit-sha'),
+        "branch": dep.metadata.annotations.get('commit-branch'),
+        "message": dep.metadata.annotations.get('commit-msg'),
       }
     }
 
