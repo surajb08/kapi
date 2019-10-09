@@ -14,6 +14,18 @@ def run_curl_command():
   raw_curl_response = curl_pod.run()
   return {'data': raw_curl_response}
 
+@controller.route('/api/run/cmd', methods=['POST'])
+def run_command():
+  j_body = request.json
+  pod = CurlPod(
+    pod_name=j_body['pod_name'],
+    namespace=j_body['pod_namespace'],
+    command=j_body['command'],
+    delete_after=False,
+  )
+  output = pod.run_cmd()
+  return { "data": output }
+
 @controller.route('/api/run/image_reload', methods=['POST'])
 def image_reload():
   body_args = request.json
@@ -40,7 +52,6 @@ def scale_replicas():
   dep_namespace = body_args['dep_namespace']
   dep_name = body_args['dep_name']
   scale_to = int(body_args['scale_to'])
-  print(f"SCALING TO {scale_to}")
   worker = ImageReloader(dep_namespace, dep_name,  "scale", scale_to)
   worker.run()
   return { "data": { 'status': 'working' } }

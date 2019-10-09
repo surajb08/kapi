@@ -32,6 +32,18 @@ class PodHelper:
     )
 
   @staticmethod
+  def run_cmd(pod_namespace, pod_name, cmd):
+    response = stream(
+      broker.coreV1.connect_get_namespaced_pod_exec,
+      pod_name,
+      namespace,
+      command=exec_command,
+      stderr=True, stdin=False,
+      stdout=True, tty=False
+    )
+
+
+  @staticmethod
   def child_ser(pod):
     return {
       'name': pod.metadata.name,

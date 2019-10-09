@@ -20,7 +20,14 @@ class CurlPod:
     self.pod_name = kwargs.get('pod_name', f"curl-pod-{random_string(4)}")
     self.delete_after = kwargs.get('delete_after', True)
     self.namespace = kwargs.get('namespace', 'nectar')
-    self.exec_command = CurlPod.build_curl_cmd(**kwargs)
+    self.exec_command = CurlPod.build_cmd(**kwargs)
+
+  @staticmethod
+  def build_cmd(**kwargs):
+    if kwargs.get('command'):
+      return kwargs.get('command').split(" ")
+    else:
+      return CurlPod.build_curl_cmd(**kwargs)
 
   @staticmethod
   def build_curl_cmd(**params):
@@ -83,12 +90,12 @@ class CurlPod:
 
     return pod_ready is not None
 
-  def run_cmd(self, cmd):
+  def run_cmd(self):
     return stream(
       broker.coreV1.connect_get_namespaced_pod_exec,
       self.pod_name,
       self.namespace,
-      command=cmd,
+      command=self.exec_command,
       stderr=False,
       stdin=False,
       stdout=True,
@@ -108,7 +115,7 @@ class CurlPod:
   def run(self):
     broker.connect()
     if self.find() or self.create_and_wait():
-      response = self.run_cmd(self.exec_command)
+      response = self.run_cmd()
       self.delete() if self.delete_after else None
       return CurlPod.parse_response(response)
     else:
