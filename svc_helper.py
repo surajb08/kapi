@@ -17,7 +17,6 @@ class SvcHelper:
     finder = lambda svc: svc.spec.selector == match_labels
     return list(filter(finder, all_svcs))
 
-
   @staticmethod
   def child_ser(svc):
 

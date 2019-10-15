@@ -5,9 +5,11 @@ import cluster_controller
 import deployments_controller
 import run_controller
 import status_controller
+from debuggers.network_debug import NetworkDebug
 from image_changer import ImageChanger
 
 from kube_broker import KubeBroker, BrokerNotConnectedException
+from svc_helper import SvcHelper
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -31,9 +33,11 @@ def make_shell_context():
     'broker': broker,
     'ph': PodHelper,
     'dh': DepHelper,
+    'sh': SvcHelper,
     'cp': CurlPod,
     'ir': ImageReloader,
-    'ic': ImageChanger
+    'ic': ImageChanger,
+    'nd': NetworkDebug
   }
 
 @app.errorhandler(BrokerNotConnectedException)
