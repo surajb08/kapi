@@ -2,6 +2,7 @@
 from flask import Flask, request, make_response, g
 from flask_cors import CORS
 import cluster_controller
+import debug_controller
 import deployments_controller
 import run_controller
 import status_controller
@@ -21,6 +22,7 @@ app.register_blueprint(status_controller.controller)
 app.register_blueprint(deployments_controller.controller)
 app.register_blueprint(cluster_controller.controller)
 app.register_blueprint(run_controller.controller)
+app.register_blueprint(debug_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():

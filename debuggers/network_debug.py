@@ -1,5 +1,6 @@
+from debuggers.network_cons import PortParityReporter, ServiceTypeReporter, PodsRunningReporter, PortTypeReporter
 from dep_helper import DepHelper
-from kube_broker import broker
+from pod_helper import PodHelper
 from svc_helper import SvcHelper
 
 
@@ -17,35 +18,56 @@ class NetworkDebug:
     )
 
   def exp_port_bundle(self):
-    def finder(bun):
-      return bun.port == self.exp_port
-
-    svc_ports = self.service.spec.ports
-    return next((x for x in svc_ports if finder(x)), None)
+    predicate = lambda bundle: bundle.port == self.exp_port
+    port_bundles = self.service.spec.ports
+    return next((bun for bun in port_bundles if predicate(bun)), None)
 
   def svc_name(self):
     return self.service.metadata.name
 
+  def dep_name(self):
+    return self.deployment.metadata.name
+
+  def check_pods_running(self):
+    pods = PodHelper.pods_for_dep(self.deployment)
+    checker = lambda x: x.status.phase == 'Running'
+    running_count = len(list(filter(checker, pods)))
+    reporter = PodsRunningReporter(self.dep_name(), running_count)
+    if running_count > 0:
+      return reporter.some_running()
+    else:
+      return reporter.none_running()
+
+  def check_service_type(self):
+    _type = self.service.spec.type
+    reporter = ServiceTypeReporter(_type)
+    if self.source_type == 'in_namespace':
+      return reporter.in_ns_all_good()
+    if self.source_type == 'out_cluster':
+      if _type == 'LoadBalancer' or _type == 'NodePort':
+        return reporter.out_cluster_correct()
+      else:
+        return reporter.out_cluster_mismatch()
+
+  def check_port_types(self):
+    rel_port_bundle = self.exp_port_bundle()
+    in_port = rel_port_bundle.target_port
+    reporter = PortTypeReporter(self.svc_name(), in_port)
+    if isinstance(in_port, str):
+      return reporter.port_is_string()
+    else:
+      return reporter.port_is_int()
+
   def check_port_parity(self, df_port):
     rel_port_bundle = self.exp_port_bundle()
     out_port = rel_port_bundle.port
+    reporter = PortParityReporter(self.svc_name(), out_port, df_port)
+
     if df_port is not None:
       target_port = rel_port_bundle.target_port
       if df_port == target_port:
-        return {
-          "outcome": False,
-          "message": f"{self.svc_name()}'s open port[{out_port}] correctly maps "
-                     f"to port[{df_port}] from your Dockerfile"
-        }
+        return reporter.ports_match()
       else:
-        return {
-          "outcome": True,
-          "message": f"{self.svc_name()}'s open port[{out_port}] is not mapping "
-                     f"to port[{df_port}] from your Dockerfile",
-        }
+        return reporter.ports_dont_match()
     else:
-      return {
-        "outcome": None,
-        "message": f"Your Dockerfile isn't exposing ports {out_port}"
-                   f" Unless it's exposed in the base image, this is the problem."
-      }
+      return reporter.dockerfile_shy()

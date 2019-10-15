@@ -19,7 +19,7 @@ class PodHelper:
     return True if re_result else False
 
   @staticmethod
-  def pods_for_dep(dep):
+  def pods_for_dep(dep, hard=True):
     label_match = Utils.dict_to_eq_str(dep.spec.selector.match_labels)
 
     pods = broker.coreV1.list_namespaced_pod(
@@ -27,9 +27,12 @@ class PodHelper:
       label_selector=label_match
     ).items
 
-    return PodHelper.pods_for_dep_loaded(
-      dep.metadata.name, pods
-    )
+    if hard:
+      return PodHelper.pods_for_dep_loaded(
+        dep.metadata.name, pods
+      )
+    else:
+      return pods
 
   @staticmethod
   def run_cmd(pod_namespace, pod_name, cmd):
