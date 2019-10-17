@@ -2,12 +2,13 @@ from debuggers.network_cons import PortParityReporter, ServiceTypeReporter, Pods
 from dep_helper import DepHelper
 from pod_helper import PodHelper
 from svc_helper import SvcHelper
-
+import yaml
 
 class NetworkDebug:
   def __init__(self, **kwargs):
     self.source_type = kwargs.get('source_type', "in_namespace")
     self.exp_port = kwargs['exp_port']
+    self.dockerfile_ports = kwargs.get('dockerfile_port', [])
     self.deployment = DepHelper.find(
       kwargs['dep_namespace'],
       kwargs['dep_name']
@@ -16,6 +17,12 @@ class NetworkDebug:
       kwargs['dep_namespace'],
       kwargs['svc_name']
     )
+
+  @staticmethod
+  def tree():
+    with open("debuggers/network_dec_tree.yaml", 'r') as stream:
+      tree = yaml.safe_load(stream)
+    return tree
 
   def exp_port_bundle(self):
     predicate = lambda bundle: bundle.port == self.exp_port
@@ -58,14 +65,14 @@ class NetworkDebug:
     else:
       return reporter.port_is_int()
 
-  def check_port_parity(self, df_port):
+  def check_port_parity(self):
     rel_port_bundle = self.exp_port_bundle()
     out_port = rel_port_bundle.port
-    reporter = PortParityReporter(self.svc_name(), out_port, df_port)
+    reporter = PortParityReporter(self.svc_name(), out_port)
 
-    if df_port is not None:
+    if len(self.dockerfile_ports) > 0:
       target_port = rel_port_bundle.target_port
-      if df_port == target_port:
+      if target_port in self.dockerfile_ports:
         return reporter.ports_match()
       else:
         return reporter.ports_dont_match()

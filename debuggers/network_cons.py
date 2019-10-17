@@ -6,23 +6,22 @@ class Reporter:
     }
 
 class PortParityReporter(Reporter):
-  def __init__(self, svc_name, out_port, df_port):
+  def __init__(self, svc_name, out_port):
     self.svc_name = svc_name
     self.out_port = out_port
-    self.df_port = df_port
 
   def ports_match(self):
     return self.report(
       False,
       f"{self.svc_name}'s open port[{self.out_port}] correctly maps "
-      f"to port[{self.df_port}] from your Dockerfile",
+      f"to port[{self.out_port}] from your Dockerfile",
     )
 
   def ports_dont_match(self):
     return self.report(
       True,
       f"{self.svc_name}'s open port[{self.out_port}] is not mapping "
-      f"to port[{self.df_port}] from your Dockerfile"
+      f"to port[{self.out_port}] from your Dockerfile"
     )
 
   def dockerfile_shy(self):
@@ -32,6 +31,18 @@ class PortParityReporter(Reporter):
       f" Unless it's exposed in the base image, this is the problem."
     )
 
+  def commands(self):
+    return [
+      f"$out_port=${self.out_port}",
+      f"$docker_ports=scan(Dockerfile, 'EXPOSE')",
+      f"$svc=kuebctl get svc/{self.svc_name} -o json",
+      f"$bundle=echo $svc_ports | jq .spec.ports | select(.port == $out_port)",
+      f"$in_port=echo $bundle | jq .targetPort"
+      f"Check if $docker_ports contains $in_port"
+    ]
+
+  def title(self):
+    return "Dockerfile <-> K8s Port Parity Check"
 
 class ServiceTypeReporter(Reporter):
   def __init__(self, _type):

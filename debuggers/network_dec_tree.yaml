@@ -1,0 +1,27 @@
+when_pods_running:
+  &when_pods_running
+  ask: pods_accepting
+  positive:
+    ask: ports_configured
+    positive: done
+    negative: done
+  negative:
+    ask: image_accepting
+    positive:
+      ask: ports_configured
+      positive: done
+      negative: done
+    negative: done
+
+tree:
+  ask: can_connect
+  positive: done
+  negative:
+    ask: pods_in_svc
+    positive:
+      *when_pods_running
+    negative:
+      ask: pods_running
+      positive:
+        *when_pods_running
+      negative: done
