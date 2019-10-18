@@ -2,8 +2,12 @@ ask_ports_configured:
   &ask_ports_configured
   id: ports_configured
   friendly: "Configs Good?"
-  positive: done
-  negative: done
+  positive:
+    id: configs_good
+    friendly: "Undiagnosable"
+  negative:
+    id: configs_bad
+    friendly: "Bad Port Config"
 
 when_pods_running:
   &when_pods_running
@@ -16,12 +20,16 @@ when_pods_running:
     friendly: "Container Connecting?"
     positive:
       *ask_ports_configured
-    negative: done
+    negative:
+      id: image_bad
+      friendly: "Image Problem"
 
 tree:
   id: can_connect
   friendly: "Service Connects?"
-  positive: done
+  positive:
+    id: no_problem
+    friendly: "All Good"
   negative:
     id: pods_in_svc
     friendly: "Service Sees Pods?"
@@ -32,4 +40,6 @@ tree:
       friendly: "Pods Running?"
       positive:
         *when_pods_running
-      negative: done
+      negative:
+        id: pods_not_running
+        friendly: "Pods not Running"
