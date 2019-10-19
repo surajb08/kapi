@@ -5,7 +5,7 @@ import cluster_controller
 import deployments_controller
 import run_controller
 import status_controller
-from controllers import net_debug_controller
+from controllers import analysis_controller
 from debuggers.network_debug import NetworkDebug
 from image_changer import ImageChanger
 
@@ -22,7 +22,7 @@ app.register_blueprint(status_controller.controller)
 app.register_blueprint(deployments_controller.controller)
 app.register_blueprint(cluster_controller.controller)
 app.register_blueprint(run_controller.controller)
-app.register_blueprint(net_debug_controller.controller)
+app.register_blueprint(analysis_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():
