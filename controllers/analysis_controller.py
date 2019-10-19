@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import importlib
+
+import inflection
 import yaml
 from flask import Blueprint, request
 
@@ -15,17 +18,20 @@ def decision_tree(suite_id):
 
 @controller.route('/api/analysis/<suite_id>/step/<step_id>/info', methods=['POST'])
 def step_info(suite_id, step_id):
-  step = load_requested_step()
+  step = load_requested_step(suite_id, step_id)
 
   return {
     "summary": step.summary_copy(),
     "sub_steps": step.steps_copy()
   }
 
-def load_requested_step():
+def load_requested_step(suite, step):
   j_body = request.json
-  print(f"THIS IS ME {j_body}")
-  return ServiceConnectsStep(**j_body)
+  class_name = inflection.camelize(f"{step}_step", True)
+  module_name = f"analysis_suites.{suite}.network_suite"
+  loaded_module = importlib.import_module(module_name)
+  klass = getattr(loaded_module, class_name)
+  return klass(**j_body)
 
 
 # @controller.route('/api/analysis/:suite/step/:step_id/run')
