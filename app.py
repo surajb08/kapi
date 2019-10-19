@@ -6,7 +6,6 @@ import deployments_controller
 import run_controller
 import status_controller
 from controllers import analysis_controller
-from debuggers.network_debug import NetworkDebug
 from image_changer import ImageChanger
 
 from kube_broker import KubeBroker, BrokerNotConnectedException
@@ -38,8 +37,7 @@ def make_shell_context():
     'sh': SvcHelper,
     'cp': CurlPod,
     'ir': ImageReloader,
-    'ic': ImageChanger,
-    'nd': NetworkDebug
+    'ic': ImageChanger
   }
 
 @app.errorhandler(BrokerNotConnectedException)

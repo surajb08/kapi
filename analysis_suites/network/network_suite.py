@@ -1,4 +1,4 @@
-from analysis_suites.base.analysis_suite import AnalysisStep
+from analysis_suites.base.analysis_step import AnalysisStep
 from analysis_suites.network.copy import copy_tree
 from dep_helper import DepHelper
 from svc_helper import SvcHelper
@@ -6,7 +6,6 @@ from svc_helper import SvcHelper
 class NetworkSuiteStep(AnalysisStep):
   def __init__(self, **args):
     super().__init__()
-    self.source_type = args.get('source_type', "in_namespace")
     self.from_port = args['from_port']
     self.deployment = DepHelper.find(args['dep_ns'], args['dep_name'])
     self.service = SvcHelper.find(args['dep_ns'],args['svc_name'])
