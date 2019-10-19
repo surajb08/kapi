@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-from flask import Flask, request, make_response, g
+from flask import Flask
 from flask_cors import CORS
-import cluster_controller
-import deployments_controller
-import run_controller
-import status_controller
-from controllers import analysis_controller
+from controllers import analysis_controller, deployments_controller, run_controller, cluster_controller, \
+  status_controller
 from image_changer import ImageChanger
 
 from kube_broker import KubeBroker, BrokerNotConnectedException

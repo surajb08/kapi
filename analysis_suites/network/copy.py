@@ -6,7 +6,7 @@ copy_tree = {
     f"via port {args['port']}."
     ,
     "steps": lambda args: [
-      f"Create/recycle a stunt pod to send a cURL from",
+      f"Create/reuse a stunt pod to send a cURL from",
       f"Tell the stunt pod to cURL {args['svc_name']} on port {args['port']}"
     ],
     "commands": lambda args: [
