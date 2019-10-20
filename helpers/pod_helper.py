@@ -1,11 +1,23 @@
 import re
+
+from kubernetes.client.rest import ApiException
+
 from helpers.kube_broker import broker
 from utils.utils import Utils
 
 
 class PodHelper:
-
   POD_REGEX = "-([\w]{3,12})-([\w]{3,12})"
+
+  @staticmethod
+  def find(namespace, name):
+    try:
+      return broker.coreV1.read_namespaced_pod(
+        name,
+        namespace
+      )
+    except ApiException as r:
+      return None
 
   @staticmethod
   def pods_for_dep_loaded(dep_name, pods):
@@ -45,7 +57,6 @@ class PodHelper:
       stdout=True, tty=False
     )
 
-
   @staticmethod
   def child_ser(pod):
     return {
@@ -62,5 +73,3 @@ class PodHelper:
       **PodHelper.child_ser(pod),
       'image_name': Utils.try_or(lambda: container.image)
     }
-
-

@@ -1,3 +1,5 @@
+import random
+import string
 from typing import Dict, List, Set
 import datetime
 
@@ -27,3 +29,7 @@ class Utils:
     else:
       return {}
 
+  @staticmethod
+  def rand_str(string_len=10):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(string_len))

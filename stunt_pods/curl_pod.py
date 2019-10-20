@@ -1,31 +1,28 @@
-from kubernetes.client.rest import ApiException
+import re
+from utils.utils import Utils
 
 from helpers.kube_broker import broker
-import time
-from kubernetes.stream import stream
-import string
-import random
-import re
+from stunt_pods.stunt_pod import StuntPod
 
 HEADER_BODY_DELIM = "\r\n\r\n"
 
-def random_string(string_len=10):
-  letters = string.ascii_lowercase
-  return ''.join(random.choice(letters) for i in range(string_len))
-
-
-class CurlPod:
-
+class CurlPod(StuntPod):
   def __init__(self, **kwargs):
-    self.pod_name = kwargs.get('pod_name', f"curl-pod-{random_string(4)}")
-    self.delete_after = kwargs.get('delete_after', True)
-    self.namespace = kwargs.get('namespace', 'nectar')
+    super().__init__(**kwargs)
+    self.pod_name = kwargs.get('pod_name', f"curl-pod-{Utils.rand_str(4)}")
     self.exec_command = CurlPod.build_cmd(**kwargs)
+
+  def run(self):
+    result = super().run()
+    if result is not None:
+      result = CurlPod.parse_response(result)
+    return result
 
   @staticmethod
   def build_cmd(**kwargs):
-    if kwargs.get('command'):
-      return kwargs.get('command').split(" ")
+    command = kwargs.get('command')
+    if command:
+      return command.split(" ")
     else:
       return CurlPod.build_curl_cmd(**kwargs)
 
@@ -36,7 +33,9 @@ class CurlPod:
     body = params.get('body', None)
 
     cmd = [
-      "curl", "-s","-i",
+      "curl",
+      "-s",
+      "-i",
       '-X', params.get('verb', 'GET'),
       '-H', headers,
       '-d' if body else None, body if body else None,
@@ -44,83 +43,6 @@ class CurlPod:
       params['url']
     ]
     return list(filter(lambda p: p is not None, cmd))
-
-  def create(self):
-    pod = broker.client.V1Pod(
-      api_version='v1',
-      metadata=broker.client.V1ObjectMeta(
-        name=self.pod_name,
-        labels={"nectar-type": "stunt-pod"}
-      ),
-      spec=broker.client.V1PodSpec(
-        containers=[
-          broker.client.V1Container(
-            name="nectar-stuntpod-img",
-            image="xnectar/curler",
-            image_pull_policy="Always"
-          )
-        ]
-      )
-    )
-
-    return broker.coreV1.create_namespaced_pod(
-      body=pod,
-      namespace=self.namespace
-    )
-
-  def find(self):
-    try:
-      return broker.coreV1.read_namespaced_pod(
-        self.pod_name,
-        self.namespace
-      )
-    except ApiException as r:
-      return None
-
-  def wait_until_running(self):
-    pod_ready = False
-    for attempts in range(0, 10):
-      pod = self.find()
-      if pod and pod.status.phase == 'Running':
-        pod_ready = True
-        break
-      else:
-        time.sleep(0.5)
-        print(f"pod/{self.namespace}/{self.pod_name} nf {attempts}/10")
-
-    return pod_ready is not None
-
-  def run_cmd(self):
-    return stream(
-      broker.coreV1.connect_get_namespaced_pod_exec,
-      self.pod_name,
-      self.namespace,
-      command=self.exec_command,
-      stderr=False,
-      stdin=False,
-      stdout=True,
-      tty=False
-    )
-
-  def delete(self):
-    broker.coreV1.delete_namespaced_pod(
-      name=self.pod_name,
-      namespace=self.namespace
-    )
-
-  def create_and_wait(self):
-    self.create()
-    return self.wait_until_running()
-
-  def run(self):
-    broker.connect()
-    if self.find() or self.create_and_wait():
-      response = self.run_cmd()
-      self.delete() if self.delete_after else None
-      return CurlPod.parse_response(response)
-    else:
-      print(f"Could not find or create curl pod {self.pod_name}")
-      return None
 
   @staticmethod
   def parse_status(header):

@@ -23,7 +23,7 @@ def run_command():
     command=j_body['command'],
     delete_after=False,
   )
-  output = pod.run_cmd()
+  output = pod.execute_command()
   return { "data": output }
 
 @controller.route('/api/run/image_reload', methods=['POST'])

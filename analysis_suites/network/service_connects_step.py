@@ -4,3 +4,14 @@ class ServiceConnectsStep(NetworkSuiteStep):
 
   def perform(self):
     return ""
+
+  @staticmethod
+  def test():
+    worker = ServiceConnectsStep(
+      from_port="80",
+      svc_name="moderator",
+      dep_name="moderator",
+      dep_ns="default"
+    )
+
+    return worker
