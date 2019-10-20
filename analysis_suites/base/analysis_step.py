@@ -8,9 +8,6 @@ class AnalysisStep:
     self.outcomes_bundle = {}
     self.outputs = []
 
-  def perform(self):
-    pass
-
   def as_positive(self, outputs, bundle):
     self.record_step_performed("positive", outputs, bundle)
 
@@ -23,7 +20,10 @@ class AnalysisStep:
     self.outcomes_bundle = bundle
 
   def copy_bundle(self):
-    return {}
+    return {
+      **self._copy_bundle(),
+      **self.outcomes_bundle
+    }
 
   def summary_copy(self):
     return self.interpolate_copy('summary')
@@ -38,7 +38,6 @@ class AnalysisStep:
     return self.interpolate_copy('outcome')
 
   def interpolate_copy(self, key):
-    print(f"BTW COP KEY " + self.copy_key())
     literal_func = self.load_copy_tree()[self.copy_key()][key]
     return literal_func(self.copy_bundle())
 
@@ -48,3 +47,10 @@ class AnalysisStep:
 
   def load_copy_tree(self):
     return {}
+
+  def perform(self):
+    pass
+
+  def _copy_bundle(self):
+    return {}
+

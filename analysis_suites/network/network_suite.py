@@ -27,7 +27,7 @@ class NetworkSuiteStep(AnalysisStep):
 
   @property
   def target_url(self):
-    return f"{self.svc_name}.{self.ns}.svc.cluster.local:{self.port + 1}"
+    return f"{self.svc_name}.{self.ns}.svc.cluster.local:{self.port}"
 
   @property
   def stunt_pod(self):
@@ -39,7 +39,7 @@ class NetworkSuiteStep(AnalysisStep):
       )
     return self._stunt_pod
 
-  def copy_bundle(self):
+  def _copy_bundle(self):
     return {
       "dep_name": self.svc_name,
       "svc_name": self.service.metadata.name,

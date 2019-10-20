@@ -7,14 +7,13 @@ class ServiceConnectsStep(NetworkSuiteStep):
     if output['finished']:
       super().as_positive(
         outputs=[f"{output['status']}", output['body'][0:100]],
-        bundle={output}
+        bundle={**output}
       )
     else:
       super().as_negative(
         outputs=["Could not connect"],
         bundle={**output}
       )
-    return ""
 
   @staticmethod
   def test():

@@ -17,7 +17,6 @@ def decision_tree(suite_id):
 @controller.route('/api/analysis/<suite_id>/step/<step_id>/info', methods=['POST'])
 def step_info(suite_id, step_id):
   step = load_requested_step(suite_id, step_id)
-
   return {
     "summary": step.summary_copy(),
     "sub_steps": step.steps_copy()
@@ -25,7 +24,12 @@ def step_info(suite_id, step_id):
 
 @controller.route('/api/analysis/<suite_id>/step/<step_id>/run', methods=['POST'])
 def run_step(suite_id, step_id):
-  pass
+  step = load_requested_step(suite_id, step_id)
+  step.perform()
+  return {
+    "outputs": step.outputs,
+    "outcomes": step.outcome_copy
+  }
 
 def load_requested_step(suite, step):
   j_body = request.json
