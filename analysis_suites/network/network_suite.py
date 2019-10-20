@@ -1,7 +1,7 @@
 from analysis_suites.base.analysis_step import AnalysisStep
 from analysis_suites.network.copy import copy_tree
-from dep_helper import DepHelper
-from svc_helper import SvcHelper
+from helpers.dep_helper import DepHelper
+from helpers.svc_helper import SvcHelper
 
 class NetworkSuiteStep(AnalysisStep):
   def __init__(self, **args):
@@ -23,9 +23,5 @@ class NetworkSuiteStep(AnalysisStep):
       "target_url": self.target_url()
     }
 
-  def copy_tree(self):
+  def load_copy_tree(self):
     return copy_tree
-
-class ServiceConnectsStep(NetworkSuiteStep):
-  def perform(self):
-    return ""

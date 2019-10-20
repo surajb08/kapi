@@ -1,6 +1,6 @@
 import re
-from kube_broker import broker
-from utils import Utils
+from helpers.kube_broker import broker
+from utils.utils import Utils
 
 
 class PodHelper:

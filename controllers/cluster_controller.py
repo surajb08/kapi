@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from flask import Blueprint, request
+from flask import Blueprint
 
-from kube_broker import broker
-from cluster_helper import ClusterHelper
+from helpers.kube_broker import broker
+from helpers.cluster_helper import ClusterHelper
 
 controller = Blueprint('cluster_controller', __name__)
 

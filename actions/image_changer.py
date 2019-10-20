@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-import time
 
-from kubernetes.client import V1Scale, V1ScaleSpec
-
-from dep_helper import DepHelper
-from kube_broker import broker
+from helpers.dep_helper import DepHelper
+from helpers.kube_broker import broker
 
 class ImageChanger:
 

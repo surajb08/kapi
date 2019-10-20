@@ -1,4 +1,4 @@
-from kube_broker import broker
+from helpers.kube_broker import broker
 
 class ClusterHelper:
 

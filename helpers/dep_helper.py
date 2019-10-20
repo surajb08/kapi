@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from kube_broker import broker
-from pod_helper import PodHelper
-from svc_helper import SvcHelper
-from utils import Utils
+from helpers.kube_broker import broker
+from helpers.pod_helper import PodHelper
+from helpers.svc_helper import SvcHelper
+from utils.utils import Utils
 
 class DepHelper:
   @staticmethod

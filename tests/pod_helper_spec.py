@@ -1,6 +1,6 @@
 import unittest
 
-from pod_helper import PodHelper
+from helpers.pod_helper import PodHelper
 
 
 class PodHelperSpec(unittest.TestCase):

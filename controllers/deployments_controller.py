@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from flask import Blueprint, request
 
-from dep_helper import DepHelper
-from kube_broker import broker
-from pod_helper import PodHelper
-from utils import Utils
+from helpers.dep_helper import DepHelper
+from helpers.kube_broker import broker
+from helpers.pod_helper import PodHelper
+from utils.utils import Utils
 
 controller = Blueprint('deployments_controller', __name__)
 

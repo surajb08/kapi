@@ -3,10 +3,10 @@ from flask import Flask
 from flask_cors import CORS
 from controllers import analysis_controller, deployments_controller, run_controller, cluster_controller, \
   status_controller
-from image_changer import ImageChanger
+from actions.image_changer import ImageChanger
 
-from kube_broker import KubeBroker, BrokerNotConnectedException
-from svc_helper import SvcHelper
+from helpers.kube_broker import KubeBroker, BrokerNotConnectedException
+from helpers.svc_helper import SvcHelper
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -22,10 +22,10 @@ app.register_blueprint(analysis_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():
-  from pod_helper import PodHelper
-  from dep_helper import DepHelper
-  from curl_pod import CurlPod
-  from image_reloader import ImageReloader
+  from helpers.pod_helper import PodHelper
+  from helpers.dep_helper import DepHelper
+  from stunt_pods.curl_pod import CurlPod
+  from actions.image_reloader import ImageReloader
 
   return {
     'broker': broker,

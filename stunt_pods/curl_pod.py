@@ -1,6 +1,6 @@
 from kubernetes.client.rest import ApiException
 
-from kube_broker import broker
+from helpers.kube_broker import broker
 import time
 from kubernetes.stream import stream
 import string

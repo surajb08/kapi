@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from flask import Blueprint
 
-from kube_broker import broker
+from helpers.kube_broker import broker
 
 controller = Blueprint('status_controller', __name__)
 

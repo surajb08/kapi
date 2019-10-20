@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from flask import Blueprint, request
 
-from curl_pod import CurlPod
-from image_changer import ImageChanger
-from image_reloader import ImageReloader
+from stunt_pods.curl_pod import CurlPod
+from actions.image_changer import ImageChanger
+from actions.image_reloader import ImageReloader
 
 controller = Blueprint('run_controller', __name__)
 
