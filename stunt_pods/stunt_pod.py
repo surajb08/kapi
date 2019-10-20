@@ -8,9 +8,8 @@ from utils.utils import Utils
 class StuntPod:
   def __init__(self, **kwargs):
     self.pod_name = kwargs.get('pod_name', f"stunt-pod-{Utils.rand_str(4)}")
-    self.delete_after = kwargs.get('delete_after', True)
+    self.delete_after = kwargs.get('delete_after', False)
     self.namespace = kwargs.get('namespace', 'nectar')
-    self.exec_command = None
     self._image = "xnectar/curler:latest"
 
   def create(self):
@@ -71,9 +70,8 @@ class StuntPod:
 
     return pod_ready is not None
 
-  def execute_command(self, command=None):
-    command = command if command else self.exec_command
-
+  def execute_command(self, command):
+    command = StuntPod.coerce_cmd_format(command)
     return stream(
       broker.coreV1.connect_get_namespaced_pod_exec,
       self.pod_name,
@@ -85,13 +83,19 @@ class StuntPod:
       tty=False
     )
 
-  def run(self):
+  def run(self, command):
     broker.connect()
     if self.find_or_create():
-      response = self.execute_command()
+      response = self.execute_command(command)
       self.delete() if self.delete_after else None
       return response
     else:
       print(f"Could not find or create curl pod {self.pod_name}")
       return None
 
+  @staticmethod
+  def coerce_cmd_format(cmd):
+    if isinstance(cmd, str):
+      return cmd.split(" ")
+    else:
+      return cmd

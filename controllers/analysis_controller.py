@@ -23,6 +23,10 @@ def step_info(suite_id, step_id):
     "sub_steps": step.steps_copy()
   }
 
+@controller.route('/api/analysis/<suite_id>/step/<step_id>/run', methods=['POST'])
+def run_step(suite_id, step_id):
+  pass
+
 def load_requested_step(suite, step):
   j_body = request.json
   class_name = inflection.camelize(f"{step}_step", True)

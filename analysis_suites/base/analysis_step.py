@@ -3,6 +3,25 @@ import inflection
 
 class AnalysisStep:
 
+  def __init__(self):
+    self.outcome = None
+    self.outcomes_bundle = {}
+    self.outputs = []
+
+  def perform(self):
+    pass
+
+  def as_positive(self, outputs, bundle):
+    self.record_step_performed("positive", outputs, bundle)
+
+  def as_negative(self, outputs, bundle):
+    self.record_step_performed("negative", outputs, bundle)
+
+  def record_step_performed(self, which, outputs, bundle):
+    self.outcome = which
+    self.outputs = outputs
+    self.outcomes_bundle = bundle
+
   def copy_bundle(self):
     return {}
 

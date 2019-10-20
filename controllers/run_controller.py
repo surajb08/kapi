@@ -10,8 +10,11 @@ controller = Blueprint('run_controller', __name__)
 @controller.route('/api/run/curl', methods=['POST'])
 def run_curl_command():
   j_body = request.json
-  curl_pod = CurlPod(**j_body, pod_name="curl-man", delete_after=False)
-  raw_curl_response = curl_pod.run()
+  curl_pod = CurlPod(
+    pod_name="curl-man",
+    namespace=j_body['namespace']
+  )
+  raw_curl_response = curl_pod.curl(**j_body)
   return {'data': raw_curl_response}
 
 @controller.route('/api/run/cmd', methods=['POST'])
@@ -20,10 +23,8 @@ def run_command():
   pod = CurlPod(
     pod_name=j_body['pod_name'],
     namespace=j_body['pod_namespace'],
-    command=j_body['command'],
-    delete_after=False,
   )
-  output = pod.execute_command()
+  output = pod.execute_command(j_body['command'])
   return { "data": output }
 
 @controller.route('/api/run/image_reload', methods=['POST'])

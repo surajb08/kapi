@@ -22,8 +22,12 @@ class NetworkSuiteStep(AnalysisStep):
     return self.service.metadata.namespace
 
   @property
+  def port(self):
+    return int(self.from_port)
+
+  @property
   def target_url(self):
-    return f"{self.svc_name}.{self.ns}.svc.cluster.local"
+    return f"{self.svc_name}.{self.ns}.svc.cluster.local:{self.port + 1}"
 
   @property
   def stunt_pod(self):
@@ -32,7 +36,6 @@ class NetworkSuiteStep(AnalysisStep):
         pod_name="temp",
         delete_after=False,
         namespace=self.ns,
-        url=self.target_url,
       )
     return self._stunt_pod
 
@@ -40,7 +43,7 @@ class NetworkSuiteStep(AnalysisStep):
     return {
       "dep_name": self.svc_name,
       "svc_name": self.service.metadata.name,
-      "port": self.from_port,
+      "port": self.port,
       "ns": self.ns,
       "pod_name": "network_debug",
       "target_url": self.target_url

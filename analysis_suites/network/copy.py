@@ -14,9 +14,9 @@ copy_tree = {
       f"--namespace={args['ns']} #if not found",
       f"kubectl exec {args['pod_name']} -- curl {args['target_url']}:{args['port']} "
     ],
-    "outcome": {
-      "positive": lambda args: [f"Returned status {args['status_code']}. Everything's working."],
-      "negative": lambda args: [f"Could not connect, there is no problem."]
+    "conclusion": {
+      "positive": lambda args: [f"Returned status {args['status']}. Everything's working."],
+      "negative": lambda args: [f"Could not connect, there is indeed a problem."]
     },
   },
 

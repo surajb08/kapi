@@ -10,21 +10,13 @@ class CurlPod(StuntPod):
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
     self.pod_name = kwargs.get('pod_name', f"curl-pod-{Utils.rand_str(4)}")
-    self.exec_command = CurlPod.build_cmd(**kwargs)
 
-  def run(self):
-    result = super().run()
+  def curl(self, **curl_params):
+    fmt_command = CurlPod.build_curl_cmd(**curl_params)
+    result = super().execute_command(fmt_command)
     if result is not None:
       result = CurlPod.parse_response(result)
     return result
-
-  @staticmethod
-  def build_cmd(**kwargs):
-    command = kwargs.get('command')
-    if command:
-      return command.split(" ")
-    else:
-      return CurlPod.build_curl_cmd(**kwargs)
 
   @staticmethod
   def build_curl_cmd(**params):
