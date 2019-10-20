@@ -40,7 +40,7 @@ class StuntPod:
     return self._image
 
   def find(self):
-    return PodHelper.find(self.pod_name, self.namespace)
+    return PodHelper.find(self.namespace, self.pod_name)
 
   def labels(self):
     return {"nectar-type": "stunt-pod"}
