@@ -1,6 +1,8 @@
 import unittest
+from unittest import mock
+from unittest.mock import PropertyMock
 
-from analysis_suites.network.does_svc_connect_step import DoesSvcConnectStep
+from utils.utils import Utils
 from helpers.dep_helper import DepHelper
 from helpers.svc_helper import SvcHelper
 
@@ -11,10 +13,10 @@ TESTING_SVC_NM = "simple-app-svc"
 class Base(unittest.TestCase):
 
   @classmethod
-  def stdSetUpClass(cls):
+  def stdSetUpClass(cls, step_class):
     cls.deployment = DepHelper.find(TESTING_NS, TESTING_DEP_NM)
     cls.service = SvcHelper.find(TESTING_NS, TESTING_SVC_NM)
-    cls.step = DoesSvcConnectStep(
+    cls.step = step_class(
       from_port=cls.service.spec.ports[0].port,
       dep_ns=TESTING_NS,
       svc_name=TESTING_SVC_NM,
@@ -37,3 +39,9 @@ class Base(unittest.TestCase):
     self.assertIsNotNone(self.step.summary_copy())
     self.assertIsNotNone(self.step.commands_copy())
     self.assertIsNotNone(self.step.steps_copy())
+
+  def mock_step_prop(self, prop_name, value, callback):
+    mock_name = f"{Utils.fqcn(self.step)}.{prop_name}"
+    with mock.patch(mock_name, new_callable=PropertyMock) as v:
+      v.return_value = value
+      callback()

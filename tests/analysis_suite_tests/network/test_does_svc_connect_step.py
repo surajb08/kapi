@@ -1,11 +1,13 @@
 import unittest
+
+from analysis_suites.network.does_svc_connect_step import DoesSvcConnectStep
 from tests.analysis_suite_tests.network.base import Base
 
-class TestDoesSvcConnect(Base):
+class TestDoesSvcConnectStep(Base):
 
   @classmethod
   def setUpClass(cls):
-    super().stdSetUpClass()
+    super().stdSetUpClass(DoesSvcConnectStep)
 
   def test_positive(self):
     self.step.perform()

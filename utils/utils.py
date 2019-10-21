@@ -19,10 +19,10 @@ class Utils:
     )
 
   @staticmethod
-  def parse_dict(string):
-    if string:
+  def parse_dict(_string):
+    if _string:
       result_dict = {}
-      for encoded_dict in string.split(','):
+      for encoded_dict in _string.split(','):
         [key, value] = encoded_dict.split(':')
         result_dict[key] = value
       return result_dict
@@ -33,3 +33,11 @@ class Utils:
   def rand_str(string_len=10):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(string_len))
+
+  @staticmethod
+  def fqcn(o):
+    module = o.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+      return o.__class__.__name__
+    else:
+      return module + '.' + o.__class__.__name__
