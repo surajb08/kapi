@@ -1,6 +1,6 @@
-from analysis_suites.network.network_suite import NetworkSuiteStep
+from analysis_suites.network.network_suite import BaseNetworkStep
 
-class DoesSvcConnectStep(NetworkSuiteStep):
+class DoesSvcConnectStep(BaseNetworkStep):
 
   def perform(self):
     output = self.stunt_pod.curl(url=super().target_url)

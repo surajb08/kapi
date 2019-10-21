@@ -1,6 +1,6 @@
-from analysis_suites.network.network_suite import NetworkSuiteStep
+from analysis_suites.network.network_suite import BaseNetworkStep
 
-class IsSvcVisibleStep(NetworkSuiteStep):
+class IsSvcVisibleStep(BaseNetworkStep):
 
   def has_required_ref(self, lines):
     per_line = lambda line: (self.svc_name in line)

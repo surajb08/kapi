@@ -29,9 +29,10 @@ tree:
   friendly: "Service Connects?"
   positive:
     id: no_problem
-    friendly: "All Good"
+    friendly: "There's no Problem lol"
   negative:
     id: is_svc_visible
+    friendly: "DNS Working?"
     positive:
       id: svc_not_visible
       friendly: "DNS Problem"

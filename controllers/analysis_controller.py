@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import importlib
-
 import inflection
 import yaml
 from flask import Blueprint, request
@@ -18,8 +17,11 @@ def decision_tree(suite_id):
 def step_info(suite_id, step_id):
   step = load_requested_step(suite_id, step_id)
   return {
-    "summary": step.summary_copy(),
-    "sub_steps": step.steps_copy()
+    "data": {
+      "summary": step.summary_copy(),
+      "sub_steps": step.steps_copy(),
+      "commands": step.commands_copy()
+    }
   }
 
 @controller.route('/api/analysis/<suite_id>/step/<step_id>/run', methods=['POST'])

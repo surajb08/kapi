@@ -5,7 +5,7 @@ from helpers.svc_helper import SvcHelper
 from stunt_pods.curl_pod import CurlPod
 
 
-class NetworkSuiteStep(AnalysisStep):
+class BaseNetworkStep(AnalysisStep):
   def __init__(self, **args):
     super().__init__()
     self.from_port = args['from_port']

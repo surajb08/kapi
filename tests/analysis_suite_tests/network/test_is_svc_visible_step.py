@@ -1,5 +1,4 @@
 import unittest
-
 from analysis_suites.network.is_svc_visible_step import IsSvcVisibleStep
 from tests.analysis_suite_tests.network.base import Base
 
