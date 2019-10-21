@@ -15,7 +15,7 @@ class NetworkSuiteStep(AnalysisStep):
 
   @property
   def svc_name(self):
-    return self.deployment.metadata.name
+    return self.service.metadata.name
 
   @property
   def ns(self):
@@ -27,7 +27,15 @@ class NetworkSuiteStep(AnalysisStep):
 
   @property
   def target_url(self):
-    return f"{self.svc_name}.{self.ns}.svc.cluster.local:{self.port}"
+    return f"{self.fqdn}.svc.cluster.local:{self.port}"
+
+  @property
+  def fqdn(self):
+    return f"{self.svc_name}.{self.ns}"
+
+  @property
+  def svc_ip(self):
+    return self.service.spec.cluster_ip
 
   @property
   def stunt_pod(self):
@@ -37,6 +45,7 @@ class NetworkSuiteStep(AnalysisStep):
         delete_after=False,
         namespace=self.ns,
       )
+      self._stunt_pod.find_or_create()
     return self._stunt_pod
 
   def _copy_bundle(self):
@@ -46,7 +55,9 @@ class NetworkSuiteStep(AnalysisStep):
       "port": self.port,
       "ns": self.ns,
       "pod_name": "network_debug",
-      "target_url": self.target_url
+      "target_url": self.target_url,
+      "fqdn": self.fqdn,
+      "svc_ip": self.svc_ip
     }
 
   def load_copy_tree(self):

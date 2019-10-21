@@ -2,7 +2,6 @@
 from flask import Flask
 from flask_cors import CORS
 
-from analysis_suites.network.service_connects_step import ServiceConnectsStep
 from controllers import analysis_controller, deployments_controller, run_controller, cluster_controller, \
   status_controller
 from actions.image_changer import ImageChanger
@@ -36,8 +35,7 @@ def make_shell_context():
     'sh': SvcHelper,
     'cp': CurlPod,
     'ir': ImageReloader,
-    'ic': ImageChanger,
-    'sc': ServiceConnectsStep
+    'ic': ImageChanger
   }
 
 @app.errorhandler(BrokerNotConnectedException)

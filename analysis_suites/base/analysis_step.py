@@ -9,13 +9,13 @@ class AnalysisStep:
     self.outputs = []
 
   def as_positive(self, outputs, bundle):
-    self.record_step_performed("positive", outputs, bundle)
+    self.record_step_performed(True, outputs, bundle)
 
   def as_negative(self, outputs, bundle):
-    self.record_step_performed("negative", outputs, bundle)
+    self.record_step_performed(False, outputs, bundle)
 
-  def record_step_performed(self, which, outputs, bundle):
-    self.outcome = which
+  def record_step_performed(self, outcome, outputs, bundle):
+    self.outcome = outcome
     self.outputs = outputs
     self.outcomes_bundle = bundle
 

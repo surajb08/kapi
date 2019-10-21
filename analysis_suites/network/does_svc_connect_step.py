@@ -1,6 +1,6 @@
 from analysis_suites.network.network_suite import NetworkSuiteStep
 
-class ServiceConnectsStep(NetworkSuiteStep):
+class DoesSvcConnectStep(NetworkSuiteStep):
 
   def perform(self):
     output = self.stunt_pod.curl(url=super().target_url)
@@ -17,7 +17,7 @@ class ServiceConnectsStep(NetworkSuiteStep):
 
   @staticmethod
   def test():
-    worker = ServiceConnectsStep(
+    worker = DoesSvcConnectStep(
       from_port="80",
       svc_name="moderator",
       dep_name="moderator",

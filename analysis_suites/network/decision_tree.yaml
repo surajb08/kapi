@@ -25,27 +25,32 @@ when_pods_running:
       friendly: "Image Problem"
 
 tree:
-  id: can_svc_connect
+  id: does_svc_connect
   friendly: "Service Connects?"
   positive:
     id: no_problem
     friendly: "All Good"
   negative:
-    id: does_svc_see_any_pods
-    friendly: "Service Sees Pods?"
+    id: is_svc_visible
     positive:
-      id: does_svc_sees_right_pods
-      friendly: "Service Sees Right Pods?"
-      positive:
-        *when_pods_running
-      negative:
-        id: deployment_pod_mismatch
-        friendly: "Label Clusterf***"
+      id: svc_not_visible
+      friendly: "DNS Problem"
     negative:
-      id: are_any_pods_running
-      friendly: "Pods Running?"
+      id: does_svc_see_pods
+      friendly: "Service Sees Pods?"
       positive:
-        *when_pods_running
+        id: does_svc_sees_right_pods
+        friendly: "Service Sees Right Pods?"
+        positive:
+          *when_pods_running
+        negative:
+          id: deployment_pod_mismatch
+          friendly: "Label Clusterf***"
       negative:
-        id: pods_not_running
-        friendly: "Pods not Running"
+        id: are_any_pods_running
+        friendly: "Pods Running?"
+        positive:
+          *when_pods_running
+        negative:
+          id: pods_not_running
+          friendly: "Pods not Running"
