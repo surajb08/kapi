@@ -8,10 +8,10 @@ TESTING_NS = "nectar-testing"
 TESTING_DEP_NM = "simple-app-dep"
 TESTING_SVC_NM = "simple-app-svc"
 
-class TestDoesSvcConnect(unittest.TestCase):
+class Base(unittest.TestCase):
 
   @classmethod
-  def setUpClass(cls):
+  def stdSetUpClass(cls):
     cls.deployment = DepHelper.find(TESTING_NS, TESTING_DEP_NM)
     cls.service = SvcHelper.find(TESTING_NS, TESTING_SVC_NM)
     cls.step = DoesSvcConnectStep(
@@ -24,23 +24,16 @@ class TestDoesSvcConnect(unittest.TestCase):
   def setUp(self):
     self.step.from_port = self.service.spec.ports[0].port
 
+  def post_test_positive(self):
+    self.assertTrue(self.step.outcome)
+    self.ensure_copy_working()
+
+  def post_test_negative(self):
+    self.assertFalse(self.step.outcome)
+    self.ensure_copy_working()
+
   def ensure_copy_working(self):
     self.assertIsNotNone(self.step.copy_bundle())
     self.assertIsNotNone(self.step.summary_copy())
     self.assertIsNotNone(self.step.commands_copy())
     self.assertIsNotNone(self.step.steps_copy())
-
-  def test_positive(self):
-    self.step.perform()
-    self.assertTrue(self.step.outcome)
-    self.assertIsNotNone(self.step.outcomes_bundle['status'])
-    self.assertIsNotNone(self.step.outcomes_bundle['raw'])
-    self.ensure_copy_working()
-    
-  def test_negative(self):
-    self.step.from_port = 81
-    self.step.perform()
-    self.assertFalse(self.step.outcome)
-
-if __name__ == '__main__':
-  unittest.main()
