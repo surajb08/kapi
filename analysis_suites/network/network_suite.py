@@ -1,6 +1,7 @@
 from analysis_suites.base.analysis_step import AnalysisStep
 from analysis_suites.network.copy import copy_tree
 from helpers.dep_helper import DepHelper
+from helpers.kube_broker import broker
 from helpers.svc_helper import SvcHelper
 from stunt_pods.curl_pod import CurlPod
 
@@ -47,6 +48,10 @@ class BaseNetworkStep(AnalysisStep):
       )
       self._stunt_pod.find_or_create()
     return self._stunt_pod
+
+  @property
+  def api(self):
+    return broker.coreV1
 
   def _copy_bundle(self):
     return {

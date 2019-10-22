@@ -55,9 +55,9 @@ copy_tree = {
     "commands": lambda args: [
       f"kubectl get endpoints {args['svc_name']} --namespace={args['ns']} "
     ],
-    "outcome": {
+    "conclusion": {
       "positive": lambda args: [
-        f"{args['svc_name']} knows to forward traffic to a set of pods.",
+        f"{args['svc_name']} knows to forward traffic to {args['ep_count']} pods.",
         f"Next, we're going to check if those are the right pods"
       ],
       "negative": lambda args: [
@@ -81,7 +81,7 @@ copy_tree = {
       f"kubectl get endpoints {args['svc_name']} --namespace={args['ns']}",
       f"kubectl get pods -l {args['label_comp']} --namespace={args['ns']}"
     ],
-    "outcome": {
+    "conclusion": {
       "positive": lambda args: [
         f"Big win. Now we can look at the pod level."
       ],
@@ -104,7 +104,7 @@ copy_tree = {
     "commands": lambda args: [
       f"kubectl get pods -l {args['label_comp']} --namespace={args['ns']}"
     ],
-    "outcome": {
+    "conclusion": {
       "positive": lambda args: [f"Returned status {args['status_code']}. Everything's working."],
       "negative": lambda args: [f"Could not connect, there is no problem."]
     },

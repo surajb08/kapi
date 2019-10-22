@@ -2,6 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import PropertyMock
 
+from actions.image_reloader import ImageReloader
 from utils.utils import Utils
 from helpers.dep_helper import DepHelper
 from helpers.svc_helper import SvcHelper
@@ -39,9 +40,18 @@ class Base(unittest.TestCase):
     self.assertIsNotNone(self.step.summary_copy())
     self.assertIsNotNone(self.step.commands_copy())
     self.assertIsNotNone(self.step.steps_copy())
+    self.assertIsNotNone(self.step.outcome_copy())
 
   def mock_step_prop(self, prop_name, value, callback):
     mock_name = f"{Utils.fqcn(self.step)}.{prop_name}"
     with mock.patch(mock_name, new_callable=PropertyMock) as v:
       v.return_value = value
       callback()
+
+  def scale_to(self, amount):
+    worker = ImageReloader(
+      dp_namespace=self.deployment.metadata.namespace,
+      dp_name=self.deployment.metadata.name,
+      mode="scale"
+    )
+    worker.scale(amount)

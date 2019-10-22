@@ -30,9 +30,12 @@ def run_command():
 @controller.route('/api/run/image_reload', methods=['POST'])
 def image_reload():
   body_args = request.json
-  dep_namespace = body_args['dep_namespace']
   dep_name = body_args['dep_name']
-  worker = ImageReloader(dep_namespace, dep_name, "reload")
+  worker = ImageReloader(
+    dp_namespace=body_args['dep_namespace'],
+    dp_name=dep_name,
+    mode="reload"
+  )
   worker.run()
   return { "data": { 'status': 'working' } }
 
@@ -50,10 +53,12 @@ def new_image():
 @controller.route('/api/run/scale_replicas', methods=['POST'])
 def scale_replicas():
   body_args = request.json
-  dep_namespace = body_args['dep_namespace']
-  dep_name = body_args['dep_name']
-  scale_to = int(body_args['scale_to'])
-  worker = ImageReloader(dep_namespace, dep_name,  "scale", scale_to)
+  worker = ImageReloader(
+    dp_namespace=body_args['dep_namespace'],
+    dp_name=body_args['dep_name'],
+    mode="scale",
+    scale_to=int(body_args['scale_to'])
+  )
   worker.run()
   return { "data": { 'status': 'working' } }
 

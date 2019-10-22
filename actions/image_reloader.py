@@ -10,11 +10,15 @@ from helpers.pod_helper import PodHelper
 
 class ImageReloader:
 
-  def __init__(self, dp_namespace, dp_name, mode, scale_to=None):
-    self.deployment = DepHelper.find(dp_namespace, dp_name)
-    self.mode = mode
-    self.scale_to = self.decide_scale_target(scale_to)
+  def __init__(self, **args):
+    self.deployment = args.get('deployment', self.find_dep(args))
+    self.mode = args['mode']
+    self.scale_to = self.decide_scale_target(args.get('scale_to', None))
     self.init_pod_names = self.load_pod_names()
+
+  @staticmethod
+  def find_dep(args):
+    return DepHelper.find(args['dp_namespace'], args['dp_name'])
 
   def decide_scale_target(self, scale_to):
     if self.mode == 'scale':
@@ -42,9 +46,7 @@ class ImageReloader:
 
   def run(self):
     if self.mode == 'reload':
-      print(f"SCALING DOWN FIRST {self.mode}")
       self.scale(0)
-      print(f"Scaling to final {self.scale_to}")
     self.scale(self.scale_to)
 
   def scale(self, replicas):
@@ -57,11 +59,3 @@ class ImageReloader:
         )
       )
     )
-
-  @staticmethod
-  def play():
-    reloader = ImageReloader('default', 'ruby-cluster', "scale", 0)
-    print(f"Initial pods: {reloader.init_pod_names}")
-    print(f"Desired replicas: {reloader.scale_to}")
-    reloader.run()
-    return reloader

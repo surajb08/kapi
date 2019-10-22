@@ -8,6 +8,13 @@ class AnalysisStep:
     self.outcomes_bundle = {}
     self.outputs = []
 
+  def perform(self):
+    pass
+
+  @property
+  def outcome_str(self):
+    return "positive" if self.outcome else "negative"
+
   def as_positive(self, outputs, bundle):
     self.record_step_performed(True, outputs, bundle)
 
@@ -35,7 +42,8 @@ class AnalysisStep:
     return self.interpolate_copy('commands')
 
   def outcome_copy(self):
-    return self.interpolate_copy('outcome')
+    literal_func = self.load_copy_tree()[self.copy_key()]['conclusion']
+    return literal_func[self.outcome_str](self.copy_bundle())
 
   def interpolate_copy(self, key):
     literal_func = self.load_copy_tree()[self.copy_key()][key]
@@ -47,9 +55,6 @@ class AnalysisStep:
 
   def load_copy_tree(self):
     return {}
-
-  def perform(self):
-    pass
 
   def _copy_bundle(self):
     return {}

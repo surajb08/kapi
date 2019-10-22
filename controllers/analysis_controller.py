@@ -29,8 +29,11 @@ def run_step(suite_id, step_id):
   step = load_requested_step(suite_id, step_id)
   step.perform()
   return {
-    "outputs": step.outputs,
-    "outcomes": step.outcome_copy
+    "data": {
+      "result": step.outcome_str,
+      "outputs": step.outputs,
+      "outcomes": step.outcome_copy()
+    }
   }
 
 def load_requested_step(suite, step):
