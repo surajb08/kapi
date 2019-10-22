@@ -121,8 +121,8 @@ copy_tree = {
       f"Count how many are in phase RUNNING"
     ],
     "commands": lambda args: [
-      f"$pods=kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']}",
-      "echo $pods | jq .status.phase"
+      f"$pods=kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']} -o json",
+      "echo $pods | jq .items[0].status.phase"
     ],
     "conclusion": {
       "positive": lambda args: [f"{args['pods_running']}/{args['pods_total']} pods running"],
