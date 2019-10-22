@@ -33,10 +33,10 @@ tree:
   negative:
     id: is_svc_visible
     friendly: "DNS Working?"
-    positive:
+    negative:
       id: svc_not_visible
       friendly: "DNS Problem"
-    negative:
+    positive:
       id: does_svc_see_pods
       friendly: "Service Sees Pods?"
       positive:

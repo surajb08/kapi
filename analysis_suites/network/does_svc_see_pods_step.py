@@ -1,4 +1,3 @@
-import kubernetes
 from kubernetes.client.rest import ApiException
 
 from analysis_suites.network.network_suite import BaseNetworkStep

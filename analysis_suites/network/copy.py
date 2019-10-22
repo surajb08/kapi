@@ -22,12 +22,12 @@ copy_tree = {
 
   "is_svc_visible": {
     "summary": lambda args:
-    f"We're going to check if the cluster's DNS can resolve ${args['svc_name']}'s "
-    f"partially qualified domain name - ${args['fqdn']}."
+    f"We're going to check if the cluster's DNS can resolve {args['svc_name']}'s "
+    f"partially qualified domain name - {args['fqdn']}."
     ,
     "steps": lambda args: [
-      f"Run nslookup against ${args['svc_name']} from inside the cluster",
-      f"Check that there is an entry for ${args['fqdn']}"
+      f"Run nslookup against {args['svc_name']} from inside the cluster",
+      f"Check that there is an entry for {args['fqdn']}"
     ],
     "commands": lambda args: [
       f"kubectl run {args['pod_name']} --image=nectar_cs/curler:latest "
@@ -67,7 +67,7 @@ copy_tree = {
     },
   },
 
-  "does_svc_sees_right_pods": {
+  "does_svc_see_right_pods": {
     "summary": lambda args: (
       f"Is the service pointing to the deployment {args['svc_name']}'s "
       f"pods or some other random pods?"
@@ -79,14 +79,15 @@ copy_tree = {
     ],
     "commands": lambda args: [
       f"kubectl get endpoints {args['svc_name']} --namespace={args['ns']}",
-      f"kubectl get pods -l {args['label_comp']} --namespace={args['ns']}"
+      f"BUILD ME"
     ],
     "conclusion": {
       "positive": lambda args: [
         f"Big win. Now we can look at the pod level."
       ],
       "negative": lambda args: [
-        f"This is the problem."
+        f"{args['svc_name']} is pointing to one or more pods that don't belong"
+        f" to its deployment ({args['dep_name']})."
       ]
     },
 

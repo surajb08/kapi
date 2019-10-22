@@ -19,6 +19,10 @@ class BaseNetworkStep(AnalysisStep):
     return self.service.metadata.name
 
   @property
+  def dep_name(self):
+    return self.service.metadata.name
+
+  @property
   def ns(self):
     return self.service.metadata.namespace
 
