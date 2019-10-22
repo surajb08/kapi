@@ -4,6 +4,7 @@ from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
 from helpers.svc_helper import SvcHelper
 from stunt_pods.curl_pod import CurlPod
+from utils.utils import Utils
 
 
 class BaseNetworkStep(AnalysisStep):
@@ -13,6 +14,16 @@ class BaseNetworkStep(AnalysisStep):
     self.deployment = DepHelper.find(args['dep_ns'], args['dep_name'])
     self.service = SvcHelper.find(args['dep_ns'],args['svc_name'])
     self._stunt_pod = None
+
+  @property
+  def port_bundle(self):
+    bundles = self.service.spec.ports
+    matches = [b for b in bundles if str(b.port) == str(self.from_port)]
+    return matches[0]
+
+  @property
+  def to_port(self):
+      return self.port_bundle.target_port
 
   @property
   def svc_name(self):
@@ -43,11 +54,15 @@ class BaseNetworkStep(AnalysisStep):
     return self.service.spec.cluster_ip
 
   @property
+  def pod_label_comp(self):
+    dep_labels = self.deployment.spec.selector.match_labels
+    return Utils.dict_to_eq_str(dep_labels)
+
+  @property
   def stunt_pod(self):
     if self._stunt_pod is None:
       self._stunt_pod = CurlPod(
         pod_name="temp",
-        delete_after=False,
         namespace=self.ns,
       )
       self._stunt_pod.find_or_create()
@@ -66,7 +81,8 @@ class BaseNetworkStep(AnalysisStep):
       "pod_name": "network_debug",
       "target_url": self.target_url,
       "fqdn": self.fqdn,
-      "svc_ip": self.svc_ip
+      "svc_ip": self.svc_ip,
+      "pod_label_comp": self.pod_label_comp
     }
 
   def load_copy_tree(self):

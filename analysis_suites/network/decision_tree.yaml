@@ -11,7 +11,7 @@ ask_ports_configured:
 
 when_pods_running:
   &when_pods_running
-  id: pods_accepting
+  id: do_pods_connect
   friendly: "Pods Connecting?"
   positive:
     *ask_ports_configured
@@ -38,9 +38,9 @@ tree:
       friendly: "DNS Problem"
     positive:
       id: does_svc_see_pods
-      friendly: "Service Sees Pods?"
+      friendly: "Service Sees Any Pods?"
       positive:
-        id: does_svc_sees_right_pods
+        id: does_svc_see_right_pods
         friendly: "Service Sees Right Pods?"
         positive:
           *when_pods_running

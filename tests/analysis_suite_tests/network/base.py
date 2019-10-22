@@ -1,6 +1,6 @@
 import unittest
 from unittest import mock
-from unittest.mock import PropertyMock
+from unittest.mock import PropertyMock, MagicMock
 
 from actions.image_reloader import ImageReloader
 from utils.utils import Utils
@@ -41,6 +41,12 @@ class Base(unittest.TestCase):
     self.assertIsNotNone(self.step.commands_copy())
     self.assertIsNotNone(self.step.steps_copy())
     self.assertIsNotNone(self.step.outcome_copy())
+
+  def mock_step_method(self, prop_name, value, callback):
+    mock_name = f"{Utils.fqcn(self.step)}.{prop_name}"
+    with mock.patch(mock_name, new_callable=MagicMock) as v:
+      v.return_value = value
+      callback()
 
   def mock_step_prop(self, prop_name, value, callback):
     mock_name = f"{Utils.fqcn(self.step)}.{prop_name}"

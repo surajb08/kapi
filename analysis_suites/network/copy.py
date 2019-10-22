@@ -94,6 +94,24 @@ copy_tree = {
     "terminals": { "negative": "deployment_pod_mismatch" }
   },
 
+  "do_pods_connect": {
+    "summary": lambda args: (
+      f"Check if 100% of {args['dep_name']}'s pods are accepting HTTP requests. "
+      f"We'll ignore the service ({args['svc_name']}) here and go straight for the pods' IPs"
+    ),
+    "steps": lambda args: [
+      f"Get list of {args['dep_name']}'s pods.",
+      f"cURL each one directly by using their IP instead of the service's."
+    ],
+    "commands": lambda args: [
+      f"kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']}"
+    ],
+    "conclusion": {
+      "positive": lambda args: [f"All pods connected."],
+      "negative": lambda args: [f"{args['culprits']} could not connect."]
+    },
+  },
+
   "are_any_pods_running": {
     "summary": lambda args: (
       f"Make sure at least one of {args['dep_name']}'s pods running?"
