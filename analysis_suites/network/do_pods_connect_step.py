@@ -7,7 +7,7 @@ class DoPodsConnectStep(BaseNetworkStep):
   @staticmethod
   def result_str(result):
     noun = 'pass' if result['pass'] else 'fail'
-    return f"{result['name']} --> {noun}"
+    return f"{result['name']} @ {result['url']} --> {noun}"
 
   def pod_endpoint(self, pod):
     return f"{pod.status.pod_ip}:{self.to_port}"
@@ -16,7 +16,8 @@ class DoPodsConnectStep(BaseNetworkStep):
     result = self.stunt_pod.curl(url=self.pod_endpoint(pod))
     return {
       "name": pod.metadata.name,
-      "pass": result['finished']
+      "pass": result['finished'],
+      "url": self.pod_endpoint(pod)
     }
 
   def perform(self):

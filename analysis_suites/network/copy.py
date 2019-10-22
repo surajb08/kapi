@@ -112,7 +112,7 @@ copy_tree = {
     },
   },
 
-  "are_any_pods_running": {
+  "are_pods_running": {
     "summary": lambda args: (
       f"Make sure at least one of {args['dep_name']}'s pods running?"
     ),
@@ -121,11 +121,12 @@ copy_tree = {
       f"Count how many are in phase RUNNING"
     ],
     "commands": lambda args: [
-      f"kubectl get pods -l {args['label_comp']} --namespace={args['ns']}"
+      f"$pods=kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']}",
+      "echo $pods | jq .status.phase"
     ],
     "conclusion": {
-      "positive": lambda args: [f"Returned status {args['status_code']}. Everything's working."],
-      "negative": lambda args: [f"Could not connect, there is no problem."]
+      "positive": lambda args: [f"{args['pods_running']}/{args['pods_total']} pods running"],
+      "negative": lambda args: [f"{args['pods_not_running']}/{args['pods_total']} pods not running"]
     },
   }
 }

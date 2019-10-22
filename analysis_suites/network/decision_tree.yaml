@@ -48,7 +48,7 @@ tree:
           id: deployment_pod_mismatch
           friendly: "Label Clusterf***"
       negative:
-        id: are_any_pods_running
+        id: are_pods_running
         friendly: "Pods Running?"
         positive:
           *when_pods_running
