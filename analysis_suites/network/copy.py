@@ -104,7 +104,11 @@ copy_tree = {
       f"cURL each one directly by using their IP instead of the service's."
     ],
     "commands": lambda args: [
-      f"kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']}"
+      f"$pods=kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']}",
+      f"for $pod in $pods:"
+      f"    $ip=echo $pod | jq .status.pod_ip",
+      f"    $name=echo $pod | jq .metadata.name",
+      f"    kubectl exec $name -- curl $ip"
     ],
     "conclusion": {
       "positive": lambda args: [f"All pods connected."],
