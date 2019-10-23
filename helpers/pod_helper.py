@@ -104,11 +104,14 @@ class PodHelper:
 
   @staticmethod
   def child_ser(pod):
+    ts = lambda: pod.status.container_statuses[0].state.running.started_at
+
     return {
       'name': pod.metadata.name,
       'namespace': pod.metadata.namespace,
       'state': Utils.try_or(lambda: pod.status.phase),
-      'ip': Utils.try_or(lambda: pod.status.pod_ip)
+      'ip': Utils.try_or(lambda: pod.status.pod_ip),
+      'updated_at': Utils.try_or(ts)
     }
 
   @staticmethod

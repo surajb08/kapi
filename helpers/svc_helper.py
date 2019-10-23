@@ -31,11 +31,13 @@ class SvcHelper:
 
     return {
       "name": name,
+      "namespace": namespace,
       "internal_ip": svc.spec.cluster_ip,
       "external_ip": Utils.try_or(get_ip),
       "from_port": port_obj.port,
       "to_port": port_obj.target_port,
       "short_dns": name + "." + namespace,
       "long_dns": name + "." + namespace + ".svc.cluster.local",
-      "ports": port_objs
+      "ports": port_objs,
+      "type": svc.spec.type
     }
