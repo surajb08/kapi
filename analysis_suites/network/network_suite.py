@@ -43,11 +43,15 @@ class BaseNetworkStep(AnalysisStep):
 
   @property
   def target_url(self):
-    return f"{self.fqdn}.svc.cluster.local:{self.port}"
+    return f"{self.tfqdn}:{self.port}"
 
   @property
   def fqdn(self):
     return f"{self.svc_name}.{self.ns}"
+
+  @property
+  def tfqdn(self):
+    return f"{self.fqdn}.svc.cluster.local"
 
   @property
   def svc_ip(self):
@@ -81,6 +85,7 @@ class BaseNetworkStep(AnalysisStep):
       "pod_name": "network_debug",
       "target_url": self.target_url,
       "fqdn": self.fqdn,
+      "tfqdn": self.tfqdn,
       "svc_ip": self.svc_ip,
       "pod_label_comp": self.pod_label_comp
     }
