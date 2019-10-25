@@ -11,14 +11,21 @@ controller = Blueprint('deployments_controller', __name__)
 
 @controller.route('/api/deployments/across_namespaces')
 def across_namespaces():
+
+  def bundle(dep):
+    return {
+      "name": dep.metadata.name,
+      "namespace": dep.metadata.namespace
+    }
+
   broker.check_connected()
-  dump = broker.appsV1Api.list_deployment_for_all_namespaces().items
-  dump = list(filter(lambda d: d.metadata.namespace != 'kube-system', dump))
-  min_dep = lambda d: {"name": d.metadata.name, "namespace": d.metadata.namespace}
-  serialized = list(map(min_dep, dump))
-  unique_names = set(map(lambda d: d['name'], serialized))
+  all_deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
+  my_deps = [d for d in all_deps if d.metadata.namespace != 'kube-system']
+  serialized = [bundle(dep) for dep in my_deps]
+  unique_names = set([dep['name'] for dep in serialized])
 
   output = []
+
   for name in unique_names:
     matching_deps = list(filter(lambda d: d['name'] == name, serialized))
     corresponding_namespaces = list(map(lambda d: d['namespace'], matching_deps))
@@ -33,7 +40,7 @@ def across_namespaces():
 def filtered():
   broker.check_connected()
   result = list(map(DepHelper.simple_ser, params_to_deps()))
-  return { "data": result }
+  return {"data": result}
 
 
 @controller.route('/api/deployments/<namespace>/<name>')

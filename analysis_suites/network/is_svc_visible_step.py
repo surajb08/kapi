@@ -9,7 +9,7 @@ class IsSvcVisibleStep(BaseNetworkStep):
 
   def perform(self):
     command = f"nslookup {self.fqdn}"
-    output = self.stunt_pod.execute_command(command)
+    output = self.stunt_pod.run(command)
     lines = list(map(lambda l: l.strip(), output.split("\n")))
     lines = list(filter(lambda l: l, lines))
 

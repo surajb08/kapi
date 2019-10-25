@@ -7,5 +7,4 @@ class NoProblemStep(BaseNetworkStep):
     return {}
 
   def load_copy_tree(self):
-    print(f"Hey I'm returning everything! {terminals}")
     return terminals

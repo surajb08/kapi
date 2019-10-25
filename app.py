@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
+import os
+
+import sentry_sdk
 from flask import Flask
 from flask_cors import CORS
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 from controllers import analysis_controller, deployments_controller, run_controller, cluster_controller, \
   status_controller
@@ -13,6 +17,12 @@ HOST = '0.0.0.0'
 PORT = 5000
 
 broker = KubeBroker()
+
+if os.environ.get('ENV') == 'production':
+  sentry_sdk.init(
+    dsn="https://16c96800cc7442e4b53bb6c04bfe1e84@sentry.io/1796858",
+    integrations=[FlaskIntegration()]
+  )
 
 app = Flask(__name__, static_folder=".", static_url_path="")
 app.register_blueprint(status_controller.controller)
