@@ -3,10 +3,10 @@ ask_ports_configured:
   id: ports_configured
   friendly: "Configs Good?"
   positive:
-    id: configs_good
+    id: ports_configs_good
     friendly: "Undiagnosable"
   negative:
-    id: configs_bad
+    id: ports_configs_bad
     friendly: "Bad Port Config"
 
 when_pods_running:
@@ -34,8 +34,14 @@ tree:
     id: is_svc_visible
     friendly: "DNS Working?"
     negative:
-      id: svc_not_visible
-      friendly: "DNS Problem"
+      id: are_dns_working
+      friendly: "Is Kube/CoreDNS Up?"
+      positive:
+        id: dns_not_working
+        friendly: "Kube/CoreDNS Up"
+      negative:
+        id: dns_working
+        friendly: "Kube/CoreDNS Down"
     positive:
       id: does_svc_see_pods
       friendly: "Service Sees Any Pods?"

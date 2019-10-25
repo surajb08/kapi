@@ -39,7 +39,9 @@ copy_tree = {
         f"The cluster's DNS is working, huge relief.",
         f"This means {args['fqdn']} -> {args['svc_ip']} is happening correctly."
       ],
-      "negative": lambda args: [f"Problem identified. Open the Solutions page."]
+      "negative": lambda args: [
+        f"This is the Problem. Continue for remediation."
+      ]
     },
   },
 
@@ -90,8 +92,6 @@ copy_tree = {
         f" to its deployment ({args['dep_name']})."
       ]
     },
-
-    "terminals": { "negative": "deployment_pod_mismatch" }
   },
 
   "do_pods_connect": {
@@ -112,7 +112,9 @@ copy_tree = {
     ],
     "conclusion": {
       "positive": lambda args: [f"All pods connected."],
-      "negative": lambda args: [f"{args['culprits']} could not connect."]
+      "negative": lambda args: [
+        f"{args['culprits']} could not connect."
+      ]
     },
   },
 
@@ -130,7 +132,10 @@ copy_tree = {
     ],
     "conclusion": {
       "positive": lambda args: [f"{args['pods_running']}/{args['pods_total']} pods running"],
-      "negative": lambda args: [f"{args['pods_not_running']}/{args['pods_total']} pods not running"]
+      "negative": lambda args: [
+        f"{args['pods_not_running']}/{args['pods_total']} pods not running",
+        f"This is the Problem. Continue for remediation."
+      ]
     },
   }
 }
