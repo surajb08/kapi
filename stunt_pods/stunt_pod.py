@@ -41,9 +41,6 @@ class StuntPod:
   def find(self):
     return PodHelper.find(self.namespace, self.pod_name)
 
-  def labels(self):
-    return {"nectar-type": "stunt-pod"}
-
   def delete(self):
     broker.coreV1.delete_namespaced_pod(
       name=self.pod_name,
@@ -99,3 +96,24 @@ class StuntPod:
       return cmd.split(" ")
     else:
       return cmd
+
+  @staticmethod
+  def labels():
+    return {"nectar-type": "stunt-pod"}
+
+  @staticmethod
+  def stunt_pods():
+    return PodHelper.find_by_label(None, StuntPod.labels())
+
+  @staticmethod
+  def kill_stunt_pods():
+    pods = StuntPod.stunt_pods()
+    namespaces = set([p.metadata.namespace for p in pods])
+    print(f"GOING FOR {namespaces}")
+    for namespace in namespaces:
+      broker.coreV1.delete_collection_namespaced_pod(
+        namespace=namespace,
+        label_selector=Utils.dict_to_eq_str(StuntPod.labels())
+      )
+
+
