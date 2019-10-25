@@ -13,7 +13,7 @@ class CurlPod(StuntPod):
 
   def curl(self, **curl_params):
     fmt_command = CurlPod.build_curl_cmd(**curl_params)
-    result = super().execute_command(fmt_command)
+    result = super().run(fmt_command)
     if result is not None:
       result = CurlPod.parse_response(result)
     return result

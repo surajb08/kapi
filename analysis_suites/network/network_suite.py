@@ -70,7 +70,7 @@ class BaseNetworkStep(AnalysisStep):
   def stunt_pod(self):
     if self._stunt_pod is None:
       self._stunt_pod = CurlPod(
-        pod_name="temp",
+        pod_name="net-debug-pod",
         namespace=self.ns,
       )
       self._stunt_pod.find_or_create()

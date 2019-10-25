@@ -8,7 +8,6 @@ from utils.utils import Utils
 class StuntPod:
   def __init__(self, **kwargs):
     self.pod_name = kwargs.get('pod_name', f"stunt-pod-{Utils.rand_str(4)}")
-    self.delete_after = kwargs.get('delete_after', False)
     self.namespace = kwargs.get('namespace', 'nectar')
     self._image = "xnectar/curler:latest"
 
@@ -52,7 +51,7 @@ class StuntPod:
     return self.wait_until_running()
 
   def find_or_create(self):
-    self.find() or self.create_and_wait()
+    return self.find() or self.create_and_wait()
 
   def wait_until_running(self):
     pod_ready = False
@@ -83,9 +82,7 @@ class StuntPod:
   def run(self, command):
     broker.connect()
     if self.find_or_create():
-      response = self.execute_command(command)
-      self.delete() if self.delete_after else None
-      return response
+      return self.execute_command(command)
     else:
       print(f"Could not find or create curl pod {self.pod_name}")
       return None
@@ -109,11 +106,8 @@ class StuntPod:
   def kill_stunt_pods():
     pods = StuntPod.stunt_pods()
     namespaces = set([p.metadata.namespace for p in pods])
-    print(f"GOING FOR {namespaces}")
     for namespace in namespaces:
       broker.coreV1.delete_collection_namespaced_pod(
         namespace=namespace,
         label_selector=Utils.dict_to_eq_str(StuntPod.labels())
       )
-
-

@@ -24,7 +24,7 @@ def run_command():
     pod_name=j_body['pod_name'],
     namespace=j_body['pod_namespace'],
   )
-  output = pod.execute_command(j_body['command'])
+  output = pod.run(j_body['command'])
   return { "data": output }
 
 @controller.route('/api/run/image_reload', methods=['POST'])
