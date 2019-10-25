@@ -29,27 +29,25 @@ class DepHelper:
     return method(filters, deps)
 
   @staticmethod
-  def label_whitelist(whitelist, deps):
-    lm = lambda d: d.spec.selector.match_labels.items() <= whitelist.items()
-    return list(filter(lm, deps))
-
-  @staticmethod
-  def label_blacklist(whitelist, deps):
-    lm = lambda d: not d.spec.selector.match_labels.items() <= whitelist.items()
-    return list(filter(lm, deps))
-
-  @staticmethod
-  def lb_filter(filters, _type='whitelist', deps=None):
-    if deps is None:
-      deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
-    method = DepHelper.label_whitelist if _type == 'whitelist' else DepHelper.label_blacklist
+  def lb_filter(deps, filters, _type='blacklist'):
+    method = DepHelper.lb_whitelist if _type == 'whitelist' else DepHelper.lb_blacklist
     return method(filters, deps)
+
+  @staticmethod
+  def lb_whitelist(whitelist, deps):
+    lm = lambda d: d.metadata.labels.items() >= whitelist.items()
+    return list(filter(lm, deps))
+
+  @staticmethod
+  def lb_blacklist(blacklist, deps):
+    lm = lambda d: not d.metadata.labels.items() >= blacklist.items()
+    return list(filter(lm, deps))
 
   @staticmethod
   def ns_lb_filter(ns_filters, ns_filter_type, lb_filters, lb_filter_type):
     deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
-    return DepHelper.ns_filter(deps, ns_filters, ns_filter_type)
-    # return DepHelper.lb_filter(deps, lb_filters, lb_filter_type)
+    ns_filtered = DepHelper.ns_filter(deps, ns_filters, ns_filter_type)
+    return DepHelper.lb_filter(ns_filtered, lb_filters, lb_filter_type)
 
   @staticmethod
   def easy():

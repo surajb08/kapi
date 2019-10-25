@@ -62,7 +62,7 @@ def list_pods(namespace, name):
 
 
 def params_to_deps():
-  ns_filters = request.args.get('ns_filters', default='default').split(',')
+  ns_filters = request.args.get('ns_filters', default='').split(',')
   ns_filter_type = request.args.get('ns_filter_type', default='whitelist')
 
   lb_filters = Utils.parse_dict(request.args.get('lb_filters', default=''))

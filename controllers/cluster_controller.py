@@ -16,4 +16,4 @@ def namespaces():
 def label_combinations():
   broker.check_connected()
   combinations = ClusterHelper.label_combinations()
-  return {"data": combinations}
+  return {"data": list(set(combinations))}
