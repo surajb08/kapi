@@ -1,4 +1,4 @@
-from analysis_suites.network import terminals
+from analysis_suites.network.terminals import terminals
 from analysis_suites.network.network_suite import BaseNetworkStep
 
 class DnsWorkingStep(BaseNetworkStep):

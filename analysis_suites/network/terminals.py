@@ -123,7 +123,7 @@ terminals = {
     ]
   },
 
-  "pods_not_connecting": {
+  "container_problem": {
     "summary": lambda args:
     f"It's looking like a port mismatch or a container problem",
     "steps": lambda args: [

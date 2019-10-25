@@ -4,7 +4,7 @@ when_pods_running:
   friendly: "Pods Connecting?"
   positive:
     id: pods_connect
-    friendly: "Configs Good?"
+    friendly: "Pods Connecting"
   negative:
     id: container_problem
     friendly: "Container Problem?"

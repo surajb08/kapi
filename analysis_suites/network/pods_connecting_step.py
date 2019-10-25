@@ -1,7 +1,7 @@
 from analysis_suites.network.terminals import terminals
 from analysis_suites.network.network_suite import BaseNetworkStep
 
-class PodsNotRunningStep(BaseNetworkStep):
+class PodsConnectingStep(BaseNetworkStep):
 
   def _terminal_copy_bundle(self):
     return {}

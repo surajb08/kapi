@@ -1,7 +1,8 @@
-from analysis_suites.network import terminals
 from analysis_suites.network.network_suite import BaseNetworkStep
+from analysis_suites.network.terminals import terminals
 
-class PortsConnectingStep(BaseNetworkStep):
+
+class ContainerProblemStep(BaseNetworkStep):
 
   def _terminal_copy_bundle(self):
     return {}
