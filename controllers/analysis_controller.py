@@ -24,6 +24,18 @@ def step_info(suite_id, step_id):
     }
   }
 
+@controller.route('/api/analysis/<suite_id>/terminal/<step_id>/info', methods=['POST'])
+def terminal_info(suite_id, step_id):
+  step = load_requested_step(suite_id, step_id)
+  return {
+    "data": {
+      "summary": step.summary_copy(),
+      "tips": step.steps_copy(),
+      "commands": step.commands_copy(),
+      "resources": step.resources_copy()
+    }
+  }
+
 @controller.route('/api/analysis/<suite_id>/step/<step_id>/run', methods=['POST'])
 def run_step(suite_id, step_id):
   step = load_requested_step(suite_id, step_id)

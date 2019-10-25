@@ -21,6 +21,13 @@ class PodHelper:
       return None
 
   @staticmethod
+  def find_by_label(namespace, labels):
+    return broker.coreV1.list_namespaced_pod(
+      namespace=namespace,
+      label_selector=Utils.dict_to_eq_str(labels)
+    ).items
+
+  @staticmethod
   def find_rs(namespace, name):
     try:
       return broker.appsV1Api.read_namespaced_replica_set(

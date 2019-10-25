@@ -1,28 +1,13 @@
-ask_ports_configured:
-  &ask_ports_configured
-  id: ports_configured
-  friendly: "Configs Good?"
-  positive:
-    id: ports_configs_good
-    friendly: "Undiagnosable"
-  negative:
-    id: ports_configs_bad
-    friendly: "Bad Port Config"
-
 when_pods_running:
   &when_pods_running
   id: do_pods_connect
   friendly: "Pods Connecting?"
   positive:
-    *ask_ports_configured
+    id: pods_connect
+    friendly: "Configs Good?"
   negative:
-    id: image_accepting
-    friendly: "Container Connecting?"
-    positive:
-      *ask_ports_configured
-    negative:
-      id: image_bad
-      friendly: "Image Problem"
+    id: container_problem
+    friendly: "Container Problem?"
 
 tree:
   id: does_svc_connect
@@ -34,7 +19,7 @@ tree:
     id: is_svc_visible
     friendly: "DNS Working?"
     negative:
-      id: are_dns_working
+      id: does_dns_work
       friendly: "Is Kube/CoreDNS Up?"
       positive:
         id: dns_not_working
@@ -51,7 +36,7 @@ tree:
         positive:
           *when_pods_running
         negative:
-          id: deployment_pod_mismatch
+          id: dep_pod_mismatch
           friendly: "Label Clusterf***"
       negative:
         id: are_pods_running

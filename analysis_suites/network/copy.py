@@ -94,6 +94,31 @@ copy_tree = {
     },
   },
 
+  "does_dns_work": {
+    "summary": lambda args: (
+      f"We have to check if machinery that does domain name resolution (DNS). "
+      f"In the case of a Kubernetes cluster, that's the CoreDNS or "
+      f"KubeDNS pods running in kube-system."
+    ),
+    "steps": lambda args: [
+      f"List pods in the kube-system namespace",
+      f"Filter by label match k8s-app=kube-dns",
+      f"Check that at least one is running"
+    ],
+    "commands": lambda args: [
+      f"kubectl get pods --namespace=kube-system -l k8s-app=kube-dns"
+    ],
+    "conclusion": {
+      "positive": lambda args: [
+        f"The cluster's DNS is working. Thank god."
+      ],
+      "negative": lambda args: [
+        f"This is a cluster level problem, unrelated to {args['dep_name']}.",
+        f"This is the Problem. Continue for remediation."
+      ]
+    }
+  },
+
   "do_pods_connect": {
     "summary": lambda args: (
       f"Check if 100% of {args['dep_name']}'s pods are accepting HTTP requests. "
@@ -131,7 +156,9 @@ copy_tree = {
       "echo $pods | jq .items[0].status.phase"
     ],
     "conclusion": {
-      "positive": lambda args: [f"{args['pods_running']}/{args['pods_total']} pods running"],
+      "positive": lambda args: [
+        f"{args['pods_running']}/{args['pods_total']} pods running"
+      ],
       "negative": lambda args: [
         f"{args['pods_not_running']}/{args['pods_total']} pods not running",
         f"This is the Problem. Continue for remediation."

@@ -29,6 +29,7 @@ class AnalysisStep:
   def copy_bundle(self):
     return {
       **self._copy_bundle(),
+      **self._terminal_copy_bundle(),
       **self.outcomes_bundle
     }
 
@@ -37,6 +38,9 @@ class AnalysisStep:
 
   def steps_copy(self):
     return self.interpolate_copy('steps')
+
+  def resources_copy(self):
+    return self.interpolate_copy('resources')
 
   def commands_copy(self):
     return self.interpolate_copy('commands')
@@ -51,11 +55,16 @@ class AnalysisStep:
 
   def copy_key(self):
     class_name = self.__class__.__name__.replace("Step", '')
+    print(f"Class name: {class_name}")
+    print(f"Key name: {inflection.underscore(class_name)}")
     return inflection.underscore(class_name)
 
   def load_copy_tree(self):
+    print(f"BASE FUNC")
     return {}
 
   def _copy_bundle(self):
     return {}
 
+  def _terminal_copy_bundle(self):
+    return {}

@@ -42,6 +42,10 @@ class BaseNetworkStep(AnalysisStep):
     return int(self.from_port)
 
   @property
+  def target_port(self):
+    return int(self.port_bundle.target_port)
+
+  @property
   def target_url(self):
     return f"{self.tfqdn}:{self.port}"
 
@@ -77,10 +81,15 @@ class BaseNetworkStep(AnalysisStep):
     return broker.coreV1
 
   def _copy_bundle(self):
+
+    img = Utils.try_or(lambda: self.deployment.spec.containers[0].image)
+
     return {
       "dep_name": self.svc_name,
       "svc_name": self.service.metadata.name,
+      "img": img,
       "port": self.port,
+      "target_port": self.target_port,
       "ns": self.ns,
       "pod_name": "network_debug",
       "target_url": self.target_url,
@@ -89,6 +98,9 @@ class BaseNetworkStep(AnalysisStep):
       "svc_ip": self.svc_ip,
       "pod_label_comp": self.pod_label_comp
     }
+
+  def _terminal_copy_bundle(self):
+    return {}
 
   def load_copy_tree(self):
     return copy_tree
