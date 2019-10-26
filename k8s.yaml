@@ -1,0 +1,42 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kapi
+  namespace: nectar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kapi
+  template:
+    metadata:
+      namespace: nectar
+      labels:
+        app: kapi
+    spec:
+      serviceAccountName: nectar
+      containers:
+        - name: kapi-container
+          image: xnectar/kapi:latest
+          imagePullPolicy: 'Always'
+          env:
+            - name: RUN_ENV
+              value: production
+            - name: K8S_AUTH_TYPE
+              value: local
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: kapi
+  namespace: nectar
+spec:
+  type: ClusterIP
+  selector:
+    app: kapi
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

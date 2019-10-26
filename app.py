@@ -18,7 +18,7 @@ PORT = 5000
 
 broker = KubeBroker()
 
-if os.environ.get('ENV') == 'production':
+if os.environ.get('RUN_ENV') == 'production':
   sentry_sdk.init(
     dsn="https://16c96800cc7442e4b53bb6c04bfe1e84@sentry.io/1796858",
     integrations=[FlaskIntegration()]

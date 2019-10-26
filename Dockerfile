@@ -11,7 +11,6 @@ ADD . /app
 WORKDIR /app
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
-ENV K8S_AUTH_TYPE local
 RUN pip3 install -r requirements.txt
 EXPOSE 5000
 
