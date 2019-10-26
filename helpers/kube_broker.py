@@ -17,6 +17,7 @@ class KubeBroker:
     self.coreV1 = None
     self.appsV1Api = None
     self.client = None
+    self.batchV1 = None
 
   def connect(self):
     if os.environ.get('K8S_AUTH_TYPE') == 'local':
@@ -28,6 +29,7 @@ class KubeBroker:
     self.client = client if is_connected else None
     self.coreV1 = client.CoreV1Api() if is_connected else None
     self.appsV1Api = client.AppsV1Api() if is_connected else None
+    self.batchV1 = client.BatchV1Api() if is_connected else None
     return is_connected
 
   def in_cluster_connect(self):

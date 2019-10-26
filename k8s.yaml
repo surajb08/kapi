@@ -16,7 +16,7 @@ spec:
     spec:
       serviceAccountName: nectar
       containers:
-        - name: kapi-container
+        - name: main
           image: xnectar/kapi:latest
           imagePullPolicy: 'Always'
           env:
