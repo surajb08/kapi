@@ -1,4 +1,5 @@
 from kubernetes.client import V1Job, V1ObjectMeta, V1JobSpec, V1PodTemplateSpec, V1PodSpec, V1Container, V1EnvVar
+from kubernetes.client.rest import ApiException
 
 from helpers.kube_broker import broker
 from helpers.pod_helper import PodHelper
@@ -58,6 +59,22 @@ class DockerOps:
     labels = {'app': 'kapi'}
     kapi_pods = PodHelper.find_by_label('nectar', labels)
     return f"tcp://{kapi_pods[0].status.pod_ip}:2375"
+
+  @staticmethod
+  def find_job(name):
+    try:
+      return broker.batchV1.read_namespaced_job(
+        namespace='nectar',
+        name=name
+      )
+    except ApiException:
+      return None
+
+  @staticmethod
+  def logs(job):
+    broker.coreV1.read_namespaced_pod_log(
+
+    )
 
   @staticmethod
   def play():
