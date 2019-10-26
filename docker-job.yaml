@@ -1,10 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
+  namespace: nectar
   name: docker-test
 
 spec:
+  ttlSecondsAfterFinished: 5
   template:
+    metadata:
+      namespace: nectar
     spec:
       restartPolicy: Never
       containers:

@@ -6,6 +6,7 @@ from flask import Flask
 from flask_cors import CORS
 from sentry_sdk.integrations.flask import FlaskIntegration
 
+from actions.docker_ops import DockerOps
 from controllers import analysis_controller, deployments_controller, run_controller, cluster_controller, \
   status_controller
 from actions.image_changer import ImageChanger
@@ -45,7 +46,8 @@ def make_shell_context():
     'sh': SvcHelper,
     'cp': CurlPod,
     'ir': ImageReloader,
-    'ic': ImageChanger
+    'ic': ImageChanger,
+    'do': DockerOps
   }
 
 @app.errorhandler(BrokerNotConnectedException)
