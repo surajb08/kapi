@@ -20,3 +20,4 @@ class DockerPushOp(DockerOp):
     print(f"Job name: {worker.job_name}")
     print(f"Daemon Host: {worker.daemon_host}")
     worker.create_and_run_job()
+

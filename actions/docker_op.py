@@ -8,9 +8,16 @@ from utils.utils import Utils
 class DockerOp:
 
   @staticmethod
-  def find(klass, _id):
+  def find(_id):
     k8s_job = DockerOp.find_job_resource(_id)
-    return klass(k8s_job.metadata.name)
+    return __class__(k8s_job.metadata.name)
+
+  @staticmethod
+  def latest():
+    res = broker.batchV1.list_namespaced_job(
+      namespace='nectar'
+    ).items[0]
+    return __class__(res.metadata.name)
 
   def __init__(self, job_name = None):
     self.job_name = job_name or self.gen_name()
@@ -21,34 +28,27 @@ class DockerOp:
   def command(self):
     return self._command().split(" ")
 
-  def destroy(self):
-    broker.batchV1.delete_namespaced_job(
-      namespace='nectar',
-      name=self.job_name
-    )
-
   def logs(self):
     return broker.coreV1.read_namespaced_pod_log(
       namespace='nectar',
       name=self.pod().metadata.name
     )
 
-  def job(self):
-    if self._job is None:
+  def job(self, force = False):
+    if (self._job is None) or force:
       self._job = DockerOp.find_job_resource(self.job_name)
     return self._job
 
-  def pod(self):
-    if self._pod is None:
-      target_label = self.job().metadata.labels['controller-uid']
+  def pod(self, force = False):
+    if (self._pod is None) or force:
+      target_label = self.job(force).metadata.labels['controller-uid']
       label = { 'controller-uid': target_label }
       self._pod = PodHelper.find_by_label('nectar', label)[0]
     return self._pod
 
   def daemon_host(self):
     if self._daemon_host is None:
-      labels = {'app': 'kapi'}
-      kapi_pods = PodHelper.find_by_label('nectar', labels)
+      kapi_pods = PodHelper.find_by_label('nectar', {'app': 'kapi'})
       self._daemon_host = f"tcp://{kapi_pods[0].status.pod_ip}:2375"
     return self._daemon_host
 
@@ -57,10 +57,13 @@ class DockerOp:
       namespace='nectar',
       body=V1Job(
         metadata=V1ObjectMeta(
-          name=self.job_name
+          name=self.job_name,
         ),
         spec=V1JobSpec(
           template=V1PodTemplateSpec(
+            metadata=V1ObjectMeta(
+              labels=self.pod_labels()
+            ),
             spec=V1PodSpec(
               restart_policy='Never',
               containers=[
@@ -82,6 +85,19 @@ class DockerOp:
       )
     )
 
+  def destroy(self):
+    if self.job(True):
+      broker.batchV1.delete_namespaced_job(
+        namespace='nectar',
+        name=self.job_name
+      )
+
+    if self.pod(True):
+      broker.batchV1.delete_namespaced_pod(
+        namespace='nectar',
+        name=self.pod().name
+      )
+
   def _command(self):
     return f"docker image ls"
 
@@ -98,3 +114,18 @@ class DockerOp:
       )
     except ApiException:
       return None
+
+  @staticmethod
+  def pod_labels():
+    return { 'job-type': 'docker-op' }
+
+  @staticmethod
+  def purge():
+    broker.batchV1.delete_collection_namespaced_job(
+      namespace='nectar'
+    )
+
+    broker.coreV1.delete_collection_namespaced_pod(
+      namespace='nectar',
+      label_selector=Utils.dict_to_eq_str(DockerOp.pod_labels())
+    )

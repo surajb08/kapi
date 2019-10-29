@@ -38,6 +38,7 @@ def make_shell_context():
   from stunt_pods.curl_pod import CurlPod
   from actions.image_reloader import ImageReloader
   from actions.docker_op import DockerOp
+  from actions.docker_build_op import DockerBuildOp
 
   return {
     'broker': broker,
@@ -47,7 +48,8 @@ def make_shell_context():
     'cp': CurlPod,
     'ir': ImageReloader,
     'ic': ImageChanger,
-    'do': DockerOp
+    'do': DockerOp,
+    'DockerBuildOp': DockerBuildOp
   }
 
 @app.errorhandler(BrokerNotConnectedException)
