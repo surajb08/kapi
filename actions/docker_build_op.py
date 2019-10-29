@@ -12,27 +12,30 @@ class DockerBuildOp(DockerOp):
     self.df_path = df_path
 
   def _command(self):
-    cmd = f"docker build {self.zip_url} -t {self.out_name} -f {self.df_path}"
-    print(cmd)
-    return cmd
+    return f"docker build {self.zip_url} -t {self.out_name} -f {self.df_path}"
 
   @staticmethod
   def play():
     worker = DockerBuildOp('.', '/Dockerfile', 'testy')
 
-    print(f"Job name: {worker.job_name}")
+    print(f"Job name: {worker.pod_name}")
     print(f"Daemon Host: {worker.daemon_host()}")
 
-    worker.create_and_run_job()
+    worker.create_work_pod()
 
   @staticmethod
   def play2():
-    df = "robonectar-moderator_cms-47ccb675c4b8678609cbce5d12926bdd2e83030f/Dockerfile"
-    _zip = "https://storage.googleapis.com/nectar-mosaic-public/dummy-tar.tar.gz"
+    df = "robonectar-news_crawler-3d6bc9c204480dc05c43fface0e13c0049a4311c/Dockerfile"
+    _zip = "https://storage.googleapis.com/nectar-mosaic-public/news_crawler.tar.gz"
     worker = DockerBuildOp(_zip, df, 'whatever')
-    worker.create_and_run_job()
+    worker.create_work_pod()
 
-    ch = None
-    while ch is not 'x':
-      ch = input()
+    while not worker.is_pod_ready():
+      print(f"Wait for pod birth...")
+      time.sleep(1)
+
+    while True:
+      print(f"-------------------------STATUS {worker.status()}--------------------------")
       print(worker.logs())
+      time.sleep(3)
+

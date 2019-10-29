@@ -17,10 +17,10 @@ def build_image():
     out_name=args['out_name']
   )
 
-  operation.create_and_run_job()
+  operation.create_work_pod()
 
   return {
-    'job_id': operation.job_name,
+    'job_id': operation.pod_name,
     'job_type': inflection.underscore(operation.__class__.__name__)
   }
 

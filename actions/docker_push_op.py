@@ -19,5 +19,5 @@ class DockerPushOp(DockerOp):
     worker = DockerPushOp('xnectar', 'Kristn@bl00t', None)
     print(f"Job name: {worker.job_name}")
     print(f"Daemon Host: {worker.daemon_host}")
-    worker.create_and_run_job()
+    worker.create_work_pod()
 
