@@ -6,11 +6,12 @@ from flask import Blueprint, request
 
 from actions.docker_build_op import DockerBuildOp
 
-controller = Blueprint('build_controller', __name__)
+controller = Blueprint('builds_controller', __name__)
 
 @controller.route('/api/docker/build_image', methods=['POST'])
 def build_image():
   args = request.json
+  print(f"GETTING IN {args}")
   operation = DockerBuildOp(
     zip_url=args['zip_url'],
     df_path=args['df_path'],
@@ -32,8 +33,8 @@ def job_info(job_type, job_id):
   klass = getattr(loaded_module, class_name)
   instance = klass.find(job_id)
   return {
-    'logs': instance.logs(),
-    'status': None
+    'logs': instance.logs().split("\n"),
+    'status': instance.status()
   }
 
 def push_image():

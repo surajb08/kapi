@@ -9,6 +9,7 @@ class DockerOp:
 
   @staticmethod
   def find(_id):
+    print(f"IM GOING TO LOOK WITH PNMAE {_id}")
     pod = PodHelper.find('nectar', _id)
     return __class__(pod.metadata.name)
 
@@ -96,7 +97,7 @@ class DockerOp:
 
   @staticmethod
   def gen_name():
-    return f"docker-build-push-{Utils.rand_str(4)}"
+    return f"docker-worker-{Utils.rand_str(4)}"
 
   @staticmethod
   def pod_labels():
