@@ -5,6 +5,7 @@ import inflection
 from flask import Blueprint, request
 
 from actions.docker_build_op import DockerBuildOp
+from actions.docker_push_op import DockerPushOp
 
 controller = Blueprint('builds_controller', __name__)
 
@@ -18,11 +19,19 @@ def build_image():
   )
 
   operation.create_work_pod()
+  return new_job_bundle(operation)
 
-  return {
-    'job_id': operation.pod_name,
-    'job_type': inflection.underscore(operation.__class__.__name__)
-  }
+@controller.route('/api/docker/push_image', methods=['POST'])
+def push_image():
+  args = request.json
+  operation = DockerPushOp(
+    username=args['username'],
+    password=args['password'],
+    image_name=args['image_name']
+  )
+  operation.create_work_pod()
+  return new_job_bundle(operation)
+
 
 @controller.route('/api/docker/<job_type>/<job_id>/job_info')
 def job_info(job_type, job_id):
@@ -36,8 +45,9 @@ def job_info(job_type, job_id):
     'status': instance.status()
   }
 
-def push_image():
-  pass
+def new_job_bundle(operation):
+  return {
+    'job_id': operation.pod_name,
+    'job_type': inflection.underscore(operation.__class__.__name__)
+  }
 
-def status():
-  pass

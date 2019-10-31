@@ -1,5 +1,6 @@
 import time
 
+import kubernetes
 from kubernetes.client import V1Job, V1ObjectMeta, V1JobSpec, V1PodTemplateSpec, V1PodSpec, V1Container, V1EnvVar, V1Pod
 from kubernetes.client.rest import ApiException
 
@@ -31,10 +32,13 @@ class DockerOp:
     raise Exception("Unimplemented!")
 
   def logs(self):
-    return broker.coreV1.read_namespaced_pod_log(
-      namespace='nectar',
-      name=self.pod().metadata.name
-    )
+    try:
+      return broker.coreV1.read_namespaced_pod_log(
+        namespace='nectar',
+        name=self.pod().metadata.name
+      )
+    except kubernetes.client.rest.ApiException:
+      return ''
 
   def status(self):
     _status = self.pod(True).status
