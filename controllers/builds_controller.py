@@ -13,7 +13,7 @@ def build_image():
   args = request.json
   print(f"GETTING IN {args}")
   operation = DockerBuildOp(
-    zip_url=args['zip_url'],
+    repo_tar_url=args['zip_url'],
     df_path=args['df_path'],
     out_name=args['out_name']
   )

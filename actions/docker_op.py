@@ -26,7 +26,7 @@ class DockerOp:
     self._pod = None
 
   def command(self):
-    return self._command().split(" ")
+    raise Exception("Unimplemented!")
 
   def logs(self):
     return broker.coreV1.read_namespaced_pod_log(
@@ -72,7 +72,8 @@ class DockerOp:
             V1Container(
               name='docker',
               image='docker:latest',
-              command=self.command(),
+              command=["/bin/sh"],
+              args=["-c", self.command()],
               env=[
                 V1EnvVar(
                   name='DOCKER_HOST',
@@ -91,9 +92,6 @@ class DockerOp:
         namespace='nectar',
         name=self.pod_name
       )
-
-  def _command(self):
-    return f"docker image ls"
 
   @staticmethod
   def gen_name():

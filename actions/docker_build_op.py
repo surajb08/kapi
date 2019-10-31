@@ -3,29 +3,31 @@ import time
 
 from actions.docker_op import DockerOp
 
+TAR_NAME = "repo-tar.tar.gz"
+WORK_DIR = "cloned-repo"
+
 class DockerBuildOp(DockerOp):
 
-  def __init__(self, zip_url, df_path, out_name):
+  def __init__(self, repo_tar_url, df_path, out_name):
     super().__init__(None)
-    self.zip_url = zip_url
-    self.out_name = out_name
-    self.df_path = df_path
+    self.repo_tar_url = repo_tar_url
+    self.output_img = out_name
+    self.dockerfile_path = df_path
 
-  def _command(self):
-    return f"docker build {self.zip_url} -t {self.out_name} -f {self.df_path}"
+  def build_context(self):
+    relative_path = self.dockerfile_path.replace("/Dockerfile", "")
+    return f"{WORK_DIR}/.{relative_path}"
 
-  @staticmethod
-  def play():
-    worker = DockerBuildOp('.', '/Dockerfile', 'testy')
-
-    print(f"Job name: {worker.pod_name}")
-    print(f"Daemon Host: {worker.daemon_host()}")
-
-    worker.create_work_pod()
+  def command(self):
+    return f"wget -O {TAR_NAME} {self.repo_tar_url} -q && " \
+           f"mkdir {WORK_DIR} && " \
+           f"tar xzf {TAR_NAME} -C {WORK_DIR} --strip-components=1 && " \
+           f"docker build {self.build_context()} -t {self.output_img} && " \
+           f"docker image ls"
 
   @staticmethod
   def play2():
-    df = "robonectar-news_crawler-3d6bc9c204480dc05c43fface0e13c0049a4311c/Dockerfile"
+    df = "/Dockerfile"
     _zip = "https://storage.googleapis.com/nectar-mosaic-public/news_crawler.tar.gz"
     worker = DockerBuildOp(_zip, df, 'whatever')
     worker.create_work_pod()
@@ -38,4 +40,3 @@ class DockerBuildOp(DockerOp):
       print(f"-------------------------STATUS {worker.status()}--------------------------")
       print(worker.logs())
       time.sleep(3)
-
