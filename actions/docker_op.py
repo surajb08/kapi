@@ -1,3 +1,5 @@
+import time
+
 from kubernetes.client import V1Job, V1ObjectMeta, V1JobSpec, V1PodTemplateSpec, V1PodSpec, V1Container, V1EnvVar, V1Pod
 from kubernetes.client.rest import ApiException
 
@@ -107,3 +109,13 @@ class DockerOp:
       namespace='nectar',
       label_selector=Utils.dict_to_eq_str(DockerOp.pod_labels())
     )
+
+  def debug(self):
+    while not self.is_pod_ready():
+      print(f"Wait for pod birth...")
+      time.sleep(1)
+
+    while True:
+      print(f"-------------------------STATUS {self.status()}--------------------------")
+      print(self.logs())
+      time.sleep(3)

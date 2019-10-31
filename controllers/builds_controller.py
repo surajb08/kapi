@@ -11,7 +11,6 @@ controller = Blueprint('builds_controller', __name__)
 @controller.route('/api/docker/build_image', methods=['POST'])
 def build_image():
   args = request.json
-  print(f"GETTING IN {args}")
   operation = DockerBuildOp(
     repo_tar_url=args['repo_tar_url'],
     dockerfile_path=args['dockerfile_path'],

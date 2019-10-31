@@ -40,6 +40,7 @@ def make_shell_context():
   from actions.image_reloader import ImageReloader
   from actions.docker_op import DockerOp
   from actions.docker_build_op import DockerBuildOp
+  from actions.docker_push_op import DockerPushOp
 
   return {
     'broker': broker,
@@ -50,7 +51,8 @@ def make_shell_context():
     'ir': ImageReloader,
     'ic': ImageChanger,
     'do': DockerOp,
-    'DockerBuildOp': DockerBuildOp
+    'DockerBuildOp': DockerBuildOp,
+    f"{DockerPushOp.__name__}": DockerPushOp
   }
 
 @app.errorhandler(BrokerNotConnectedException)

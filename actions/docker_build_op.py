@@ -28,14 +28,6 @@ class DockerBuildOp(DockerOp):
   def play2():
     df = "/Dockerfile"
     _zip = "https://storage.googleapis.com/nectar-mosaic-public/news_crawler.tar.gz"
-    worker = DockerBuildOp(_zip, df, 'whatever')
+    worker = DockerBuildOp(_zip, df, 'xnectar/web-app:latest')
     worker.create_work_pod()
-
-    while not worker.is_pod_ready():
-      print(f"Wait for pod birth...")
-      time.sleep(1)
-
-    while True:
-      print(f"-------------------------STATUS {worker.status()}--------------------------")
-      print(worker.logs())
-      time.sleep(3)
+    worker.debug()
