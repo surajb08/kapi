@@ -13,9 +13,9 @@ def build_image():
   args = request.json
   print(f"GETTING IN {args}")
   operation = DockerBuildOp(
-    repo_tar_url=args['zip_url'],
-    df_path=args['df_path'],
-    out_name=args['out_name']
+    repo_tar_url=args['repo_tar_url'],
+    dockerfile_path=args['dockerfile_path'],
+    output_img=args['output_img']
   )
 
   operation.create_work_pod()

@@ -8,11 +8,11 @@ WORK_DIR = "cloned-repo"
 
 class DockerBuildOp(DockerOp):
 
-  def __init__(self, repo_tar_url, df_path, out_name):
+  def __init__(self, repo_tar_url, dockerfile_path, output_img):
     super().__init__(None)
     self.repo_tar_url = repo_tar_url
-    self.output_img = out_name
-    self.dockerfile_path = df_path
+    self.output_img = output_img
+    self.dockerfile_path = dockerfile_path
 
   def build_context(self):
     relative_path = self.dockerfile_path.replace("/Dockerfile", "")
@@ -22,8 +22,7 @@ class DockerBuildOp(DockerOp):
     return f"wget -O {TAR_NAME} {self.repo_tar_url} -q && " \
            f"mkdir {WORK_DIR} && " \
            f"tar xzf {TAR_NAME} -C {WORK_DIR} --strip-components=1 && " \
-           f"docker build {self.build_context()} -t {self.output_img} && " \
-           f"docker image ls"
+           f"docker build {self.build_context()} -t {self.output_img} " \
 
   @staticmethod
   def play2():
