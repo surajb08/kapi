@@ -41,6 +41,7 @@ def make_shell_context():
   from actions.docker_op import DockerOp
   from actions.docker_build_op import DockerBuildOp
   from actions.docker_push_op import DockerPushOp
+  from actions.annotator import Annotator
 
   return {
     'broker': broker,
@@ -52,7 +53,8 @@ def make_shell_context():
     'ic': ImageChanger,
     'do': DockerOp,
     'DockerBuildOp': DockerBuildOp,
-    f"{DockerPushOp.__name__}": DockerPushOp
+    f"{DockerPushOp.__name__}": DockerPushOp,
+    f"{Annotator.__name__}": Annotator
   }
 
 @app.errorhandler(BrokerNotConnectedException)

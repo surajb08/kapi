@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 from flask import Blueprint, request
 
+from actions.annotator import Annotator
 from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
 from helpers.pod_helper import PodHelper
 from utils.utils import Utils
 
 controller = Blueprint('deployments_controller', __name__)
+
+@controller.route('/api/deployments/<namespace>/<name>/pods', methods=['POST'])
+def annotate(namespace, name):
+  annotator = Annotator(
+    namespace=namespace,
+    name=name,
+    **request.json
+  )
+  annotations = annotator.annotate()
+  return {"annotations": annotations}
 
 
 @controller.route('/api/deployments/across_namespaces')
@@ -66,7 +77,6 @@ def list_pods(namespace, name):
   pods = PodHelper.pods_for_dep(deployment)
   serialized = list(map(PodHelper.full_ser, pods))
   return { 'data': serialized }
-
 
 def params_to_deps():
   ns_filters = request.args.get('ns_filters', default='').split(',')
