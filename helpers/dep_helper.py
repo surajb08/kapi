@@ -88,13 +88,21 @@ class DepHelper:
       "labels": dep.spec.selector.match_labels,
       "replicas": dep.spec.replicas,
       "image_name": Utils.try_or(lambda: containers[0].image),
+      "container_name": Utils.try_or(lambda: containers[0].name),
       "image_pull_policy": Utils.try_or(lambda: containers[0].image_pull_policy),
-      "commit": {
-        "sha": dep.metadata.annotations.get('commit-sha'),
-        "branch": dep.metadata.annotations.get('commit-branch'),
-        "message": dep.metadata.annotations.get('commit-msg'),
-      }
+      "commit": DepHelper.commit_ser(dep)
     }
+
+  @staticmethod
+  def commit_ser(dep):
+    bundle = {
+      "sha": dep.metadata.annotations.get('commit-sha'),
+      "branch": dep.metadata.annotations.get('commit-branch'),
+      "message": dep.metadata.annotations.get('commit-message'),
+      "timestamp": dep.metadata.annotations.get('commit-timestamp')
+    }
+    is_worthwhile = bundle['sha'] or bundle['message']
+    return bundle if is_worthwhile else None
 
   # noinspection PyTypeChecker
   @staticmethod

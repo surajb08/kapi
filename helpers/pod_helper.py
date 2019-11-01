@@ -115,15 +115,66 @@ class PodHelper:
       return pods
 
   @staticmethod
+  def pod_err(pod):
+    cont_status = pod.status.container_statuses[0]
+    term = Utils.try_or(lambda: cont_status.state.terminated)
+    wait = Utils.try_or(lambda: cont_status.state.waiting)
+    if term:
+      return term.reason
+    elif wait:
+      return wait.reason
+    else:
+      return None
+
+  @staticmethod
+  def easy_error(state, pod):
+    if state == 'Error' or state == 'Failed':
+      return PodHelper.pod_err(pod)
+    else:
+      return None
+
+  @staticmethod
+  def easy_state(pod):
+    given_phase = pod.status.phase
+    cont_status = pod.status.container_statuses[0]
+    error = Utils.try_or(lambda: PodHelper.pod_err(pod))
+
+    if given_phase == 'Running':
+      if not cont_status.ready:
+        if not error == 'Completed':
+          return 'Error'
+        else:
+          return 'Running'
+      else:
+        return given_phase
+    elif given_phase == 'Pending':
+      if error == 'ContainerCreating':
+        return 'Pending'
+      else:
+        return 'Error'
+    else:
+      return given_phase
+
+  @staticmethod
   def child_ser(pod):
     ts = lambda: pod.status.container_statuses[0].state.running.started_at
+
+    # cont_status = pod.status.container_statuses[0]
+    given_phase = pod.status.phase
+    # error = Utils.try_or(lambda: PodHelper.pod_err(pod))
+    easy_status = Utils.try_or(lambda: PodHelper.easy_state(pod), given_phase)
+    easy_error = Utils.try_or(lambda: PodHelper.easy_error(pod, easy_status))
+    # print(f"{given_phase} + {error}/{cont_status.ready} --> {easy_status}")
 
     return {
       'name': pod.metadata.name,
       'namespace': pod.metadata.namespace,
-      'state': Utils.try_or(lambda: pod.status.phase),
+      'state': easy_status,
       'ip': Utils.try_or(lambda: pod.status.pod_ip),
-      'updated_at': Utils.try_or(ts)
+      'error': easy_error,
+      'updated_at': Utils.try_or(ts),
+      'image_name': Utils.try_or(lambda: pod.spec.containers[0].image),
+      'standard': len(pod.spec.containers) == 1
     }
 
   @staticmethod

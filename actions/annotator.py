@@ -1,3 +1,5 @@
+import datetime
+
 from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
 
@@ -8,13 +10,13 @@ class Annotator:
     self.sha = kwargs['sha']
     self.message = kwargs['message']
     self.branch = kwargs['branch']
-    self.author = kwargs['author']
 
   def gen_annotation_dict(self):
     return {
       "commit-sha": self.sha,
       "commit-message": self.message,
-      "commit-branch": self.branch
+      "commit-branch": self.branch,
+      "commit-timestamp": str(datetime.datetime.now())
     }
 
   def annotate(self):
@@ -26,6 +28,7 @@ class Annotator:
       namespace=self.deployment.metadata.namespace,
       body=self.deployment
     )
+    return self.gen_annotation_dict()
 
   @staticmethod
   def play():

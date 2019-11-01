@@ -9,7 +9,7 @@ from utils.utils import Utils
 
 controller = Blueprint('deployments_controller', __name__)
 
-@controller.route('/api/deployments/<namespace>/<name>/pods', methods=['POST'])
+@controller.route('/api/deployments/<namespace>/<name>/annotate_git', methods=['POST'])
 def annotate(namespace, name):
   annotator = Annotator(
     namespace=namespace,
