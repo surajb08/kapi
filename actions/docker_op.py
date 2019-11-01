@@ -12,14 +12,14 @@ class DockerOp:
 
   @staticmethod
   def find(_id):
-    print(f"IM GOING TO LOOK WITH PNMAE {_id}")
     pod = PodHelper.find('nectar', _id)
     return __class__(pod.metadata.name)
 
   @staticmethod
   def latest():
-    res = broker.batchV1.list_namespaced_job(
-      namespace='nectar'
+    res = broker.coreV1.list_namespaced_pod(
+      namespace='nectar',
+      label_selector=Utils.dict_to_eq_str(DockerOp.pod_labels())
     ).items[0]
     return __class__(res.metadata.name)
 
@@ -93,11 +93,14 @@ class DockerOp:
     )
 
   def destroy(self):
-    if self.pod(True):
-      broker.batchV1.delete_namespaced_pod(
+    try:
+      broker.coreV1.delete_namespaced_pod(
         namespace='nectar',
         name=self.pod_name
       )
+      print(f"SSSSSSSSSSSSSSSSSSSS {self.pod_name}")
+    except ApiException:
+      pass
 
   @staticmethod
   def gen_name():

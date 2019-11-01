@@ -35,19 +35,29 @@ def push_image():
 
 @controller.route('/api/docker/<job_type>/<job_id>/job_info')
 def job_info(job_type, job_id):
-  module_name = f"actions.{job_type}"
-  class_name = inflection.camelize(job_type, True)
-  loaded_module = importlib.import_module(module_name)
-  klass = getattr(loaded_module, class_name)
-  instance = klass.find(job_id)
+  instance = job_instance(job_type, job_id)
   return {
     'logs': instance.logs().split("\n"),
     'status': instance.status()
   }
 
+@controller.route('/api/docker/<job_type>/<job_id>/clear_job', methods=['POST'])
+def clear_job(job_type, job_id):
+  instance = job_instance(job_type, job_id)
+  instance and instance.destroy()
+
+  return {'status': 'success'}
+
 def new_job_bundle(operation):
+  class_name = operation.__class__.__name__
   return {
     'job_id': operation.pod_name,
-    'job_type': inflection.underscore(operation.__class__.__name__)
+    'job_type': inflection.underscore(class_name)
   }
 
+def job_instance(job_type, job_id):
+  module_name = f"actions.{job_type}"
+  class_name = inflection.camelize(job_type, True)
+  loaded_module = importlib.import_module(module_name)
+  klass = getattr(loaded_module, class_name)
+  return klass.find(job_id)
