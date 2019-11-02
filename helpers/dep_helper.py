@@ -69,6 +69,16 @@ class DepHelper:
     return DepHelper.complex_ser(bundle)
 
   @staticmethod
+  def restart_nectar_pods(dep_name):
+    dep = DepHelper.find('nectar', dep_name)
+    pod_labels = dep.spec.template.metadata.labels
+    selector = Utils.dict_to_eq_str(pod_labels)
+    broker.coreV1.delete_collection_namespaced_pod(
+      'nectar',
+      label_selector=selector
+    )
+
+  @staticmethod
   def assoc_deps_pods_svc(dep, all_pods, all_svcs):
     assoc_pods = PodHelper.pods_for_dep_loaded(dep.metadata.name, all_pods)
     assoc_svc = SvcHelper.svcs_for_dep(dep, all_svcs)
