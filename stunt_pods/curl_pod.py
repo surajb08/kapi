@@ -34,7 +34,7 @@ class CurlPod(StuntPod):
       "--connect-timeout", "1",
       params['url']
     ]
-    return list(filter(lambda p: p is not None, cmd))
+    return [part for part in cmd if part is not None]
 
   @staticmethod
   def parse_status(header):

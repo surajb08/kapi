@@ -18,14 +18,18 @@ class KubeBroker:
     self.appsV1Api = None
     self.client = None
     self.batchV1 = None
+    self.auth_type = None
 
   def connect(self):
-    if os.environ.get('K8S_AUTH_TYPE') == 'local':
+    if self.env_auth_type() == 'local':
       is_connected = self.in_cluster_connect()
+      self.auth_type = 'local'
     else:
       is_connected = self.out_cluster_connect()
+      self.auth_type = 'remote'
 
     self.is_connected = is_connected
+    self.auth_type = self.auth_type if is_connected else None
     self.client = client if is_connected else None
     self.coreV1 = client.CoreV1Api() if is_connected else None
     self.appsV1Api = client.AppsV1Api() if is_connected else None
@@ -76,6 +80,10 @@ class KubeBroker:
     formatted_cmd = cmd_str.split(' ')
     output = subprocess.run(formatted_cmd, stdout=subprocess.PIPE).stdout
     return output
+
+  @staticmethod
+  def env_auth_type():
+    return os.environ.get('K8S_AUTH_TYPE')
 
   def check_connected(self, attempt=True):
     if not self.is_connected:

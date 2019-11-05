@@ -26,8 +26,9 @@ def connect():
 
 def status_body():
   return {
-    "is_connected": broker.is_connected,
-    "last_error": broker.last_error
+    "think_am_connected": broker.is_connected,
+    "auth_type": broker.auth_type,
+    "auth_type_var": broker.env_auth_type()
   }
 
 @controller.route('/api/status/revision')

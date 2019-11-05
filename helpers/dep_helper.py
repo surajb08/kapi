@@ -35,12 +35,12 @@ class DepHelper:
 
   @staticmethod
   def lb_whitelist(whitelist, deps):
-    lm = lambda d: d.metadata.labels.items() >= whitelist.items()
+    lm = lambda d: (d.metadata.labels or {}).items() >= whitelist.items()
     return list(filter(lm, deps))
 
   @staticmethod
   def lb_blacklist(blacklist, deps):
-    lm = lambda d: not d.metadata.labels.items() >= blacklist.items()
+    lm = lambda d: not (d.metadata.labels or {}).items() >= blacklist.items()
     return list(filter(lm, deps))
 
   @staticmethod
