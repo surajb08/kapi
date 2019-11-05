@@ -3,7 +3,7 @@ import os
 import json
 from kubernetes import config, client
 import subprocess
-
+import urllib3
 
 class BrokerNotConnectedException(Exception):
   def __init__(self, message):
@@ -39,6 +39,7 @@ class KubeBroker:
   def in_cluster_connect(self):
     try:
       config.load_incluster_config()
+      print("Connected via in-cluster auth")
       return True
     except Exception as e1:
       self.last_error = e1
@@ -53,13 +54,13 @@ class KubeBroker:
       configuration.debug = False
       configuration.api_key = { "authorization" : f"Bearer {user_token}" }
       client.Configuration.set_default(configuration)
-
-      import urllib3
       urllib3.disable_warnings()
 
+      print("Connected via out-cluster auth")
       return True
     except Exception as e:
       self.last_error = e
+      print(f"FAILED OUT CLUSTER CONNECT {e}")
       return False
 
   @staticmethod
