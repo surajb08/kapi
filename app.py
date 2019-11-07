@@ -7,7 +7,7 @@ from flask_cors import CORS
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from controllers import analysis_controller, deployments_controller, run_controller, cluster_controller, \
-  status_controller, builds_controller
+  status_controller, builds_controller, pods_controller
 from actions.image_changer import ImageChanger
 
 from helpers.kube_broker import KubeBroker, BrokerNotConnectedException
@@ -31,6 +31,7 @@ app.register_blueprint(cluster_controller.controller)
 app.register_blueprint(run_controller.controller)
 app.register_blueprint(analysis_controller.controller)
 app.register_blueprint(builds_controller.controller)
+app.register_blueprint(pods_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():

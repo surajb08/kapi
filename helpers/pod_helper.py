@@ -4,10 +4,25 @@ from kubernetes.client.rest import ApiException
 
 from helpers.kube_broker import broker
 from utils.utils import Utils
+import datetime as dt
 
 
 class PodHelper:
   POD_REGEX = "-([\w]{3,12})-([\w]{3,12})"
+
+  @staticmethod
+  def logs_since(namespace, name, timestamp):
+
+    now = dt.datetime.now()
+    seconds = (now - timestamp).total_seconds()
+
+    result = broker.coreV1.read_namespaced_pod_log(
+      namespace=namespace,
+      name=name,
+      since_seconds=seconds
+    )
+
+    return result
 
   @staticmethod
   def find(namespace, name):
