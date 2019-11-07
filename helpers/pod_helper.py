@@ -15,11 +15,12 @@ class PodHelper:
 
     now = dt.datetime.now()
     seconds = (now - timestamp).total_seconds()
+    print(f"SECONDSS {seconds}")
 
     result = broker.coreV1.read_namespaced_pod_log(
       namespace=namespace,
       name=name,
-      since_seconds=seconds
+      since_seconds=400
     )
 
     return result
