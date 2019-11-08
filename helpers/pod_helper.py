@@ -8,6 +8,7 @@ from utils.utils import Utils
 
 class PodHelper:
   POD_REGEX = "-([\w]{3,12})-([\w]{3,12})"
+  LOG_REGEX = r"(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b) - - (.*)"
 
   @staticmethod
   def find(namespace, name):
@@ -18,6 +19,28 @@ class PodHelper:
       )
     except ApiException as r:
       print(f"FAIL {r}")
+      return None
+
+  @staticmethod
+  def try_clean_log_line(line):
+    try:
+      match = re.search(PodHelper.LOG_REGEX, line)
+      return match.group(2) or line
+    except:
+      return line
+
+  @staticmethod
+  def read_logs(namespace, name, since_seconds):
+    try:
+      log_dump = broker.coreV1.read_namespaced_pod_log(
+        namespace=namespace,
+        name=name,
+        since_seconds=since_seconds
+      )
+      log_lines = log_dump.split("\n")
+      return [PodHelper.try_clean_log_line(line) for line in log_lines]
+    except ApiException as e:
+      print(f"ERROR READING LOGS {e}")
       return None
 
   @staticmethod
