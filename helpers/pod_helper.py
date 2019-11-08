@@ -157,7 +157,7 @@ class PodHelper:
       return None
 
   @staticmethod
-  def easy_state(pod):
+  def easy_state(pod, hard_error=False):
     given_phase = pod.status.phase
     cont_status = pod.status.container_statuses[0]
     error = Utils.try_or(lambda: PodHelper.pod_err(pod))
@@ -165,7 +165,7 @@ class PodHelper:
     if given_phase == 'Running':
       if not cont_status.ready:
         if not error == 'Completed':
-          return 'Error'
+          return (hard_error and error) or "Error"
         else:
           return 'Running'
       else:

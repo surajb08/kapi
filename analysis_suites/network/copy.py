@@ -10,9 +10,7 @@ copy_tree = {
       f"Tell the stunt pod to cURL {args['svc_name']} on port {args['port']}"
     ],
     "commands": lambda args: [
-      f"kubectl run {args['pod_name']} --image=nectar_cs/curler:latest "
-      f"--namespace={args['ns']} #if not found",
-      f"kubectl exec {args['pod_name']} -- curl {args['target_url']}:{args['port']} "
+      f"kubectl exec {args['pod_name']} -- curl {args['target_url']}"
     ],
     "conclusion": {
       "positive": lambda args: [f"The Service -> Pod -> Container -> App chain is working."],
@@ -31,7 +29,7 @@ copy_tree = {
     ],
     "commands": lambda args: [
       f"kubectl run {args['pod_name']} --image=nectar_cs/curler:latest "
-      f"--namespace={args['ns']}",
+      f"-n {args['ns']}",
       f"kubectl exec {args['pod_name']} nslookup {args['fqdn']}"
     ],
     "conclusion": {
@@ -55,7 +53,7 @@ copy_tree = {
       f"Check if that list is empty or not"
     ],
     "commands": lambda args: [
-      f"kubectl get endpoints {args['svc_name']} --namespace={args['ns']} "
+      f"kubectl get endpoints {args['svc_name']} -n {args['ns']} "
     ],
     "conclusion": {
       "positive": lambda args: [
@@ -80,7 +78,7 @@ copy_tree = {
       f"Check that 100% of the returned IPs belong to the found pods"
     ],
     "commands": lambda args: [
-      f"kubectl get endpoints {args['svc_name']} --namespace={args['ns']}",
+      f"kubectl get endpoints {args['svc_name']} -n {args['ns']}",
       f"BUILD ME"
     ],
     "conclusion": {
@@ -106,7 +104,7 @@ copy_tree = {
       f"Check that at least one is running"
     ],
     "commands": lambda args: [
-      f"kubectl get pods --namespace=kube-system -l k8s-app=kube-dns"
+      f"kubectl get pods -n kube-system -l k8s-app=kube-dns"
     ],
     "conclusion": {
       "positive": lambda args: [
@@ -129,7 +127,7 @@ copy_tree = {
       f"cURL each one directly by using their IP instead of the service's."
     ],
     "commands": lambda args: [
-      f"$pods=kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']}",
+      f"pods=$(kubectl get pods -l {args['pod_label_comp']} -n {args['ns']})",
       f"for $pod in $pods:"
       f"    $ip=echo $pod | jq .status.pod_ip",
       f"    $name=echo $pod | jq .metadata.name",
@@ -149,11 +147,13 @@ copy_tree = {
     ),
     "steps": lambda args: [
       f"Get list of {args['dep_name']}'s pods",
-      f"Count how many are in phase RUNNING"
+      f"Count how many have status Running",
+      f"Make sure no pods have non-starting containers"
     ],
     "commands": lambda args: [
-      f"$pods=kubectl get pods -l {args['pod_label_comp']} --namespace={args['ns']} -o json",
-      "echo $pods | jq .items[0].status.phase"
+      f"pods=$(kubectl get pods -l {args['pod_label_comp']} -n {args['ns']} -o json)",
+      "echo $pods | jq .items[].status.phase",
+      "echo $pods | jq .items[].status.containerStatuses[].state"
     ],
     "conclusion": {
       "positive": lambda args: [

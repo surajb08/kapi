@@ -10,7 +10,7 @@ class DoesSvcSeePodsStep(BaseNetworkStep):
     return f"{address.ip} @ {address.target_ref.name}"
 
   def agg_addresses(self, subset):
-    return [self.fmt_address(addr) for addr in subset.addresses]
+    return [self.fmt_address(addr) for addr in (subset.addresses or [])]
 
   def agg_subsets(self, subsets):
     addr_groups = [self.agg_addresses(subset) for subset in subsets]
