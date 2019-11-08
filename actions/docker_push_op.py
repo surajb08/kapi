@@ -10,15 +10,12 @@ class DockerPushOp(DockerOp):
 
   def command(self):
     return f"echo {self.password} | docker login -u {self.username} --password-stdin && " \
-           f"echo \"yea how about you support token auth lol\" && " \
+           f"echo \"yea it's 2019 maybe support token auth lol\" && " \
            f"docker push {self.image_name}"
-
-  def run(self):
-    pass
 
   @staticmethod
   def play():
     DockerOp.purge()
-    worker = DockerPushOp('xnectar', 'Kristn@bl00t', "xnectar/web-app:latest")
+    worker = DockerPushOp('xavierdevact', "dudeomgits2019", "xavierdevact/web-app:latest")
     worker.create_work_pod()
     worker.debug()

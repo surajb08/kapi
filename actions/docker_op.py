@@ -1,3 +1,4 @@
+import os
 import time
 
 import kubernetes
@@ -60,8 +61,11 @@ class DockerOp:
 
   def daemon_host(self):
     if self._daemon_host is None:
-      kapi_pods = PodHelper.find_by_label('nectar', {'app': 'kapi'})
-      self._daemon_host = f"tcp://{kapi_pods[0].status.pod_ip}:2375"
+      from_env = os.environ.get('DOCKER_HOST')
+      if not from_env:
+        print("DANGER DOCKER_HOST IS MISSING")
+      implied = "tcp://dind.nectar:2375"
+      self._daemon_host = from_env or implied
     return self._daemon_host
 
   def create_work_pod(self):
