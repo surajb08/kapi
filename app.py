@@ -44,6 +44,7 @@ def make_shell_context():
   from actions.docker_push_op import DockerPushOp
   from actions.annotator import Annotator
   from utils.utils import Utils
+  from k8_kats.k8_kat import K8Kat
 
   return {
     'broker': broker,
@@ -57,7 +58,8 @@ def make_shell_context():
     'DockerBuildOp': DockerBuildOp,
     f"{DockerPushOp.__name__}": DockerPushOp,
     f"{Annotator.__name__}": Annotator,
-    f"{Utils.__name__}": Utils
+    f"{Utils.__name__}": Utils,
+    f"{K8Kat.__name__}": K8Kat,
   }
 
 @app.errorhandler(BrokerNotConnectedException)

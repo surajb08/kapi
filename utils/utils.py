@@ -4,14 +4,11 @@ import string
 class Utils:
 
   @staticmethod
-  def hash_has_any_matches(big, small):
-    small_tuples = (small or {}).items()
-    print(f"IS {small_tuples} inside {(big or {}).items()}?")
-    for _tuple in (big or {}).items():
-      if _tuple in small_tuples:
-        print("YES")
+  def is_either_hash_in_hash(big_hash, little_hashes):
+    little_tuples = [list(h.items())[0] for h in little_hashes]
+    for _tuple in (big_hash or {}).items():
+      if _tuple in little_tuples:
         return True
-    print("NO")
     return False
 
   @staticmethod
@@ -23,9 +20,9 @@ class Utils:
 
   @staticmethod
   def dict_to_eq_str(_dict):
+    print(f"U GIVE {_dict}")
     return ",".join(
-      ["=".join([k, str(v)])
-       for k, v in _dict.items()]
+      ["=".join([k, str(v)]) for k, v in _dict.items()]
     )
 
   @staticmethod

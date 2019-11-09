@@ -37,7 +37,7 @@ class DepHelper:
 
   @staticmethod
   def lb_whitelist(whitelist, deps):
-    decider = Utils.hash_has_any_matches
+    decider = Utils.is_either_hash_in_hash
     return [dep for dep in deps if decider(dep.metadata.labels, whitelist)]
 
   @staticmethod
