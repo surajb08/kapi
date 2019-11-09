@@ -15,6 +15,7 @@ def build_image():
   operation = DockerBuildOp(
     repo_tar_url=args['repo_tar_url'],
     dockerfile_path=args['dockerfile_path'],
+    docker_build_path=args['docker_build_path'],
     output_img=args['output_img']
   )
 

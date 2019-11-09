@@ -9,6 +9,7 @@ import datetime as dt
 
 class PodHelper:
   POD_REGEX = "-([\w]{3,12})-([\w]{3,12})"
+  LOG_REGEX = r"(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b) - - (.*)"
 
   @staticmethod
   def logs_since(namespace, name, timestamp):
@@ -33,6 +34,28 @@ class PodHelper:
       )
     except ApiException as r:
       print(f"FAIL {r}")
+      return None
+
+  @staticmethod
+  def try_clean_log_line(line):
+    try:
+      match = re.search(PodHelper.LOG_REGEX, line)
+      return match.group(2) or line
+    except:
+      return line
+
+  @staticmethod
+  def read_logs(namespace, name, since_seconds):
+    try:
+      log_dump = broker.coreV1.read_namespaced_pod_log(
+        namespace=namespace,
+        name=name,
+        since_seconds=since_seconds
+      )
+      log_lines = log_dump.split("\n")
+      return [PodHelper.try_clean_log_line(line) for line in log_lines]
+    except ApiException as e:
+      print(f"ERROR READING LOGS {e}")
       return None
 
   @staticmethod
@@ -149,7 +172,7 @@ class PodHelper:
       return None
 
   @staticmethod
-  def easy_state(pod):
+  def easy_state(pod, hard_error=False):
     given_phase = pod.status.phase
     cont_status = pod.status.container_statuses[0]
     error = Utils.try_or(lambda: PodHelper.pod_err(pod))
@@ -157,7 +180,7 @@ class PodHelper:
     if given_phase == 'Running':
       if not cont_status.ready:
         if not error == 'Completed':
-          return 'Error'
+          return (hard_error and error) or "Error"
         else:
           return 'Running'
       else:

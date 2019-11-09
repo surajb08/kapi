@@ -6,7 +6,7 @@ class ArePodsRunningStep(BaseNetworkStep):
 
   @staticmethod
   def phase(pod):
-    return pod.status.phase
+    return PodHelper.easy_state(pod, True)
 
   def result_str(self, pod):
     return f"{pod.metadata.name} --> {self.phase(pod)}"

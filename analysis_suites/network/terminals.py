@@ -22,6 +22,9 @@ terminals = {
       f"Kind of a mystery at this point",
       f"Make sure you read through the references below"
     ],
+    "commands": lambda args: [
+
+    ],
     "resources": lambda args: [
       {
         "name": "Debugging DNS",
@@ -35,11 +38,14 @@ terminals = {
     f"The auto-generated domain name for "
     f"{args['svc_name']}, '{args['fqdn']}, isn't working. because"
     f"there's something wrong with {args['dns_type']}DNS.",
-
     "steps": lambda args: [
-      f"Kind of a mystery at this point",
+      f"If you think it's worth making a debugger for DNS, let me know.",
       f"Make sure you read through the references below"
     ],
+    "commands": lambda args: [
+
+    ],
+
     "resources": lambda args: [
       {
         "name": "Debugging DNS",
@@ -63,10 +69,8 @@ terminals = {
     ],
 
     "commands": lambda args: [
-      f"$svc=kubectl get svc {args['svc_name']} -o json"
-      f"--namespace={args['ns']}",
-      f"$dep=kubectl get deployment {args['dep_name']} -o json"
-      f"--namespace={args['ns']}",
+      f"svc=kubectl get svc {args['svc_name']} -o json -n {args['ns']}"
+      f"dep=kubectl get deploy {args['dep_name']} -o json -n {args['ns']}"
       f"echo $svc | jq .spec.selector",
       f"echo $dep | jq .spec.template.metadata.labels",
     ],
@@ -91,10 +95,12 @@ terminals = {
       "You have to find out why your pods aren't running",
       f"If you're lucky it's because the deployment {args['dep_name']}"
       "has replicas scaled down to 0.",
-      f"Otherwise, you have to debug your pods. "
-      f"Fortunately, Mosaic will have the Pod Debugger up soon!"
+      f"Otherwise, you have to debug your pods. ",
+      f"Jokes! Mosaic's does that too dawg! Go to Infra Debugging -> Pods not Running"
     ],
-
+    "commands": lambda args: [
+      "Do it from Mosaic. Go to Infra Debugging -> Pods not Running"
+    ],
     "resources": lambda args: [
       {
         "name": "Debugging Pods",
@@ -114,7 +120,9 @@ terminals = {
       f"Otherwise, you have to debug your pods. "
       f"Fortunately, Mosaic will have the Pod Debugger up soon!"
     ],
+    "commands": lambda args: [
 
+    ],
     "resources": lambda args: [
       {
         "name": "Debugging Pods",
