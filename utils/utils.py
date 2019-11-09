@@ -20,7 +20,6 @@ class Utils:
 
   @staticmethod
   def dict_to_eq_str(_dict):
-    print(f"U GIVE {_dict}")
     return ",".join(
       ["=".join([k, str(v)]) for k, v in _dict.items()]
     )

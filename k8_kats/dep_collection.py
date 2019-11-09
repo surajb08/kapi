@@ -3,6 +3,7 @@ from k8_kats.dep_query import DepQuery
 class DepCollection:
   def __init__(self):
     self.query = DepQuery()
+    self._raw_collection = None
 
   def where(self, **query_hash):
     self.query.update(**query_hash)
@@ -20,8 +21,19 @@ class DepCollection:
   def wnl(self, label_array):
     return self.where(with_neither_label=label_array)
 
-  def go(self):
-    return self.query.evaluate()
+  def raw_collection(self):
+    if not self._raw_collection:
+      self.go()
+    return self._raw_collection
 
-  def get_where(self, **query):
-    return self.where(**query).go()
+  def go(self):
+    self._raw_collection = self.query.evaluate()
+    return self._raw_collection
+
+  def for_ns(self, kind, *namespaces):
+    is_white = kind == 'whitelist'
+    return self.ins(*namespaces) if is_white else self.nins(*namespaces)
+
+  def for_lbs(self, kind, label_array):
+    is_white = kind == 'whitelist'
+    return self.wel(label_array) if is_white else self.wnl(label_array)

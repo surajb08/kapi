@@ -6,6 +6,7 @@ from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
 from helpers.pod_helper import PodHelper
 from utils.utils import Utils
+from k8_kats.k8_kat import K8Kat as K
 
 controller = Blueprint('deployments_controller', __name__)
 
@@ -85,11 +86,6 @@ def params_to_deps():
   lb_filters = Utils.parse_dict(request.args.get('lb_filters', ''))
   lb_filter_type = request.args.get('lb_filter_type', 'blacklist')
 
-  print(f"LB FILTERS {lb_filters}")
-
-  return DepHelper.ns_lb_filter(
-    ns_filters,
-    ns_filter_type,
-    lb_filters,
-    lb_filter_type
-  )
+  query = K.deps().for_ns(ns_filter_type, ns_filters)
+  query = query.for_lbs(lb_filter_type, lb_filters)
+  return [dep.raw for dep in query.go()]

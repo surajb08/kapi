@@ -3,6 +3,7 @@
 from helpers.kube_broker import broker
 from helpers.pod_helper import PodHelper
 from helpers.svc_helper import SvcHelper
+from k8_kats.k8_kat import K8Kat
 from utils.utils import Utils
 
 class DepHelper:
@@ -12,47 +13,6 @@ class DepHelper:
       namespace=namespace,
       name=name
     )
-
-  @staticmethod
-  def ns_whitelist(whitelist, deps):
-    disc = lambda d: d.metadata.namespace in whitelist
-    return list(filter(disc, deps))
-
-  @staticmethod
-  def ns_blacklist(blacklist, deps):
-    disc = lambda d: d.metadata.namespace not in blacklist
-    return list(filter(disc, deps))
-
-  @staticmethod
-  def ns_filter(deps, filters, _type='whitelist'):
-    filters = filters or []
-    method = DepHelper.ns_whitelist if _type == 'whitelist' else DepHelper.ns_blacklist
-    return method(filters, deps)
-
-  @staticmethod
-  def lb_filter(deps, filters, _type='blacklist'):
-    filters = filters or {}
-    method = DepHelper.lb_whitelist if _type == 'whitelist' else DepHelper.lb_blacklist
-    return method(filters, deps)
-
-  @staticmethod
-  def lb_whitelist(whitelist, deps):
-    decider = Utils.is_either_hash_in_hash
-    return [dep for dep in deps if decider(dep.metadata.labels, whitelist)]
-
-  @staticmethod
-  def lb_blacklist(blacklist, deps):
-    if blacklist:
-      lm = lambda d: not (d.metadata.labels or {}).items() >= blacklist.items()
-      return list(filter(lm, deps))
-    else:
-      return deps
-
-  @staticmethod
-  def ns_lb_filter(ns_filters, ns_filter_type, lb_filters, lb_filter_type):
-    deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
-    ns_filtered = DepHelper.ns_filter(deps, ns_filters, ns_filter_type)
-    return DepHelper.lb_filter(ns_filtered, lb_filters, lb_filter_type)
 
   @staticmethod
   def easy():
