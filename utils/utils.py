@@ -4,6 +4,10 @@ import string
 class Utils:
 
   @staticmethod
+  def is_non_trivial(dict_array):
+    return [e for e in dict_array if e]
+
+  @staticmethod
   def is_either_hash_in_hash(big_hash, little_hashes):
     little_tuples = [list(h.items())[0] for h in little_hashes]
     for _tuple in (big_hash or {}).items():
@@ -23,6 +27,11 @@ class Utils:
     return ",".join(
       ["=".join([k, str(v)]) for k, v in _dict.items()]
     )
+
+  @staticmethod
+  def parse_dict_array(_string):
+    parts = _string.split(',')
+    return [Utils.parse_dict(part) for part in parts]
 
   @staticmethod
   def parse_dict(_string):

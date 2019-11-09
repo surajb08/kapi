@@ -82,10 +82,13 @@ def list_pods(namespace, name):
 def params_to_deps():
   ns_filters = request.args.get('ns_filters', '').split(',')
   ns_filter_type = request.args.get('ns_filter_type', 'whitelist')
-
-  lb_filters = Utils.parse_dict(request.args.get('lb_filters', ''))
+  lb_filters = Utils.parse_dict_array(request.args.get('lb_filters', ''))
   lb_filter_type = request.args.get('lb_filter_type', 'blacklist')
 
   query = K.deps().for_ns(ns_filter_type, ns_filters)
   query = query.for_lbs(lb_filter_type, lb_filters)
-  return [dep.raw for dep in query.go()]
+  print(f"DICT ARRAY {lb_filters}")
+  result = query.go()
+
+  print(f"GOT {result}")
+  return [dep.raw for dep in result]

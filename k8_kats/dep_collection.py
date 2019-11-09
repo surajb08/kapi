@@ -9,11 +9,14 @@ class DepCollection:
     self.query.update(**query_hash)
     return self
 
-  def ins(self, *namespaces):
-    return self.where(in_ns=[*namespaces])
+  def ns(self, namespace):
+    return self.where(in_ns=[namespace])
 
-  def nins(self, *namespaces):
-    return self.where(nin_ns=[*namespaces])
+  def ins(self, namespaces):
+    return self.where(in_ns=namespaces)
+
+  def nins(self, namespaces):
+    return self.where(nin_ns=namespaces)
 
   def wel(self, label_array):
     return self.where(with_either_label=label_array)
@@ -30,9 +33,9 @@ class DepCollection:
     self._raw_collection = self.query.evaluate()
     return self._raw_collection
 
-  def for_ns(self, kind, *namespaces):
+  def for_ns(self, kind, namespaces):
     is_white = kind == 'whitelist'
-    return self.ins(*namespaces) if is_white else self.nins(*namespaces)
+    return self.ins(namespaces) if is_white else self.nins(namespaces)
 
   def for_lbs(self, kind, label_array):
     is_white = kind == 'whitelist'

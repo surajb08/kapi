@@ -8,10 +8,8 @@ class PolyNsServerEval:
 
   def evaluate(self):
     api = broker.appsV1Api
-    fmt_labels_cond = Utils.dict_to_eq_str(self.label_match)
-    raw_items = api.list_deployment_for_all_namespaces(
-      label_selector=fmt_labels_cond
-    ).items
+    raw_items = api.list_deployment_for_all_namespaces().items
+    print(f"INITIAL GOT ME {len(raw_items)}")
     return [KatDep(item) for item in raw_items]
     
 
@@ -22,20 +20,18 @@ class OneNsServerEval:
 
   def evaluate(self):
     api = broker.appsV1Api
-    fmt_labels_cond = Utils.dict_to_eq_str(self.label_match)
     raw_items = api.list_namespaced_deployment(
-      namespace=self.namespace,
-      label_selector=fmt_labels_cond
+      namespace=self.namespace
     ).items
     return [KatDep(item) for item in raw_items]
 
 class DepQuery:
   def __init__(self):
     self._hash = {
-      'in_ns': [],
-      'nin_ns': [],
-      'with_either_label': [],
-      'with_neither_label': [],
+      'in_ns': None,
+      'nin_ns': None,
+      'with_either_label': None,
+      'with_neither_label': None,
       'with_exact_labels': {},
       'in_phase': [],
       'problematic': False
@@ -48,7 +44,7 @@ class DepQuery:
     }
 
   def is_single_ns(self):
-    cond_one = len(self._hash['in_ns']) == 1
+    cond_one = len(self._hash['in_ns'] or []) == 1
     cond_two = not self._hash['nin_ns']
     return cond_one and cond_two
 
@@ -69,15 +65,21 @@ class DepQuery:
 
   def filter_in_ns(self, deps):
     namespaces = self._hash['in_ns']
-    return [dep for dep in deps if dep.ns in namespaces]
+    if namespaces is not None:
+      return [dep for dep in deps if dep.ns in namespaces]
+    else:
+      return deps
 
   def filter_nin_ns(self, deps):
     namespaces = self._hash['nin_ns']
-    return [dep for dep in deps if dep.ns not in namespaces]
+    if namespaces is not None:
+      return [dep for dep in deps if dep.ns not in namespaces]
+    else:
+      return deps
 
   def filter_with_either_label(self, deps):
     cond_labels = self._hash['with_either_label']
-    if cond_labels:
+    if cond_labels and Utils.is_non_trivial(cond_labels):
       func = Utils.is_either_hash_in_hash
       return [dep for dep in deps if func(dep.labels, cond_labels)]
     else:
@@ -85,8 +87,11 @@ class DepQuery:
 
   def filter_with_neither_label(self, deps):
     cond_labels = self._hash['with_neither_label']
-    func = Utils.is_either_hash_in_hash
-    return [dep for dep in deps if not func(dep.labels, cond_labels)]
+    if cond_labels and Utils.is_non_trivial(cond_labels):
+      func = Utils.is_either_hash_in_hash
+      return [dep for dep in deps if not func(dep.labels, cond_labels)]
+    else:
+      return deps
 
   def perform_local_eval(self, deps):
     deps = self.filter_in_ns(deps)

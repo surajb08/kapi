@@ -13,7 +13,7 @@ class KatRes:
 
   @property
   def labels(self):
-    return self.raw.metadata.labels or {}
+    return self.raw.metadata.labels
 
   @property
   def actual_status(self):
