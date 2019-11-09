@@ -77,8 +77,11 @@ class DepQuery:
 
   def filter_with_either_label(self, deps):
     cond_labels = self._hash['with_either_label']
-    func = Utils.is_either_hash_in_hash
-    return [dep for dep in deps if func(dep.labels, cond_labels)]
+    if cond_labels:
+      func = Utils.is_either_hash_in_hash
+      return [dep for dep in deps if func(dep.labels, cond_labels)]
+    else:
+      return deps
 
   def filter_with_neither_label(self, deps):
     cond_labels = self._hash['with_neither_label']
@@ -88,8 +91,8 @@ class DepQuery:
   def perform_local_eval(self, deps):
     deps = self.filter_in_ns(deps)
     deps = self.filter_nin_ns(deps)
-    # deps = self.filter_with_either_label(deps)
-    # deps = self.filter_with_neither_label(deps)
+    deps = self.filter_with_either_label(deps)
+    deps = self.filter_with_neither_label(deps)
     return deps
 
   def evaluate(self):

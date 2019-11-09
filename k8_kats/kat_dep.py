@@ -5,4 +5,4 @@ class KatDep(KatRes):
     super().__init__(raw)
 
   def __repr__(self):
-    return f"Deployment[{self.ns}:{self.name}]"
+    return f"Dep[{self.ns}:{self.name}({self.labels})]"
