@@ -1,9 +1,19 @@
 import random
 import string
-from typing import Dict, List, Set
-import datetime
 
 class Utils:
+
+  @staticmethod
+  def hash_has_any_matches(big, small):
+    small_tuples = (small or {}).items()
+    print(f"IS {small_tuples} inside {(big or {}).items()}?")
+    for _tuple in (big or {}).items():
+      if _tuple in small_tuples:
+        print("YES")
+        return True
+    print("NO")
+    return False
+
   @staticmethod
   def try_or(lam, fallback=None):
     try:
@@ -20,6 +30,7 @@ class Utils:
 
   @staticmethod
   def parse_dict(_string):
+    print(f"GIVEN {_string}")
     if _string:
       result_dict = {}
       for encoded_dict in _string.split(','):

@@ -43,6 +43,7 @@ def make_shell_context():
   from actions.docker_build_op import DockerBuildOp
   from actions.docker_push_op import DockerPushOp
   from actions.annotator import Annotator
+  from utils.utils import Utils
 
   return {
     'broker': broker,
@@ -55,7 +56,8 @@ def make_shell_context():
     'do': DockerOp,
     'DockerBuildOp': DockerBuildOp,
     f"{DockerPushOp.__name__}": DockerPushOp,
-    f"{Annotator.__name__}": Annotator
+    f"{Annotator.__name__}": Annotator,
+    f"{Utils.__name__}": Utils
   }
 
 @app.errorhandler(BrokerNotConnectedException)

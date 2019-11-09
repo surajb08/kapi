@@ -25,23 +25,28 @@ class DepHelper:
 
   @staticmethod
   def ns_filter(deps, filters, _type='whitelist'):
+    filters = filters or []
     method = DepHelper.ns_whitelist if _type == 'whitelist' else DepHelper.ns_blacklist
     return method(filters, deps)
 
   @staticmethod
   def lb_filter(deps, filters, _type='blacklist'):
+    filters = filters or {}
     method = DepHelper.lb_whitelist if _type == 'whitelist' else DepHelper.lb_blacklist
     return method(filters, deps)
 
   @staticmethod
   def lb_whitelist(whitelist, deps):
-    lm = lambda d: (d.metadata.labels or {}).items() >= whitelist.items()
-    return list(filter(lm, deps))
+    decider = Utils.hash_has_any_matches
+    return [dep for dep in deps if decider(dep.metadata.labels, whitelist)]
 
   @staticmethod
   def lb_blacklist(blacklist, deps):
-    lm = lambda d: not (d.metadata.labels or {}).items() >= blacklist.items()
-    return list(filter(lm, deps))
+    if blacklist:
+      lm = lambda d: not (d.metadata.labels or {}).items() >= blacklist.items()
+      return list(filter(lm, deps))
+    else:
+      return deps
 
   @staticmethod
   def ns_lb_filter(ns_filters, ns_filter_type, lb_filters, lb_filter_type):

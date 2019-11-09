@@ -79,11 +79,13 @@ def list_pods(namespace, name):
   return { 'data': serialized }
 
 def params_to_deps():
-  ns_filters = request.args.get('ns_filters', default='').split(',')
-  ns_filter_type = request.args.get('ns_filter_type', default='whitelist')
+  ns_filters = request.args.get('ns_filters', '').split(',')
+  ns_filter_type = request.args.get('ns_filter_type', 'whitelist')
 
-  lb_filters = Utils.parse_dict(request.args.get('lb_filters', default=''))
-  lb_filter_type = request.args.get('lb_filter_type', default='blacklist')
+  lb_filters = Utils.parse_dict(request.args.get('lb_filters', ''))
+  lb_filter_type = request.args.get('lb_filter_type', 'blacklist')
+
+  print(f"LB FILTERS {lb_filters}")
 
   return DepHelper.ns_lb_filter(
     ns_filters,
