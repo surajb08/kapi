@@ -1,4 +1,4 @@
-from k8_kats.kat_res import KatRes
+from k8_kat.base.kat_res import KatRes
 
 class KatDep(KatRes):
   def __init__(self, raw):

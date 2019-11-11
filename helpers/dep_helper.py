@@ -3,7 +3,6 @@
 from helpers.kube_broker import broker
 from helpers.pod_helper import PodHelper
 from helpers.svc_helper import SvcHelper
-from k8_kats.k8_kat import K8Kat
 from utils.utils import Utils
 
 class DepHelper:

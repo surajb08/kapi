@@ -5,6 +5,8 @@ class Utils:
 
   @staticmethod
   def is_non_trivial(dict_array):
+    if not dict_array:
+      return False
     return [e for e in dict_array if e]
 
   @staticmethod
