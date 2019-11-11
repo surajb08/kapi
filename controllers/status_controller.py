@@ -27,7 +27,8 @@ def status_body():
   return {
     "think_am_connected": broker.is_connected,
     "auth_type": broker.auth_type,
-    "auth_type_var": broker.env_auth_type()
+    "auth_type_var": broker.env_auth_type(),
+    "sanity": '1'
   }
 
 @controller.route('/api/status/revision')
