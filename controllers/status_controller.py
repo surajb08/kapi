@@ -14,8 +14,7 @@ def status():
 
 @controller.route('/api/status/restart', methods=['POST'])
 def restart():
-  for which in request.json['deployments']:
-    DepHelper.restart_nectar_pods(which)
+  DepHelper.restart_nectar_deps(request.json['deployments'])
   return { "status": "working" }
 
 @controller.route('/api/status/connect')
