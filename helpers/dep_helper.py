@@ -34,13 +34,17 @@ class DepHelper:
     return DepHelper.complex_ser(bundle)
 
   @staticmethod
-  def restart_nectar_pods(dep_name):
-    dep = DepHelper.find('nectar', dep_name)
-    pod_labels = dep.spec.template.metadata.labels
-    selector = Utils.dict_to_eq_str(pod_labels)
+  def restart_nectar_deps(dep_names):
+    labs = lambda d: list(d.spec.selector.match_labels.values())
+    deps = broker.appsV1Api.list_namespaced_deployment(
+      namespace='nectar'
+    ).items
+    deps = [dep for dep in deps if dep.metadata.name in dep_names]
+    app_values = [item for sublist in [labs(d) for d in deps] for item in sublist]
+    expression = f"app in ({ ', '.join(app_values)})"
     broker.coreV1.delete_collection_namespaced_pod(
       'nectar',
-      label_selector=selector
+      label_selector=expression
     )
 
   @staticmethod
