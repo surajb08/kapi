@@ -8,12 +8,12 @@ WORK_DIR = "cloned-repo"
 
 class DockerBuildOp(DockerOp):
 
-  def __init__(self, repo_tar_url, docker_build_path, dockerfile_path, output_img):
+  def __init__(self, **kwargs):
     super().__init__(None)
-    self.repo_tar_url = repo_tar_url
-    self.output_img = output_img
-    self.docker_build_path = docker_build_path
-    self.dockerfile_path = dockerfile_path
+    self.repo_tar_url = kwargs['repo_tar_url']
+    self.output_img = kwargs['output_img']
+    self.docker_build_path = kwargs['docker_build_path']
+    self.dockerfile_path = kwargs['dockerfile_path']
 
   def full_build_path(self):
     return f"{WORK_DIR}{self.docker_build_path}"
