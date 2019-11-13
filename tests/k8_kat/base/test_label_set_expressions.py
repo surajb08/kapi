@@ -48,5 +48,40 @@ class TestLabelSetExpressions(unittest.TestCase):
     self.assertCountEqual(r4, ['app in (one, two)'])
     self.assertCountEqual(r5, ['app in (one, two)', 'type in (three)'])
 
+  def test_assemble_expr_lists(self):
+    r1 = kls.assemble_expr_lists([])
+    r2 = kls.assemble_expr_lists([[]])
+    r3 = kls.assemble_expr_lists([['app=backend']])
+    r4 = kls.assemble_expr_lists([['app=kapi'], ['app=backend'], []])
+    r5 = kls.assemble_expr_lists([['app!=backend'], ['app in (one)']])
 
+    self.assertEqual(r1, '')
+    self.assertEqual(r2, '')
+    self.assertEqual(r3, 'app=backend')
+    self.assertEqual(r4, 'app=kapi,app=backend')
+    self.assertEqual(r5, 'app!=backend,app in (one)')
 
+  def test_integration(self):
+    r1 = kls.label_conditions_to_expr(
+      and_yes_labels=[('debug', 'true'), ('market', 'asia')],
+    )
+
+    r2 = kls.label_conditions_to_expr(
+      and_yes_labels=[('debug', 'true'), ('market', 'asia')],
+      and_no_labels=[('app', 'admin')],
+    )
+
+    r3 = kls.label_conditions_to_expr(
+      and_no_labels=[('app', 'admin')],
+      or_yes_labels=[('kind', 'static'), ('kind', 'electric')]
+    )
+
+    r4 = kls.label_conditions_to_expr(
+      and_no_labels=[('app', 'admin')],
+      or_no_labels=[('geo', 'nkorea')]
+    )
+
+    self.assertEqual(r1, 'debug=true,market=asia')
+    self.assertEqual(r2, 'debug=true,market=asia,app!=admin')
+    self.assertEqual(r3, 'app!=admin,kind in (static, electric)')
+    self.assertEqual(r4, 'app!=admin,geo notin (nkorea)')

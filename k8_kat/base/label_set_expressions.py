@@ -35,20 +35,20 @@ class LabelSetExpressions:
   def assemble_expr_lists(total: List[List[str]]):
     pure = [sub_list for sub_list in total if len(sub_list) > 0]
     macro = [','.join(sub_list) for sub_list in pure]
-    return ', '.join(macro)
+    return ','.join(macro)
 
   @staticmethod
   def label_conditions_to_expr(**kwargs):
-    and_yes_labels: List[Tuple[str, str]] = kwargs['and_yes_labels']
-    and_no_labels: List[Tuple[str, str]] = kwargs['and_no_labels']
-    or_yes_labels: List[Tuple[str, str]] = kwargs['or_yes_labels']
-    or_no_labels: List[Tuple[str, str]] = kwargs['or_no_labels']
+    and_yes_labels: List[Tuple[str, str]] = kwargs.get('and_yes_labels')
+    and_no_labels: List[Tuple[str, str]] = kwargs.get('and_no_labels')
+    or_yes_labels: List[Tuple[str, str]] = kwargs.get('or_yes_labels')
+    or_no_labels: List[Tuple[str, str]] = kwargs.get('or_no_labels')
 
-    and_yes_exprs = me.ands_to_exps(and_yes_labels, 'yes')
-    and_no_exprs = me.ands_to_exps(and_no_labels, 'no')
+    and_yes_exprs = me.ands_to_exps(and_yes_labels or [], 'yes')
+    and_no_exprs = me.ands_to_exps(and_no_labels or [], 'no')
 
-    or_yes_exprs = me.ors_to_exp(or_yes_labels, 'yes')
-    or_no_exprs = me.ors_to_exp(or_no_labels, 'no')
+    or_yes_exprs = me.ors_to_exp(or_yes_labels or [], 'yes')
+    or_no_exprs = me.ors_to_exp(or_no_labels or [], 'no')
 
     return me.assemble_expr_lists([
       and_yes_exprs,
