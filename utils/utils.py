@@ -37,7 +37,6 @@ class Utils:
 
   @staticmethod
   def parse_dict(_string):
-    print(f"GIVEN {_string}")
     if _string:
       result_dict = {}
       for encoded_dict in _string.split(','):
@@ -59,3 +58,10 @@ class Utils:
       return o.__class__.__name__
     else:
       return module + '.' + o.__class__.__name__
+
+  @staticmethod
+  def coerce_cmd_format(cmd):
+    if isinstance(cmd, str):
+      return cmd.split(" ")
+    else:
+      return cmd

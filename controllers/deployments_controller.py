@@ -4,7 +4,7 @@ from flask import Blueprint, request
 from actions.annotator import Annotator
 from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 from utils.utils import Utils
 from k8_kat.base.k8_kat import K8kat
 
@@ -75,8 +75,8 @@ def index():
 @controller.route('/api/deployments/<namespace>/<name>/pods')
 def list_pods(namespace, name):
   deployment = DepHelper.find(namespace, name)
-  pods = PodHelper.pods_for_dep(deployment)
-  serialized = list(map(PodHelper.full_ser, pods))
+  pods = ResUtils.pods_for_dep(deployment)
+  serialized = list(map(ResUtils.full_ser, pods))
   return { 'data': serialized }
 
 def params_to_deps():

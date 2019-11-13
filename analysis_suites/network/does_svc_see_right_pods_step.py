@@ -2,7 +2,7 @@ import kubernetes
 from kubernetes.client.rest import ApiException
 
 from analysis_suites.network.network_suite import BaseNetworkStep
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 
 
 class DoesSvcSeeRightPodsStep(BaseNetworkStep):
@@ -19,10 +19,10 @@ class DoesSvcSeeRightPodsStep(BaseNetworkStep):
     return [item for sublist in addr_groups for item in sublist]
 
   def is_pod_ours(self, pod_name):
-    pod = PodHelper.find(self.ns, pod_name)
+    pod = ResUtils.find(self.ns, pod_name)
     return {
       "name": pod_name,
-      "belongs": PodHelper.belongs_to_dep(pod, self.deployment)
+      "belongs": ResUtils.belongs_to_dep(pod, self.deployment)
     }
 
   def belonging_str(self, bundle):

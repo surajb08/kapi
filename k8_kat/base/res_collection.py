@@ -1,13 +1,13 @@
 
 class ResCollection:
-  def __init__(self):
+  def __init__(self, raw_collection=None):
     self.query = self.create_query()
-    self._raw_collection = None
+    self.query_result = raw_collection
 
   def raw_collection(self):
-    if not self._raw_collection:
+    if not self.query_result:
       self.go()
-    return self._raw_collection
+    return self.query_result
 
   def where(self, **query_hash):
     self.query.update(**query_hash)
@@ -23,8 +23,8 @@ class ResCollection:
     return self.where(nin_ns=namespaces)
 
   def go(self):
-    self._raw_collection = self.query.evaluate()
-    return self._raw_collection
+    self.query_result = self.query.evaluate()
+    return self.query_result
 
   def create_query(self):
     raise Exception("Unimplemented!")

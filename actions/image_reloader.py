@@ -5,7 +5,7 @@ from kubernetes.client import V1Scale, V1ScaleSpec
 
 from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 
 
 class ImageReloader:
@@ -28,7 +28,7 @@ class ImageReloader:
 
   def load_pod_names(self):
     work = lambda p: p.metadata.name
-    pods = PodHelper.pods_for_dep(self.deployment)
+    pods = ResUtils.pods_for_dep(self.deployment)
     return list(map(work, pods))
 
   def run(self):

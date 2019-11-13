@@ -1,12 +1,12 @@
 from analysis_suites.network.network_suite import BaseNetworkStep
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 
 
 class ArePodsRunningStep(BaseNetworkStep):
 
   @staticmethod
   def phase(pod):
-    return PodHelper.easy_state(pod, True)
+    return ResUtils.easy_state(pod, True)
 
   def result_str(self, pod):
     return f"{pod.metadata.name} --> {self.phase(pod)}"
@@ -15,7 +15,7 @@ class ArePodsRunningStep(BaseNetworkStep):
     return self.phase(pod) == 'Running'
 
   def perform(self):
-    pods = PodHelper.pods_for_dep(self.deployment, False)
+    pods = ResUtils.pods_for_dep(self.deployment, False)
     running = [pod for pod in pods if self.is_running(pod)]
     outputs = [self.result_str(pod) for pod in pods]
     return self.record_step_performed(

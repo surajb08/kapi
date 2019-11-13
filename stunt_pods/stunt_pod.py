@@ -1,4 +1,4 @@
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 from helpers.kube_broker import broker
 import time
 from kubernetes.stream import stream
@@ -38,7 +38,7 @@ class StuntPod:
     return self._image
 
   def find(self):
-    return PodHelper.find(self.namespace, self.pod_name)
+    return ResUtils.find(self.namespace, self.pod_name)
 
   def delete(self):
     broker.coreV1.delete_namespaced_pod(
@@ -100,7 +100,7 @@ class StuntPod:
 
   @staticmethod
   def stunt_pods():
-    return PodHelper.find_by_label(None, StuntPod.labels())
+    return ResUtils.find_by_label(None, StuntPod.labels())
 
   @staticmethod
   def kill_stunt_pods():

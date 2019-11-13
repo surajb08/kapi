@@ -3,7 +3,7 @@ from flask import Blueprint
 
 from helpers.kube_broker import broker
 from helpers.cluster_helper import ClusterHelper
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 from stunt_pods.stunt_pod import StuntPod
 
 controller = Blueprint('cluster_controller', __name__)
@@ -23,7 +23,7 @@ def label_combinations():
 @controller.route('/api/cluster/stunt_pods')
 def stunt_pods():
   broker.check_connected()
-  ser = [PodHelper.full_ser(pod) for pod in StuntPod.stunt_pods()]
+  ser = [ResUtils.full_ser(pod) for pod in StuntPod.stunt_pods()]
   return {"data": ser}
 
 @controller.route('/api/cluster/kill_stunt_pods', methods=['POST'])

@@ -1,6 +1,4 @@
 from k8_kat.base.res_collection import ResCollection
-from k8_kat.bridge.dep_to_pod import DepToPod
-from k8_kat.bridge.dep_to_svc import DepToSvc
 from k8_kat.dep.dep_query import DepQuery
 
 class DepCollection(ResCollection):
@@ -12,12 +10,6 @@ class DepCollection(ResCollection):
 
   def wnl(self, label_array):
     return self.where(with_neither_label=label_array)
-
-  def svcs(self):
-    return DepToSvc.perform(self)
-
-  def pods(self):
-    return DepToPod.perform(self)
 
   def for_ns(self, kind, namespaces):
     is_white = kind == 'whitelist'

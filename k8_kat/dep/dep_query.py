@@ -18,6 +18,9 @@ class DepQuery(ResQuery):
     else:
       return rem_logic.fetch_poly_namespace()
 
+  def server_label_query(self):
+    return self._hash['ins']
+
   def perform_local_eval(self, deps):
     local_logic = LocalResFilters
     deps = local_logic.filter_in_ns(
@@ -46,8 +49,8 @@ class DepQuery(ResQuery):
   def default_query_hash():
     return {
       **ResQuery.default_query_hash(),
-      'with_either_label': None,
-      'with_neither_label': None,
-      'with_exact_labels': {},
-      'problematic': False
+      'and_yes_labels': None,
+      'and_no_labels': None,
+      'or_yes_labels': None,
+      'or_no_labels': None,
     }

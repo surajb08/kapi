@@ -35,7 +35,7 @@ app.register_blueprint(pods_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():
-  from helpers.pod_helper import PodHelper
+  from helpers.res_utils import ResUtils
   from helpers.dep_helper import DepHelper
   from stunt_pods.curl_pod import CurlPod
   from actions.image_reloader import ImageReloader
@@ -48,7 +48,7 @@ def make_shell_context():
 
   return {
     'broker': broker,
-    'ph': PodHelper,
+    'ph': ResUtils,
     'dh': DepHelper,
     'sh': SvcHelper,
     'cp': CurlPod,

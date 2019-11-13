@@ -8,13 +8,13 @@ class KatRes:
     return self.raw.metadata.name
 
   @property
-  def ns(self):
+  def namespace(self):
     return self.raw.metadata.namespace
+
+  @property
+  def ns(self):
+    return self.namespace
 
   @property
   def labels(self):
     return self.raw.metadata.labels
-
-  @property
-  def actual_status(self):
-    return ""

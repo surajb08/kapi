@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from helpers.kube_broker import broker
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 from helpers.svc_helper import SvcHelper
 from utils.utils import Utils
 
@@ -12,10 +12,6 @@ class DepHelper:
       namespace=namespace,
       name=name
     )
-
-  @staticmethod
-  def easy():
-    return broker.appsV1Api.list_namespaced_deployment(namespace='default').items
 
   @staticmethod
   def full_list(deps):
@@ -44,7 +40,7 @@ class DepHelper:
 
   @staticmethod
   def assoc_deps_pods_svc(dep, all_pods, all_svcs):
-    assoc_pods = PodHelper.pods_for_dep_loaded(dep.metadata.name, all_pods)
+    assoc_pods = ResUtils.pods_for_dep_loaded(dep.metadata.name, all_pods)
     assoc_svc = SvcHelper.svcs_for_dep(dep, all_svcs)
     return {
       "dep": dep,
@@ -83,7 +79,7 @@ class DepHelper:
   def complex_ser(bundle):
     base = DepHelper.simple_ser(bundle['dep'])
     child_nodes = {
-      'pods': list(map(PodHelper.child_ser, bundle['pods'])),
+      'pods': list(map(ResUtils.child_ser, bundle['pods'])),
       'services': list(map(SvcHelper.child_ser, bundle['svcs'])),
     }
     return dict(list(base.items()) + list(child_nodes.items()))
