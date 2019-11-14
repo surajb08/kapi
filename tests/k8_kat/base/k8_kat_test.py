@@ -1,8 +1,9 @@
 import os
 import unittest
-from typing import Tuple
+from typing import Tuple, List
 
 from helpers.dep_helper import DepHelper as SafeDep
+
 from helpers.kube_broker import broker
 
 
@@ -21,17 +22,20 @@ class K8katTest(unittest.TestCase):
     return SafeDep.find(ns, name)
 
   @staticmethod
-  def nk_create_dep(dep_name: str, ns):
+  def nk_create_dep(ns: str, dep_name: str, labels=None):
     me.nk(f"create deploy {dep_name} --image nginx", ns)
+    if labels:
+      me.nk_label_dep(ns, dep_name, labels)
 
   @staticmethod
-  def nk_label_dep(ns: str, dep_name: str, label: Tuple[str, str]):
-    me.nk(f"label deploy {dep_name} {label[0]}={label[1]}", ns)
+  def nk_label_dep(ns: str, dep_name: str, labels: List[Tuple[str, str]]):
+    lb_str = ' '.join([f"{l[0]}={l[1]}" for l in labels])
+    me.nk(f"label deploy {dep_name} {lb_str}", ns)
 
   @staticmethod
   def create_basic_dep():
-    me.nk_create_dep('d1', 'n1')
-    me.nk_label_dep('n1', 'd1', ('l1', 'v1'))
+    me.nk_create_dep('n1', 'd1')
+    me.nk_label_dep('n1', 'd1', [('l1', 'v1')])
 
   @staticmethod
   def prepare_cluster():
@@ -52,7 +56,7 @@ class K8katTest(unittest.TestCase):
   def tearDownClass(cls):
     # cls.k('delete ns n1')
     # cls.k('delete clusterrolebinding nectar')
-    cls.nk('delete deploy --all', 'n1')
     pass
+
 
 me = K8katTest

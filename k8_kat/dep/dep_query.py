@@ -23,6 +23,7 @@ class DepQuery(ResQuery):
 
   def perform_server_eval(self) -> List[KatDep]:
     labels_expr = self.gen_label_selector()
+    print(f"{labels_expr}")
     if self.is_single_ns():
       result = Exec.fetch_for_single_ns(self.namespace, labels_expr)
     else:
