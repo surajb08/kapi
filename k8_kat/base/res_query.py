@@ -8,6 +8,9 @@ class ResQuery:
       **kwargs
     }
 
+  def evaluate(self):
+    raise Exception("Not implemented!")
+
   @property
   def in_ns(self):
     return self._hash['in_ns']

@@ -2,9 +2,10 @@ import os
 import unittest
 from typing import Tuple, List
 
-from helpers.dep_helper import DepHelper as SafeDep
+from kubernetes.client import V1Deployment, V1Service
 
 from helpers.kube_broker import broker
+from helpers.res_utils import ResUtils
 from utils.utils import Utils
 
 NAMESPACES = ['n1', 'n2']
@@ -23,14 +24,22 @@ class K8katTest(unittest.TestCase):
       me.k(cmd)
 
   @staticmethod
-  def read_dep(ns, name):
-    return SafeDep.find(ns, name)
+  def read_dep(ns, name) -> V1Deployment:
+    return ResUtils.find_dp(ns, name)
 
   @staticmethod
-  def nk_create_dep(ns: str, dep_name: str, labels=None):
+  def read_svc(ns, name) -> V1Service:
+    return ResUtils.find_svc(ns, name)
+
+  @staticmethod
+  def create_dep(ns: str, dep_name: str, labels=None):
     me.nk(f"create deploy {dep_name} --image nginx", ns)
     if labels:
       me.nk_label_dep(ns, dep_name, labels)
+
+  @staticmethod
+  def create_dep_svc(ns: str, dep_name):
+    me.nk(f"expose {dep_name}", ns)
 
   @staticmethod
   def nk_apply(ns, fname):
@@ -71,6 +80,8 @@ class K8katTest(unittest.TestCase):
     else:
       for ns in NAMESPACES:
         cls.nk("delete deploy --all", ns)
+        cls.nk("delete svc --all", ns)
+        cls.nk("delete pod --all", ns)
 
 
 me = K8katTest

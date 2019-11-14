@@ -9,11 +9,21 @@ class TestDepCollection(K8katTest):
   @classmethod
   def setUpClass(cls) -> None:
     super(TestDepCollection, cls).setUpClass()
-    cls.nk_create_dep('n1', 'd11', [('c', 'c'), ('l1', 'v1')])
-    cls.nk_create_dep('n1', 'd12', [('c', 'c'), ('l1', 'v2')])
+    cls.create_dep('n1', 'd11', [('c', 'c'), ('l1', 'v1')])
+    cls.create_dep('n1', 'd12', [('c', 'c'), ('l1', 'v2')])
 
-    cls.nk_create_dep('n2', 'd21', [('l1', 'v1')])
-    cls.nk_create_dep('n2', 'd22', [('l2', 'v2')])
+    cls.create_dep('n2', 'd21', [('l1', 'v1')])
+    cls.create_dep('n2', 'd22', [('l2', 'v2')])
+
+  def test_names(self):
+    result = K8kat.deps().ns('n1').names('d11').go()
+    self.assertEqual([dep.name for dep in result], ['d11'])
+
+    result = K8kat.deps().ns('n1').names('d11', 'd12').go()
+    self.assertCountEqual([dep.name for dep in result], ['d11', 'd12'])
+
+    result = K8kat.deps().ns('n1', 'n2').names('d11', 'd22').go()
+    self.assertCountEqual([dep.name for dep in result], ['d11', 'd22'])
 
   def test_every_lb(self):
     result = K8kat.deps().ns('n1').every_lb([('c', 'c')]).go()

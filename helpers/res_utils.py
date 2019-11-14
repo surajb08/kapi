@@ -1,5 +1,7 @@
 import re
+from typing import Optional
 
+from kubernetes.client import V1Service, V1ReplicaSet, V1Pod
 from kubernetes.client.rest import ApiException
 
 from helpers.kube_broker import broker
@@ -11,7 +13,17 @@ class ResUtils:
   LOG_REGEX = r"(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b) - - (.*)"
 
   @staticmethod
-  def find_rs(namespace, name):
+  def find_svc(ns, name) -> Optional[V1Service]:
+    try:
+      return broker.coreV1.read_namespaced_service(
+        namespace=ns,
+        name=name
+      )
+    except ApiException:
+      return None
+
+  @staticmethod
+  def find_rs(namespace, name) -> Optional[V1ReplicaSet]:
     try:
       return broker.appsV1Api.read_namespaced_replica_set(
         name,
@@ -21,7 +33,7 @@ class ResUtils:
       return None
 
   @staticmethod
-  def find_pod(namespace, name):
+  def find_pod(namespace, name) -> Optional[V1Pod]:
     try:
       return broker.coreV1.read_namespaced_pod(
         name,

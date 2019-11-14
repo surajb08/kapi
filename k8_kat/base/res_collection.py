@@ -1,13 +1,19 @@
+from k8_kat.base.res_query import ResQuery
+
 
 class ResCollection:
   def __init__(self, raw_collection=None):
-    self.query = self.create_query()
+    self.query: ResQuery = self.create_query()
     self.query_result = raw_collection
 
   def raw_collection(self):
     if not self.query_result:
       self.go()
     return self.query_result
+
+  def names(self, *_names):
+    actual = [_names] if isinstance(_names, str) else _names
+    return self.where(name_in=actual)
 
   def where(self, **query_hash):
     self.query.update(**query_hash)

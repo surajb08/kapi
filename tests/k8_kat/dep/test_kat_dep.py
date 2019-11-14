@@ -9,7 +9,7 @@ class TestKatDep(K8katTest):
   @classmethod
   def setUpClass(cls) -> None:
     super(TestKatDep, cls).setUpClass()
-    cls.nk_create_dep('n1', 'd1')
+    cls.create_dep('n1', 'd1')
     cls.nk_label_dep('n1', 'd1', [('l1', 'v1')])
 
   def test_name(self):

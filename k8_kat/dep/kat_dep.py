@@ -1,6 +1,6 @@
-from typing import Dict
+from typing import Dict, List
 
-from kubernetes.client import V1PodSpec, V1Container
+from kubernetes.client import V1PodSpec, V1Container, V1Pod
 
 from k8_kat.base.kat_res import KatRes
 from k8_kat.dep.dep_diplomat import DepDiplomat as Diplomat
@@ -49,13 +49,13 @@ class KatDep(KatRes):
     raw_svcs = Diplomat.dep_svcs(self.raw)
     return SvcCollection(raw_svcs)
 
-  def assoc_pods(self, candidates: [KatPod]) -> None:
-    checker = lambda pod: Diplomat.dep_owns_pod(self.raw, pod.raw)
-    self._assoced_pods = [pod for pod in candidates if checker(pod)]
+  def assoc_pods(self, candidates: List[V1Pod]) -> None:
+    checker = lambda pod: Diplomat.dep_owns_pod(self.raw, pod)
+    self._assoced_pods = [KatPod(pod) for pod in candidates if checker(pod)]
 
   def assoc_svcs(self, candidates: [KatSvc]) -> None:
-    checker = lambda svc: Diplomat.dep_matches_svc(self.raw, svc.raw)
-    self._assoced_svcs = [svc for svc in candidates if checker(svc)]
+    checker = lambda svc: Diplomat.dep_matches_svc(self.raw, svc)
+    self._assoced_svcs = [KatSvc(svc) for svc in candidates if checker(svc)]
 
   def release_assocs(self):
     self._assoced_pods = None

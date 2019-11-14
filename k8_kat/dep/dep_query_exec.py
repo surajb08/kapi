@@ -17,5 +17,3 @@ class DepQueryExec(ResQueryExec):
       label_selector=label_exp
     ).items
 
-
-me = DepQueryExec
