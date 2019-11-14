@@ -11,10 +11,6 @@ class KatDep(KatRes):
     self._assoced_pods = None
     self._assoced_svcs = None
 
-  @property
-  def labels(self):
-    return self.raw.metadata.match_labels
-
   def pods(self) -> [KatPod]:
     raw_pods = Diplomat.dep_pods(self.raw)
     return PodCollection(raw_pods)
