@@ -1,7 +1,6 @@
 class ResQuery:
   def __init__(self):
-    self._hash = {
-    }
+    self._hash = self.default_query_hash()
 
   def update(self, **kwargs):
     self._hash = {
