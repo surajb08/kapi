@@ -39,7 +39,7 @@ class K8katTest(unittest.TestCase):
 
   @staticmethod
   def create_dep_svc(ns: str, dep_name):
-    me.nk(f"expose {dep_name}", ns)
+    me.nk(f"expose deployment/{dep_name} --port 80", ns)
 
   @staticmethod
   def nk_apply(ns, fname):
@@ -81,7 +81,7 @@ class K8katTest(unittest.TestCase):
       for ns in NAMESPACES:
         cls.nk("delete deploy --all", ns)
         cls.nk("delete svc --all", ns)
-        cls.nk("delete pod --all", ns)
+        # cls.nk("delete pod --all", ns)
 
 
 me = K8katTest

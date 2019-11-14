@@ -46,8 +46,7 @@ class KatDep(KatRes):
     return PodCollection(raw_pods)
 
   def svcs(self) -> [KatSvc]:
-    raw_svcs = Diplomat.dep_svcs(self.raw)
-    return SvcCollection(raw_svcs)
+    return self._assoced_svcs
 
   def assoc_pods(self, candidates: List[V1Pod]) -> None:
     checker = lambda pod: Diplomat.dep_owns_pod(self.raw, pod)

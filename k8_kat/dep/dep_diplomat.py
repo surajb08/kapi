@@ -19,12 +19,7 @@ class DepDiplomat:
     dep_pod_labels = dep.spec.template.metadata.labels
     svc_matchers = svc.spec.selector
     if dep_pod_labels is None or svc_matchers is None: return False
-    return svc_matchers >= dep_pod_labels
-
-  @staticmethod
-  def dep_pods(dep: V1Deployment):
-    exp_labels = dep.spec.selector.match_labels
-    fmt_exp_labels = Utils.dict_to_eq_str(exp_labels)
+    return svc_matchers.items() >= dep_pod_labels.items()
 
   @staticmethod
   def dep_svcs(dep: V1Deployment) -> [V1Service]:
