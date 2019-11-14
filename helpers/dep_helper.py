@@ -14,21 +14,6 @@ class DepHelper:
     )
 
   @staticmethod
-  def full_list(deps):
-    all_pods = broker.coreV1.list_pod_for_all_namespaces().items
-    all_svc = broker.coreV1.list_service_for_all_namespaces().items
-    bundler = lambda d: DepHelper.assoc_deps_pods_svc(d, all_pods, all_svc)
-    bundles = list(map(bundler, deps))
-    return list(map(DepHelper.complex_ser, bundles))
-
-  @staticmethod
-  def full_single(dep):
-    all_pods = broker.coreV1.list_pod_for_all_namespaces().items
-    all_svc = broker.coreV1.list_service_for_all_namespaces().items
-    bundle = DepHelper.assoc_deps_pods_svc(dep, all_pods, all_svc)
-    return DepHelper.complex_ser(bundle)
-
-  @staticmethod
   def restart_nectar_pods(dep_name):
     dep = DepHelper.find('nectar', dep_name)
     pod_labels = dep.spec.template.metadata.labels
@@ -37,16 +22,6 @@ class DepHelper:
       'nectar',
       label_selector=selector
     )
-
-  @staticmethod
-  def assoc_deps_pods_svc(dep, all_pods, all_svcs):
-    assoc_pods = ResUtils.pods_for_dep_loaded(dep.metadata.name, all_pods)
-    assoc_svc = SvcHelper.svcs_for_dep(dep, all_svcs)
-    return {
-      "dep": dep,
-      "pods": assoc_pods,
-      "svcs": assoc_svc
-    }
 
   @staticmethod
   def simple_ser(dep):

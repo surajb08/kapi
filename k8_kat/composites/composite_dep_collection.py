@@ -1,4 +1,3 @@
-from k8_kat.base.kat_res import KatRes
 from k8_kat.base.res_collection import ResCollection
 from k8_kat.dep.dep_collection import DepCollection
 from k8_kat.dep.kat_dep import KatDep
