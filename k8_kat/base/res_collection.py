@@ -13,11 +13,9 @@ class ResCollection:
     self.query.update(**query_hash)
     return self
 
-  def ns(self, namespace):
-    return self.where(in_ns=[namespace])
-
-  def ins(self, namespaces):
-    return self.where(in_ns=namespaces)
+  def ns(self, *_ns):
+    actual = [_ns] if isinstance(_ns, str) else _ns
+    return self.where(in_ns=actual)
 
   def nins(self, namespaces):
     return self.where(nin_ns=namespaces)

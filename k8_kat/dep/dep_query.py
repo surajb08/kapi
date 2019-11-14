@@ -4,6 +4,8 @@ from k8_kat.base.label_set_expressions import LabelSetExpressions
 from k8_kat.base.local_res_filter import LocalResFilters as LocalExec
 from k8_kat.base.res_query import ResQuery
 from k8_kat.dep.dep_query_exec import DepQueryExec as Exec
+from k8_kat.dep.kat_dep import KatDep
+
 
 class DepQuery(ResQuery):
   @property
@@ -24,15 +26,13 @@ class DepQuery(ResQuery):
       **self.label_query_kv()
     )
 
-  def perform_server_eval(self):
+  def perform_server_eval(self) -> List[KatDep]:
     labels_expr = self.gen_label_selector()
     if self.is_single_ns():
-      return Exec.fetch_for_single_ns(self.namespace, labels_expr)
+      result = Exec.fetch_for_single_ns(self.namespace, labels_expr)
     else:
-      return Exec.fetch_for_all_ns(labels_expr)
-
-  def server_label_query(self):
-    return self._hash['ins']
+      result = Exec.fetch_for_all_ns(labels_expr)
+    return [KatDep(raw_dep) for raw_dep in result]
 
   def perform_local_eval(self, deps):
     if not self.is_single_ns():
