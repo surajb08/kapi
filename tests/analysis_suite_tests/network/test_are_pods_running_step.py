@@ -1,8 +1,6 @@
 import unittest
 
 from analysis_suites.network.are_pods_running_step import ArePodsRunningStep
-from analysis_suites.network.do_pods_connect_step import DoPodsConnectStep
-from analysis_suites.network.is_svc_visible_step import IsSvcVisibleStep
 from tests.analysis_suite_tests.network.base import Base
 
 class ArePodsRunningStepTest(Base):

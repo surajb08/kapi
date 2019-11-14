@@ -3,15 +3,20 @@ from unittest import mock
 from unittest.mock import PropertyMock, MagicMock
 
 from actions.image_reloader import ImageReloader
+from tests.k8_kat.base.k8_kat_test import K8katTest
 from utils.utils import Utils
 from helpers.dep_helper import DepHelper
 from helpers.svc_helper import SvcHelper
 
-TESTING_NS = "nectar-testing"
+TESTING_NS = "n1"
 TESTING_DEP_NM = "simple-app-dep"
 TESTING_SVC_NM = "simple-app-svc"
 
-class Base(unittest.TestCase):
+class Base(K8katTest):
+
+  @classmethod
+  def setUpClass(cls) -> None:
+    cls.nk_apply('n1', 'simple-dep_svc')
 
   @classmethod
   def stdSetUpClass(cls, step_class):

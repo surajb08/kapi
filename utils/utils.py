@@ -13,6 +13,14 @@ class Utils:
     return Utils.run_env() == 'test'
 
   @staticmethod
+  def is_ci():
+    return Utils.is_test() and os.environ.get('CI')
+
+  @staticmethod
+  def is_ci_keep():
+    return os.environ.get("CI") == 'keep'
+
+  @staticmethod
   def is_dev():
     return Utils.run_env() == 'development'
 
