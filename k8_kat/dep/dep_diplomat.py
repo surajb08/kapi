@@ -25,10 +25,6 @@ class DepDiplomat:
   def dep_pods(dep: V1Deployment):
     exp_labels = dep.spec.selector.match_labels
     fmt_exp_labels = Utils.dict_to_eq_str(exp_labels)
-    return broker.coreV1.list_namespaced_pod(
-      namespace=dep.metadata.namespace,
-      label_selector=fmt_exp_labels
-    ).items
 
   @staticmethod
   def dep_svcs(dep: V1Deployment) -> [V1Service]:

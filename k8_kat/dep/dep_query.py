@@ -1,20 +1,15 @@
 from typing import Dict, Tuple, List
 
 from k8_kat.base.label_set_expressions import LabelSetExpressions
-from k8_kat.base.local_res_filter import LocalResFilters as LocalExec
 from k8_kat.base.res_query import ResQuery
 from k8_kat.dep.dep_query_exec import DepQueryExec as Exec
 from k8_kat.dep.kat_dep import KatDep
 
 
 class DepQuery(ResQuery):
-  @property
-  def with_either_label(self):
-    return self._hash['with_either_label']
-
-  @property
-  def with_neither_label(self):
-    return self._hash['with_neither_label']
+  def evaluate(self):
+    deps = self.perform_server_eval()
+    return self.perform_local_eval(deps)
 
   def label_query_kv(self) -> Dict[str, Tuple[str, List[str]]]:
     keys = set(self.default_label_query_hash().keys())
@@ -36,13 +31,11 @@ class DepQuery(ResQuery):
 
   def perform_local_eval(self, deps):
     if not self.is_single_ns():
-      deps = LocalExec.filter_in_ns(self.in_ns, deps)
-      deps = LocalExec.filter_nin_ns(self.not_in_ns, deps)
-    return deps
+      deps = Exec.filter_in_ns(self.in_ns, deps)
+      deps = Exec.filter_nin_ns(self.not_in_ns, deps)
 
-  def evaluate(self):
-    deps = self.perform_server_eval()
-    return self.perform_local_eval(deps)
+    deps = Exec.filter_name_in(self.name_in, deps)
+    return deps
 
   @staticmethod
   def default_query_hash():

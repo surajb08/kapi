@@ -17,6 +17,10 @@ class ResQuery:
     return self._hash['nin_ns']
 
   @property
+  def name_in(self):
+    return self._hash['name_in']
+
+  @property
   def namespace(self):
     return self._hash['in_ns'][0]
 
@@ -30,5 +34,6 @@ class ResQuery:
     return {
       'in_ns': None,
       'nin_ns': None,
+      'name_in': None
     }
   

@@ -1,4 +1,4 @@
-from k8_kat.base.local_res_filter import LocalResFilters
+from k8_kat.base.res_query_exec import ResQueryExec
 
-class LocalSvcFilters(LocalResFilters):
+class LocalSvcFilters(ResQueryExec):
   pass

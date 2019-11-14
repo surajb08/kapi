@@ -1,7 +1,24 @@
+import os
 import random
 import string
 
 class Utils:
+
+  @staticmethod
+  def run_env():
+    return os.environ.get('ENV')
+
+  @staticmethod
+  def is_test():
+    return Utils.run_env() == 'test'
+
+  @staticmethod
+  def is_dev():
+    return Utils.run_env() == 'development'
+
+  @staticmethod
+  def is_prod():
+    return Utils.run_env() == 'production'
 
   @staticmethod
   def is_non_trivial(dict_array):

@@ -1,7 +1,8 @@
 from helpers.kube_broker import broker
+from k8_kat.base.res_query_exec import ResQueryExec
 
 
-class DepQueryExec:
+class DepQueryExec(ResQueryExec):
 
   @staticmethod
   def fetch_for_single_ns(ns, label_exp):
