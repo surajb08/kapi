@@ -90,3 +90,7 @@ class Utils:
       return cmd.split(" ")
     else:
       return cmd
+
+  @staticmethod
+  def flatten(l):
+    return [item for sublist in l for item in sublist]

@@ -16,7 +16,7 @@ class DepComposer:
       ns = dep_coll.query.namespace
       return api.list_namespaced_service(namespace=ns).items
     else:
-      return api.list_service_for_all_namespaces()
+      return api.list_service_for_all_namespaces().items
 
   @staticmethod
   def associate_svcs(dep_coll: DepCollection) -> [KatDep]:

@@ -16,10 +16,13 @@ class DepDiplomat:
 
   @staticmethod
   def dep_matches_svc(dep: V1Deployment, svc: V1Service) -> bool:
-    dep_pod_labels = dep.spec.template.metadata.labels
-    svc_matchers = svc.spec.selector
-    if dep_pod_labels is None or svc_matchers is None: return False
-    return svc_matchers.items() >= dep_pod_labels.items()
+    if dep.metadata.namespace == svc.metadata.namespace:
+      dep_pod_labels = dep.spec.template.metadata.labels
+      svc_matchers = svc.spec.selector
+      if dep_pod_labels is None or svc_matchers is None: return False
+      return svc_matchers.items() >= dep_pod_labels.items()
+    else:
+      return False
 
   @staticmethod
   def dep_svcs(dep: V1Deployment) -> [V1Service]:

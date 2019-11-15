@@ -1,15 +1,21 @@
 from k8_kat.base.res_query import ResQuery
 
 
-class ResCollection:
-  def __init__(self, raw_collection=None):
+class ResCollection(list):
+  def __init__(self):
+    super().__init__()
     self.query: ResQuery = self.create_query()
-    self.query_result = raw_collection
+    self._actual = []
+    self._has_run = False
 
-  def raw_collection(self):
-    if not self.query_result:
-      self.go()
-    return self.query_result
+  def __getitem__(self, y):
+    return self._actual[y]
+
+  def __iter__(self):
+    return self._actual.__iter__()
+
+  def __len__(self):
+    return len(self._actual)
 
   def names(self, *_names):
     actual = [_names] if isinstance(_names, str) else _names
@@ -27,8 +33,10 @@ class ResCollection:
     return self.where(nin_ns=namespaces)
 
   def go(self):
-    self.query_result = self.query.evaluate()
-    return self.query_result
+    if not self._has_run:
+      self._actual = self.query.evaluate()
+      self._has_run = True
+    return self
 
   def create_query(self):
     raise Exception("Unimplemented!")

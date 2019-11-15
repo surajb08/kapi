@@ -41,10 +41,6 @@ class KatDep(KatRes):
     every = self.raw.metadata.annotations
     return dict([(k, every.get(f"commit-{k}")) for k in COMMIT_KEYS])
 
-  def pods(self) -> [KatPod]:
-    raw_pods = Diplomat.dep_pods(self.raw)
-    return PodCollection(raw_pods)
-
   def svcs(self) -> [KatSvc]:
     return self._assoced_svcs
 
