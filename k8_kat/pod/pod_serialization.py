@@ -1,7 +1,7 @@
 
-class SimpleSerializer:
+class PodSerialization:
   @staticmethod
-  def serialize(pod):
+  def standard(pod):
     return {
       'name': pod.name,
       'namespace': pod.namespace,

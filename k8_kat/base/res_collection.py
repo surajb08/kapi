@@ -17,6 +17,9 @@ class ResCollection(list):
   def __len__(self):
     return len(self._actual)
 
+  def find(self, name):
+    return self.names(name).go()[0]
+
   def names(self, *_names):
     actual = [_names] if isinstance(_names, str) else _names
     return self.where(name_in=actual)

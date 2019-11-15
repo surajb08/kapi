@@ -9,6 +9,7 @@ class DepWarnings:
     pods_ns = dep.spec.template.metadata.namespace
     if dep_ns != pods_ns:
       return {
+        'blame': 'user',
         'name': "Deployment templating pods in different namespace",
         'detail': f"{dep_ns} != {pods_ns}"
       }

@@ -1,15 +1,22 @@
-class ResQuery:
-  def __init__(self):
+from typing import Dict, Tuple, List, Any, Type
+from k8_kat.base.kat_res import KatRes
+from k8_kat.base.label_set_expressions import LabelSetExpressions
+
+class ResQuery():
+  def __init__(self, executor, kat: Type[KatRes]):
     self._hash = self.default_query_hash()
+    self.executor = executor
+    self.kat = kat
+
+  def evaluate(self) -> List[KatRes]:
+    deps = self.perform_server_eval()
+    return self.perform_local_eval(deps)
 
   def update(self, **kwargs):
     self._hash = {
       **self._hash,
       **kwargs
     }
-
-  def evaluate(self):
-    raise Exception("Not implemented!")
 
   @property
   def in_ns(self):
@@ -32,11 +39,46 @@ class ResQuery:
     cond_two = not self.not_in_ns
     return cond_one and cond_two
 
+  def label_query_kv(self) -> Dict[str, Tuple[str, List[str]]]:
+    keys = self.label_query_keys()
+    total, all_keys = self._hash, set(self._hash.keys())
+    return {k: total[k] for k in all_keys if k in keys}
+
+  def gen_label_selector(self):
+    return LabelSetExpressions.label_conditions_to_expr(
+      **self.label_query_kv()
+    )
+
+  def perform_server_eval(self) -> List[Any]:
+    labels_expr = self.gen_label_selector()
+    if self.is_single_ns():
+      result = self.executor.fetch_for_single_ns(self.namespace, labels_expr)
+    else:
+      result = self.executor.fetch_for_all_ns(labels_expr)
+    return [self.kat(raw_dep) for raw_dep in result]
+
+  def perform_local_eval(self, deps):
+    if not self.is_single_ns():
+      deps = self.executor.filter_in_ns(self.in_ns, deps)
+      deps = self.executor.filter_nin_ns(self.not_in_ns, deps)
+
+    deps = self.executor.filter_name_in(self.name_in, deps)
+    return deps
+
   @staticmethod
   def default_query_hash():
     return {
       'in_ns': None,
       'nin_ns': None,
-      'name_in': None
+      'name_in': None,
+      'and_yes_labels': None,
+      'and_no_labels': None,
+      'or_yes_labels': None,
+      'or_no_labels': None,
     }
-  
+
+  @staticmethod
+  def label_query_keys():
+    return [
+      'and_yes_labels', 'and_no_labels', 'or_yes_labels', 'or_no_labels'
+    ]

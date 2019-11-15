@@ -18,3 +18,9 @@ class KatRes:
   @property
   def labels(self):
     return self.raw.metadata.labels
+
+  def label(self, which):
+    return self.labels.get(which)
+
+  def serialize(self, serializer):
+    return serializer(self)

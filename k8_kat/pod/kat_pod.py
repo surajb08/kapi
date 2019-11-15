@@ -4,8 +4,7 @@ from kubernetes.stream import stream
 from helpers.kube_broker import broker
 from helpers.res_utils import ResUtils
 from k8_kat.base.kat_res import KatRes
-from k8_kat.pod.pod_outbound import PodDiplomat
-from k8_kat.pod.pod_serializers import SimpleSerializer
+from k8_kat.pod.pod_utils import PodUtils
 from utils.utils import Utils
 
 
@@ -14,12 +13,8 @@ class KatPod(KatRes):
     super().__init__(raw)
 
   @property
-  def labels(self):
-    return self.raw.spec.selector.match_labels
-
-  @property
   def status(self):
-    return ResUtils.true_pod_state(
+    return PodUtils.true_pod_state(
       self.raw.status.phase,
       self.container_status,
       False
@@ -27,7 +22,7 @@ class KatPod(KatRes):
 
   @property
   def full_status(self):
-    return ResUtils.true_pod_state(
+    return PodUtils.true_pod_state(
       self.raw.status.phase,
       self.container_status,
       True
@@ -91,13 +86,6 @@ class KatPod(KatRes):
       stdout=True,
       tty=False
     )
-
-  def dep(self):
-    raw_dep = PodDiplomat.pod_dep(self.raw)
-    return KatPod(raw_dep) if raw_dep else None
-
-  def serialize(self, serializer=SimpleSerializer):
-    return serializer.serialize(self)
 
   def __repr__(self):
     return f"Dep[{self.ns}:{self.name}({self.labels})]"

@@ -1,12 +1,10 @@
 import re
-from typing import Optional
+from typing import Optional, Dict
 
-from kubernetes.client import V1Service, V1ReplicaSet, V1Pod
+from kubernetes.client import V1Service, V1ReplicaSet, V1Pod, V1Deployment
 from kubernetes.client.rest import ApiException
 
 from helpers.kube_broker import broker
-from utils.utils import Utils
-import datetime as dt
 
 
 class ResUtils:
@@ -69,62 +67,42 @@ class ResUtils:
       return None
 
   @staticmethod
-  def container_err(cont_status):
-    term = Utils.try_or(lambda: cont_status.state.terminated)
-    wait = Utils.try_or(lambda: cont_status.state.waiting)
-    if term:
-      return term.reason
-    elif wait:
-      return wait.reason
+  def dep_owns_pod(dep: V1Deployment, pod: V1Pod) -> bool:
+    if dep.metadata.namespace == pod.metadata.namespace:
+      dep_matchers = dep.spec.selector.match_labels
+      pod_labels = pod.metadata.labels
+      if dep_matchers is None or pod_labels is None: return False
+      return dep_matchers.items() <= pod_labels.items()
     else:
-      return None
+      return False
 
   @staticmethod
-  def easy_error(state, pod):
-    if state == 'Error' or state == 'Failed':
-      return ResUtils.container_err(pod)
+  def dep_matches_svc(dep: V1Deployment, svc: V1Service) -> bool:
+    if dep.metadata.namespace == svc.metadata.namespace:
+      dep_pod_labels = dep.spec.template.metadata.labels
+      svc_matchers = svc.spec.selector
+      if dep_pod_labels is None or svc_matchers is None: return False
+      return svc_matchers.items() >= dep_pod_labels.items()
     else:
-      return None
+      return False
 
   @staticmethod
-  def easy_state(pod, hard_error=False):
-    given_phase = pod.status.phase
-    cont_status = pod.status.container_statuses[0]
-    error = Utils.try_or(lambda: ResUtils.container_err(pod))
+  def dep_svcs(dep: V1Deployment) -> [V1Service]:
+    ns_svcs = broker.coreV1.list_namespaced_service(
+      namespace=dep.metadata.namespace
+    ).items
 
-    if given_phase == 'Running':
-      if not cont_status.ready:
-        if not error == 'Completed':
-          return (hard_error and error) or "Error"
-        else:
-          return 'Running'
-      else:
-        return given_phase
-    elif given_phase == 'Pending':
-      if error == 'ContainerCreating':
-        return 'Pending'
-      else:
-        return 'Error'
-    else:
-      return given_phase
+    pod_labels = dep.spec.template.metadata.labels
+    inclusion_check = lambda svc: ResUtils.dep_covers_svc_labels(svc, pod_labels)
+    return [svc for svc in ns_svcs if inclusion_check(svc)]
 
   @staticmethod
-  def true_pod_state(given_phase, cont_status, hard_error):
-    error = Utils.try_or(lambda: ResUtils.container_err(cont_status))
+  def dep_covers_svc_labels(svc: V1Service, labels: Dict[str, str]) -> bool:
+    svc_matchers: Dict[str, str] = svc.spec.selector
+    return svc_matchers >= labels if svc_matchers is not None else False
 
-    if given_phase == 'Running':
-      if not cont_status.ready:
-        if not error == 'Completed':
-          return (hard_error and error) or "Error"
-        else:
-          return 'Running'
-      else:
-        return given_phase
-    elif given_phase == 'Pending':
-      if error == 'ContainerCreating':
-        return 'Pending'
-      else:
-        return 'Error'
-    else:
-      return given_phase
-
+  @staticmethod
+  def dep_covers_svc_pod(svc: V1Service, pod: V1Pod) -> bool:
+    pod_labels: Dict[str, str] = pod.metadata.labels
+    svc_matchers: Dict[str, str] = svc.spec.selector
+    return svc_matchers >= pod_labels if svc_matchers is not None else False

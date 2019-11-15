@@ -2,12 +2,10 @@ from typing import Dict, List
 
 from kubernetes.client import V1PodSpec, V1Container, V1Pod
 
+from helpers.res_utils import ResUtils
 from k8_kat.base.kat_res import KatRes
-from k8_kat.dep.dep_diplomat import DepDiplomat as Diplomat
 from k8_kat.pod.kat_pod import KatPod
-from k8_kat.pod.pod_collection import PodCollection
 from k8_kat.svc.kat_svc import KatSvc
-from k8_kat.svc.svc_collection import SvcCollection
 
 COMMIT_KEYS = ['sha', 'branch', 'message', 'timestamp']
 
@@ -44,12 +42,15 @@ class KatDep(KatRes):
   def svcs(self) -> [KatSvc]:
     return self._assoced_svcs
 
+  def pods(self) -> [KatSvc]:
+    return self._assoced_pods
+
   def assoc_pods(self, candidates: List[V1Pod]) -> None:
-    checker = lambda pod: Diplomat.dep_owns_pod(self.raw, pod)
+    checker = lambda pod: ResUtils.dep_owns_pod(self.raw, pod)
     self._assoced_pods = [KatPod(pod) for pod in candidates if checker(pod)]
 
   def assoc_svcs(self, candidates: [KatSvc]) -> None:
-    checker = lambda svc: Diplomat.dep_matches_svc(self.raw, svc)
+    checker = lambda svc: ResUtils.dep_matches_svc(self.raw, svc)
     self._assoced_svcs = [KatSvc(svc) for svc in candidates if checker(svc)]
 
   def release_assocs(self):
