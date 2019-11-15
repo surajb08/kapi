@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 from k8_kat.base.res_query import ResQuery
 
 
@@ -34,6 +36,18 @@ class ResCollection(list):
 
   def nins(self, namespaces):
     return self.where(nin_ns=namespaces)
+
+  def every_lb(self, label_array: List[Tuple[str, str]]):
+    return self.where(and_yes_labels=label_array)
+
+  def any_lb(self, label_array: List[Tuple[str, str]]):
+    return self.where(or_yes_labels=label_array)
+
+  def not_every_lb(self, label_array: List[Tuple[str, str]]):
+    return self.where(and_no_labels=label_array)
+
+  def not_any_lb(self, label_array: List[Tuple[str, str]]):
+    return self.where(or_no_labels=label_array)
 
   def go(self):
     if not self._has_run:

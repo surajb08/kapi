@@ -8,11 +8,11 @@ class TestKatSvc(K8katTest):
   @classmethod
   def setUpClass(cls) -> None:
     super(TestKatSvc, cls).setUpClass()
-    cls.create_dep('n1', 'd1')
-    cls.create_dep_svc('n1', 'd11')
+    cls.create_svc('n1', 's1')
+    cls.nk('get svc', 'n1')
 
-  def setUp(self):
-    self.subject: KatSvc = K8kat.svcs().ns('n1').find('d1')
+  def setUp(self) -> None:
+    self.subject: KatSvc = K8kat.svcs().ns('n1').find('s1')
 
   def test_internal_ip(self):
     self.assertIsNotNone(self.subject.internal_ip)
@@ -24,7 +24,7 @@ class TestKatSvc(K8katTest):
     self.assertEqual(self.subject.to_port, 80)
 
   def test_short_dns(self):
-    self.assertEqual(self.subject.short_dns, 'd1.n1')
+    self.assertEqual(self.subject.short_dns, 's1.n1')
 
   def test_fqdn(self):
-    self.assertEqual(self.subject.short_dns, 'd1.n1.svc.cluster.local')
+    self.assertEqual(self.subject.fqdn, 's1.n1.svc.cluster.local')

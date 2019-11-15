@@ -1,7 +1,7 @@
 import os
 import unittest
 from typing import Tuple, List
-
+from string import Template
 from kubernetes.client import V1Deployment, V1Service
 
 from helpers.kube_broker import broker
@@ -38,15 +38,25 @@ class K8katTest(unittest.TestCase):
       me.nk_label_dep(ns, dep_name, labels)
 
   @staticmethod
+  def create_svc(ns: str, name: str, subs=None):
+    from tests.k8_kat.fixtures.simple_svc import create
+    subs = {**(subs or {}), 'name': name}
+    create(ns, subs)
+
+  @staticmethod
   def create_dep_svc(ns: str, dep_name):
     me.nk(f"expose deployment/{dep_name} --port 80", ns)
 
   @staticmethod
   def nk_apply(ns, fname):
+    fname = K8katTest.gen_yaml_path(fname)
+    me.nk(f"apply -f {fname}", ns)
+
+  @staticmethod
+  def gen_yaml_path(fname) -> str:
     import app
     root = app.app.instance_path.replace('/instance', '')
-    filename = os.path.join(root, f"tests/yamls/{fname}.yaml")
-    me.nk(f"apply -f {filename}", ns)
+    return os.path.join(root, f"tests/yamls/{fname}.yaml")
 
   @staticmethod
   def k_apply(fname):

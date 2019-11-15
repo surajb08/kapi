@@ -1,3 +1,5 @@
+from kubernetes.client import V1Pod, V1ObjectMeta, V1PodSpec, V1Container
+
 from helpers.res_utils import ResUtils
 from helpers.kube_broker import broker
 import time
@@ -12,15 +14,15 @@ class StuntPod:
     self._image = "xnectar/curler:latest"
 
   def create(self):
-    pod = broker.client.V1Pod(
+    pod = V1Pod(
       api_version='v1',
-      metadata=broker.client.V1ObjectMeta(
+      metadata=V1ObjectMeta(
         name=self.pod_name,
         labels=self.labels()
       ),
-      spec=broker.client.V1PodSpec(
+      spec=V1PodSpec(
         containers=[
-          broker.client.V1Container(
+          V1Container(
             name="primary",
             image=self.image(),
             image_pull_policy="Always"

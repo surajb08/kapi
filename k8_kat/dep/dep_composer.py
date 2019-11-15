@@ -29,18 +29,15 @@ class DepComposer:
 
   @staticmethod
   def associate_svcs(dep_coll: DepCollection) -> [KatDep]:
-    raw_svcs = me.svcs_for_dep_coll(dep_coll)
-    me.zip_candidates(dep_coll, raw_svcs, 'svcs')
+    raw_svcs = DepComposer.svcs_for_dep_coll(dep_coll)
+    DepComposer.zip_candidates(dep_coll, raw_svcs, 'svcs')
 
   @staticmethod
   def associate_pods(dep_coll: DepCollection) -> [KatDep]:
-    raw_pods = me.pods_for_dep_coll(dep_coll)
-    me.zip_candidates(dep_coll, raw_pods, 'pods')
+    raw_pods = DepComposer.pods_for_dep_coll(dep_coll)
+    DepComposer.zip_candidates(dep_coll, raw_pods, 'pods')
 
   @staticmethod
   def zip_candidates(dep_coll: DepCollection, others, method: str):
     for dep in dep_coll.go():
       getattr(dep, f"assoc_{method}")(others)
-
-
-me = DepComposer
