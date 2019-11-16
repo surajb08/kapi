@@ -29,3 +29,17 @@ class DepSerialization:
         svcs=[svc_ser(pod) for pod in dep.svcs()]
       )
     }
+
+  @staticmethod
+  def as_needed(dep):
+    base = DepSerialization.standard(dep)
+    pod_ser = PodSerialization.standard
+    svc_ser = SvcSerialization.standard
+
+    if dep.assoced_pods is not None:
+      base = {**base, 'pods': [pod_ser(pod) for pod in dep.pods()]}
+
+    if dep.assoced_svcs is not None:
+      base = {**base, 'svcs': [svc_ser(pod) for pod in dep.svcs()]}
+
+    return base

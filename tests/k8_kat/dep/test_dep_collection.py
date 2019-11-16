@@ -16,16 +16,16 @@ class TestDepCollection(K8katTest):
     cls.create_dep('n2', 'd22', [('l2', 'v2')])
 
   def test_names(self):
-    result = K8kat.deps().ns('n1').names('d11').go()
+    result = K8kat.deps().names('d11').go()
     self.assertEqual([dep.name for dep in result], ['d11'])
 
-    result = K8kat.deps().ns('n1').names('d11', 'd12').go()
+    result = K8kat.deps().names('d11', 'd12').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd12'])
 
-    result = K8kat.deps().ns('n1', 'n2').names('d11', 'd22').go()
+    result = K8kat.deps().names('d11', 'd22').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd22'])
 
-    result = K8kat.deps().ns(['n1', 'n2']).names('d11', 'd22').go()
+    result = K8kat.deps().names('d11', 'd22').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd22'])
 
   def test_lbs_inc_each(self):

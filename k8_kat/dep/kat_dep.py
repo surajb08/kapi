@@ -1,7 +1,8 @@
 from typing import Dict, List
 
-from kubernetes.client import V1PodSpec, V1Container, V1Pod
+from kubernetes.client import V1PodSpec, V1Container, V1Pod, V1Scale, V1ScaleSpec
 
+from helpers.kube_broker import broker
 from helpers.res_utils import ResUtils
 from k8_kat.base.kat_res import KatRes
 from k8_kat.pod.kat_pod import KatPod
@@ -12,8 +13,9 @@ COMMIT_KEYS = ['sha', 'branch', 'message', 'timestamp']
 class KatDep(KatRes):
   def __init__(self, raw):
     super().__init__(raw)
-    self._assoced_pods = None
-    self._assoced_svcs = None
+    self.assoced_pods = None
+    self.assoced_svcs = None
+    self._am_dirty = raw is not None
 
   @property
   def raw_pod_spec(self) -> V1PodSpec:
@@ -43,11 +45,19 @@ class KatDep(KatRes):
     every = self.raw.metadata.annotations
     return dict([(k, every.get(f"commit-{k}")) for k in COMMIT_KEYS])
 
-  def svcs(self) -> [KatSvc]:
-    return self._assoced_svcs
+  @property
+  def desired_replicas(self):
+    return self.raw.spec.replicas
 
-  def pods(self) -> [KatSvc]:
-    return self._assoced_pods
+  def svcs(self, force_reload=False) -> [KatSvc]:
+    if force_reload or self.assoced_svcs is None:
+      self.find_and_assoc_svcs()
+    return self.assoced_svcs
+
+  def pods(self, force_reload=False) -> [KatSvc]:
+    if force_reload or self.assoced_pods is None:
+      self.find_and_assoc_pods()
+    return self.assoced_pods
 
   def with_friends(self):
     self.find_and_assoc_pods()
@@ -57,24 +67,52 @@ class KatDep(KatRes):
   def find_and_assoc_pods(self):
     from k8_kat.base.k8_kat import K8kat
     matchers = list(self.pod_select_labels.items())
-    self._assoced_pods = K8kat.pods(in_ns=self.ns).lbs_include(matchers).go()
+    self.assoced_pods = K8kat.pods().ns(self.ns).lbs_inc_each(matchers).go()
 
   def find_and_assoc_svcs(self):
     from k8_kat.base.k8_kat import K8kat
     matchers = list(self.pod_select_labels.items())
-    self._assoced_pods = K8kat.svcs(in_ns=self.ns).lbs_include(matchers).go()
+    self.assoced_svcs = K8kat.pods().ns(self.ns).lbs_inc_each(matchers).go()
 
   def assoc_pods(self, candidates: List[V1Pod]) -> None:
     checker = lambda pod: ResUtils.dep_owns_pod(self.raw, pod)
-    self._assoced_pods = [KatPod(pod) for pod in candidates if checker(pod)]
+    self.assoced_pods = [KatPod(pod) for pod in candidates if checker(pod)]
 
   def assoc_svcs(self, candidates: [KatSvc]) -> None:
     checker = lambda svc: ResUtils.dep_matches_svc(self.raw, svc)
-    self._assoced_svcs = [KatSvc(svc) for svc in candidates if checker(svc)]
+    self.assoced_svcs = [KatSvc(svc) for svc in candidates if checker(svc)]
 
   def release_assocs(self):
-    self._assoced_pods = None
-    self._assoced_svcs = None
+    self.assoced_pods = None
+    self.assoced_svcs = None
+
+  def scale(self, replicas):
+    broker.appsV1Api.patch_namespaced_deployment_scale(
+      name=self.name,
+      namespace=self.ns,
+      body=V1Scale(
+        spec=V1ScaleSpec(
+          replicas=replicas
+        )
+      )
+    )
+    self._am_dirty = True
+
+  def replace_image(self, new_image_name):
+    raw = self.raw
+    raw.spec.template.spec.containers[0].image = new_image_name
+    broker.appsV1Api.patch_namespaced_deployment(
+      namespace=self.ns,
+      name=self.name,
+      body=raw
+    )
+    self._am_dirty = True
+
+  def restart_pods(self):
+    remember_replicas = self.desired_replicas
+    self.scale(0)
+    self.scale(remember_replicas)
+    self._am_dirty = True
 
   def __repr__(self):
     return f"Dep[{self.ns}:{self.name}({self.labels})]"

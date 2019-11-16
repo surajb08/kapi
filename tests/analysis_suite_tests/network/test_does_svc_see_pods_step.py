@@ -1,8 +1,6 @@
 import unittest
 
-from actions.image_reloader import ImageReloader
 from analysis_suites.network.does_svc_see_pods_step import DoesSvcSeePodsStep
-from analysis_suites.network.is_svc_visible_step import IsSvcVisibleStep
 from tests.analysis_suite_tests.network.base import Base
 
 class DoesSvcSeePodsStepTest(Base):

@@ -18,7 +18,7 @@ class DoesSvcSeePodsStep(BaseNetworkStep):
 
   def perform(self):
     try:
-      endpoint = self.api.read_namespaced_endpoints(self.svc_name, self.ns)
+      endpoint = self.api.read_namespaced_endpoints(self.svc.name, self.svc.ns)
       formatted = self.agg_subsets(endpoint.subsets or [])
       return self.record_step_performed(
         outcome=len(formatted) > 0,

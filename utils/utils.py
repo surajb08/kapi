@@ -61,15 +61,12 @@ class Utils:
     return [Utils.parse_dict(part) for part in parts]
 
   @staticmethod
-  def parse_dict(_string):
-    if _string:
-      result_dict = {}
-      for encoded_dict in _string.split(','):
-        [key, value] = encoded_dict.split(':')
-        result_dict[key] = value
-      return result_dict
-    else:
-      return {}
+  def parse_dict(encoded_dict):
+    result_dict = {}
+    for encoded_kv in encoded_dict.split(','):
+      key, value = encoded_kv.split(':')
+      result_dict[key] = value
+    return result_dict
 
   @staticmethod
   def rand_str(string_len=10):

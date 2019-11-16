@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 from flask import Blueprint, request
 
-from helpers.res_utils import ResUtils
+from k8_kat.base.k8_kat import K8kat
 
 controller = Blueprint('pods_controller', __name__)
 
-@controller.route('/api/pods/<namespace>/<name>/logs')
-def logs(namespace, name):
+@controller.route('/api/pods/<ns>/<name>/logs')
+def logs(ns, name):
+  pod = K8kat.pods().ns(ns).find(name)
   since_seconds = int(request.args.get('since_seconds', '5000'))
-  _logs = ResUtils.read_logs(namespace, name, since_seconds)
-  return {"data": _logs}
+  return dict(data=pod.logs(since_seconds))

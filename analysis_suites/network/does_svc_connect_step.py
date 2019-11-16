@@ -14,16 +14,3 @@ class DoesSvcConnectStep(BaseNetworkStep):
         outputs=["Could not connect"],
         bundle={**output}
       )
-
-  @staticmethod
-  def test():
-    worker = DoesSvcConnectStep(
-      from_port="80",
-      svc_name="moderator",
-      dep_name="moderator",
-      dep_ns="default"
-    )
-
-    worker.perform()
-
-    return worker

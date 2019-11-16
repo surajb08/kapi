@@ -29,15 +29,3 @@ class Annotator:
       body=self.deployment
     )
     return self.gen_annotation_dict()
-
-  @staticmethod
-  def play():
-    params = {
-      "sha": "sha",
-      "message": "message",
-      "branch": "branch",
-      "author": "author"
-    }
-
-    inst = Annotator('default', 'moderator', **params)
-    inst.annotate()

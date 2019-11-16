@@ -1,8 +1,6 @@
-import unittest
 from unittest import mock
 from unittest.mock import PropertyMock, MagicMock
 
-from actions.image_reloader import ImageReloader
 from tests.k8_kat.base.k8_kat_test import K8katTest
 from utils.utils import Utils
 from helpers.dep_helper import DepHelper
@@ -60,6 +58,7 @@ class Base(K8katTest):
       callback()
 
   def scale_to(self, amount):
+
     worker = ImageReloader(
       dp_namespace=self.deployment.metadata.namespace,
       dp_name=self.deployment.metadata.name,

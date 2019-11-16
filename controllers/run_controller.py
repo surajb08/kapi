@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 from flask import Blueprint, request
 
+from k8_kat.base.k8_kat import K8kat
 from stunt_pods.curl_pod import CurlPod
-from actions.image_changer import ImageChanger
-from actions.image_reloader import ImageReloader
 
 controller = Blueprint('run_controller', __name__)
 
@@ -19,49 +18,28 @@ def run_curl_command():
 
 @controller.route('/api/run/cmd', methods=['POST'])
 def run_command():
-  j_body = request.json
-  pod = CurlPod(
-    pod_name=j_body['pod_name'],
-    namespace=j_body['pod_namespace'],
-  )
-  output = pod.run(j_body['command'])
-  return { "data": output }
+  j = request.json
+  ns, pod_name, cmd = j['pod_namespace'], j['pod_name'], j['command']
+  pod = K8kat.pods().ns(ns).find(pod_name)
+  return dict(data=pod.run_cmd(cmd))
 
 @controller.route('/api/run/image_reload', methods=['POST'])
 def image_reload():
-  body_args = request.json
-  dep_name = body_args['dep_name']
-  worker = ImageReloader(
-    dp_namespace=body_args['dep_namespace'],
-    dp_name=dep_name,
-    mode="reload"
-  )
-  worker.run()
-  return { "data": { 'status': 'working' } }
+  j = request.json
+  ns, name = j['dep_namespace'], j['dep_name']
+  K8kat.deps().ns(ns).find(name).restart_pods()
+  return dict(data=dict(status='working'))
 
 @controller.route('/api/run/new_image', methods=['POST'])
 def new_image():
-  body_args = request.json
-  dep_namespace = body_args['dep_namespace']
-  dep_name = body_args['dep_name']
-  target_name = body_args['target_name']
-  worker = ImageChanger(dep_namespace, dep_name, target_name)
-  worker.run()
-  return { "data": { 'status': 'working' } }
-
+  j = request.json
+  ns, name, img_name = j['dep_namespace'], j['dep_name'], j['target_name']
+  K8kat.deps().ns(ns).find(name).replace_image(img_name)
+  return dict(data=dict(status='working'))
 
 @controller.route('/api/run/scale_replicas', methods=['POST'])
 def scale_replicas():
-  body_args = request.json
-  worker = ImageReloader(
-    dp_namespace=body_args['dep_namespace'],
-    dp_name=body_args['dep_name'],
-    mode="scale",
-    scale_to=int(body_args['scale_to'])
-  )
-  worker.run()
-  return { "data": { 'status': 'working' } }
-
-@controller.route('/api/run/image_change`', methods=['POST'])
-def change_image():
-  return { "status": "lol" }
+  j = request.json
+  ns, name, scale_to = j['dep_namespace'], j['dep_name'], j['scale_to']
+  K8kat.deps().ns(ns).find(name).scale(int(scale_to))
+  return dict(data=dict(status='working'))

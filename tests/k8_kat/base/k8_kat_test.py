@@ -8,7 +8,7 @@ from helpers.kube_broker import broker
 from helpers.res_utils import ResUtils
 from utils.utils import Utils
 
-NAMESPACES = ['n1', 'n2']
+NAMESPACES = ['n1', 'n2', 'n3']
 
 class K8katTest(unittest.TestCase):
 

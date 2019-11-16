@@ -22,7 +22,7 @@ class DoesSvcSeeRightPodsStep(BaseNetworkStep):
     pod = ResUtils.find(self.ns, pod_name)
     return {
       "name": pod_name,
-      "belongs": ResUtils.belongs_to_dep(pod, self.deployment)
+      "belongs": ResUtils.belongs_to_dep(pod, self.dep)
     }
 
   def belonging_str(self, bundle):

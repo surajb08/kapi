@@ -38,7 +38,6 @@ def make_shell_context():
   from helpers.res_utils import ResUtils
   from helpers.dep_helper import DepHelper
   from stunt_pods.curl_pod import CurlPod
-  from actions.image_reloader import ImageReloader
   from actions.docker_op import DockerOp
   from actions.docker_build_op import DockerBuildOp
   from actions.docker_push_op import DockerPushOp
@@ -52,7 +51,6 @@ def make_shell_context():
     'dh': DepHelper,
     'sh': SvcHelper,
     'cp': CurlPod,
-    'ir': ImageReloader,
     'ic': ImageChanger,
     'do': DockerOp,
     'DockerBuildOp': DockerBuildOp,

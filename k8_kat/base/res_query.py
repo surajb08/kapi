@@ -86,14 +86,13 @@ class ResQuery:
   def perform_local_eval(self, deps):
     deps = self.executor.filter_ns_in(self.ns_in, deps)
     deps = self.executor.filter_ns_nin(self.ns_not_in, deps)
+    deps = self.executor.filter_name_in(self.name_in, deps)
 
     if self.has_lb_any_filters():
       deps = self.executor.filter_lb_inc_any(self.lbs_inc_any, deps)
       deps = self.executor.filter_lb_exc_any(self.lbs_exc_any, deps)
       deps = self.executor.filter_lb_inc_each(self.lbs_inc_each, deps)
       deps = self.executor.filter_lb_exc_each(self.lbs_exc_each, deps)
-
-    deps = self.executor.filter_name_in(self.name_in, deps)
 
     return deps
 

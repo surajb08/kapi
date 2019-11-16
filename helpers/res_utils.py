@@ -16,11 +16,8 @@ class ResUtils:
     deps = K8kat.deps().not_ns('kube-system').go()
     output = []
     for name in set([dep.name for dep in deps]):
-      appears_in = [dep.ns for dep in deps if dep.name == name]
-      output.append(dict(
-        name=name,
-        namespaces=set(appears_in)
-      ))
+      appears_in = set([dep.ns for dep in deps if dep.name == name])
+      output.append(dict(name=name, namespaces=list(appears_in)))
     return output
 
   @staticmethod

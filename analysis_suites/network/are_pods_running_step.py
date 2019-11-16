@@ -15,7 +15,7 @@ class ArePodsRunningStep(BaseNetworkStep):
     return self.phase(pod) == 'Running'
 
   def perform(self):
-    pods = ResUtils.pods_for_dep(self.deployment, False)
+    pods = ResUtils.pods_for_dep(self.dep, False)
     running = [pod for pod in pods if self.is_running(pod)]
     outputs = [self.result_str(pod) for pod in pods]
     return self.record_step_performed(

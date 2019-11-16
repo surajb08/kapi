@@ -1,4 +1,3 @@
-from typing import List, Tuple
 
 from k8_kat.base.res_query import ResQuery
 

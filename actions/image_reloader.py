@@ -41,7 +41,7 @@ class ImageReloader:
       name=self.deployment.metadata.name,
       namespace=self.deployment.metadata.namespace,
       body=V1Scale(
-        spec=	V1ScaleSpec(
+        spec=V1ScaleSpec(
           replicas=replicas
         )
       )
