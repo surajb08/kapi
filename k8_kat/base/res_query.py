@@ -1,9 +1,9 @@
-from typing import Dict, Tuple, List, Any, Type
+from typing import Dict, Tuple, List, Any, Type, Optional
 from k8_kat.base.kat_res import KatRes
 from k8_kat.base.label_set_expressions import LabelLogic
 
-class ResQuery():
-  def __init__(self, executor, kat: Type[KatRes]):
+class ResQuery:
+  def __init__(self, executor, kat: Optional[Type[KatRes]]):
     self._hash = self.default_query_hash()
     self.executor = executor
     self.kat = kat
@@ -34,23 +34,43 @@ class ResQuery():
   def namespace(self):
     return self._hash['in_ns'][0]
 
-  def is_single_ns(self):
+  @property
+  def lbs_inc_each(self):
+    return self._hash['lbs_inc_each']
+
+  @property
+  def lbs_exc_each(self):
+    return self._hash['lbs_exc_each']
+
+  @property
+  def lbs_inc_any(self):
+    return self._hash['lbs_inc_any']
+
+  @property
+  def lbs_exc_any(self):
+    return self._hash['lbs_exc_any']
+
+  def is_single_ns(self) -> bool:
     cond_one = len(self.in_ns or []) == 1
     cond_two = not self.not_in_ns
     return cond_one and cond_two
 
-  def label_query_kv(self) -> Dict[str, Tuple[str, List[str]]]:
-    keys = self.label_query_keys()
-    total, all_keys = self._hash, set(self._hash.keys())
-    return {k: total[k] for k in all_keys if k in keys}
+  def has_lb_any_filters(self) -> bool:
+    inc_any = self.lbs_inc_any is not None
+    exc_any = self.lbs_exc_any is not None
+    return inc_any or exc_any
 
-  def gen_label_selector(self):
-    return LabelLogic.label_conditions_to_expr(
-      **self.label_query_kv()
-    )
+  def gen_server_label_selector(self) -> str:
+    if not self.has_lb_any_filters():
+      return LabelLogic.label_conditions_to_expr(
+        self.lbs_inc_each or [],
+        self.lbs_exc_each or []
+      )
+    else:
+      return ''
 
   def perform_server_eval(self) -> List[Any]:
-    labels_expr = self.gen_label_selector()
+    labels_expr = self.gen_server_label_selector()
     if self.is_single_ns():
       result = self.executor.fetch_for_single_ns(self.namespace, labels_expr)
     else:
@@ -62,7 +82,15 @@ class ResQuery():
       deps = self.executor.filter_in_ns(self.in_ns, deps)
       deps = self.executor.filter_nin_ns(self.not_in_ns, deps)
 
+    deps = self.executor.filter_lb_inc_any(self.lbs_inc_any, deps)
+    deps = self.executor.filter_lb_exc_any(self.lbs_exc_any, deps)
+
+    if not self.has_lb_any_filters():
+      deps = self.executor.filter_lb_inc_each(self.lbs_inc_each, deps)
+      deps = self.executor.filter_lb_exc_each(self.lbs_exc_each, deps)
+
     deps = self.executor.filter_name_in(self.name_in, deps)
+
     return deps
 
   @staticmethod

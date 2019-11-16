@@ -39,3 +39,17 @@ class ResQueryExec:
       return [r for r in resources if not set(label_tups) & set(r.label_tups)]
     else:
       return resources
+
+  @staticmethod
+  def filter_lb_inc_each(label_tups, resources: List[KatRes]):
+    if label_tups is not None:
+      return [r for r in resources if label_tups in r.label_tups]
+    else:
+      return resources
+
+  @staticmethod
+  def filter_lb_exc_each(label_tups, resources: List[KatRes]):
+    if label_tups is not None:
+      return [r for r in resources if label_tups not in r.label_tups]
+    else:
+      return resources
