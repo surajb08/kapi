@@ -24,7 +24,7 @@ class KatRes:
 
   @property
   def label_tups(self) -> List[Tuple[str, str]]:
-    return self.raw.metadata.labels
+    return list(self.labels.items())
 
   def label(self, which):
     return self.labels.get(which)

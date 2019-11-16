@@ -23,7 +23,7 @@ class ResCollection(list):
     return self.names(name).go()[0]
 
   def names(self, *_names):
-    actual = [_names] if isinstance(_names, str) else _names
+    actual = list(_names[0]) if isinstance(_names[0], list) else list(_names)
     return self.where(name_in=actual)
 
   def where(self, **query_hash):
@@ -31,27 +31,27 @@ class ResCollection(list):
     return self
 
   def ns(self, *_ns):
-    actual = [_ns] if isinstance(_ns, str) else _ns
-    return self.where(in_ns=actual)
+    actual = list(_ns[0]) if isinstance(_ns[0], list) else list(_ns)
+    return self.where(ns_in=actual)
 
   def not_ns(self, *_ns):
-    actual = [_ns] if isinstance(_ns, str) else _ns
-    return self.where(nin_ns=actual)
+    actual = list(_ns[0]) if isinstance(_ns[0], list) else list(_ns)
+    return self.where(ns_nin=actual)
 
   def lbs_inc_each(self, label_array=None, **kwargs):
-    label_array = list(dict(kwargs)) if kwargs else label_array
+    label_array = list(kwargs.items()) if kwargs else label_array
     return self.where(lbs_inc_each=label_array)
 
-  def lbs_exc_each(self, label_array: List[Tuple[str, str]], **kwargs):
-    label_array = list(dict(kwargs)) if kwargs else label_array
+  def lbs_exc_each(self, label_array=None, **kwargs):
+    label_array = list(kwargs.items()) if kwargs else label_array
     return self.where(lbs_exc_each=label_array)
 
-  def lbs_inc_any(self, label_array: List[Tuple[str, str]], **kwargs):
-    label_array = list(dict(kwargs)) if kwargs else label_array
+  def lbs_inc_any(self, label_array=None, **kwargs):
+    label_array = list(kwargs.items()) if kwargs else label_array
     return self.where(lbs_inc_any=label_array)
 
-  def lbs_exc_any(self, label_array: List[Tuple[str, str]], **kwargs):
-    label_array = list(dict(kwargs)) if kwargs else label_array
+  def lbs_exc_any(self, label_array=None, **kwargs):
+    label_array = list(kwargs.items()) if kwargs else label_array
     return self.where(lbs_exc_any=label_array)
 
   def go(self):

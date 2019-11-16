@@ -25,38 +25,45 @@ class TestDepCollection(K8katTest):
     result = K8kat.deps().ns('n1', 'n2').names('d11', 'd22').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd22'])
 
-  def test_lb_at_least(self):
-    result = K8kat.deps().ns('n1').lbs_include([('c', 'c')]).go()
-    self.assertCountEqual([dep.name for dep in result], ['d11', 'd12'])
+    result = K8kat.deps().ns(['n1', 'n2']).names('d11', 'd22').go()
+    self.assertCountEqual([dep.name for dep in result], ['d11', 'd22'])
 
-    result = K8kat.deps().ns('n1').lbs_include([('l1', 'v1')]).go()
+  def test_lbs_inc_each(self):
+    pass
+    result = K8kat.deps().ns(['n1']).lbs_inc_each(l1='v1').go()
     self.assertCountEqual([dep.name for dep in result], ['d11'])
 
-    result = K8kat.deps().ns('n1', 'n2').lbs_include([('l1', 'v1')]).go()
+    result = K8kat.deps().ns('n1').lbs_inc_each([('c', 'c')]).go()
+    self.assertCountEqual([dep.name for dep in result], ['d11', 'd12'])
+
+    result = K8kat.deps().ns('n1', 'n2').lbs_inc_each(l1='v1').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd21'])
 
     q = [('l1', 'v1'), ('c', 'c')]
-    result = K8kat.deps().ns('n1', 'n2').lbs_include(q).go()
+    result = K8kat.deps().ns('n1', 'n2').lbs_inc_each(q).go()
     self.assertCountEqual([dep.name for dep in result], ['d11'])
 
-    result = K8kat.deps().ns('n1', 'n2').lbs_include([('c', 'c')]).go()
+    result = K8kat.deps().ns('n1', 'n2').lbs_inc_each(c='c').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd12'])
 
     q = [('x', 'y'), ('c', 'c')]
-    result = K8kat.deps().ns('n1', 'n2').lbs_include(q).go()
+    result = K8kat.deps().ns('n1', 'n2').lbs_inc_each(q).go()
     self.assertCountEqual([dep.name for dep in result], [])
 
-  def test_any_lb(self):
-    result = K8kat.deps().ns('n1').any_lb([('c', 'c')]).go()
+  def test_lbs_inc_any(self):
+    result = K8kat.deps().ns('n1').lbs_inc_any(c='c', l1='v1').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd12'])
 
-    q = [('l1', 'v1'), ('l1', 'v2')]
-    result = K8kat.deps().ns('n1').any_lb(q).go()
-    self.assertCountEqual([dep.name for dep in result], ['d11', 'd12'])
-
-    q = [('l1', 'v1'), ('l1', 'v2')]
-    result = K8kat.deps().ns('n1', 'n2').any_lb(q).go()
+    result = K8kat.deps().ns('n1', 'n2').lbs_inc_any(c='c', l1='v1').go()
     self.assertCountEqual([dep.name for dep in result], ['d11', 'd12', 'd21'])
+
+    q = K8kat.deps().ns('n1', 'n2').lbs_inc_any(c='c', l1='v1')
+    result = q.lbs_inc_each(l1='v1').go()
+    self.assertCountEqual([dep.name for dep in result], ['d11', 'd21'])
+
+    q = K8kat.deps().ns('n1', 'n2').lbs_inc_each(l1='v1')
+    result = q.lbs_inc_any(c='c', l1='v1').go()
+    self.assertCountEqual([dep.name for dep in result], ['d11', 'd21'])
 
 
 if __name__ == '__main__':

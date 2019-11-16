@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List, Any, Type, Optional
+from typing import List, Any, Type, Optional
 from k8_kat.base.kat_res import KatRes
 from k8_kat.base.label_set_expressions import LabelLogic
 
@@ -18,13 +18,19 @@ class ResQuery:
       **kwargs
     }
 
-  @property
-  def in_ns(self):
-    return self._hash['in_ns']
+  def reset(self, **kwargs):
+    self._hash = {
+      **self.default_query_hash(),
+      **kwargs
+    }
 
   @property
-  def not_in_ns(self):
-    return self._hash['nin_ns']
+  def ns_in(self):
+    return self._hash['ns_in']
+
+  @property
+  def ns_not_in(self):
+    return self._hash['ns_nin']
 
   @property
   def name_in(self):
@@ -32,7 +38,7 @@ class ResQuery:
 
   @property
   def namespace(self):
-    return self._hash['in_ns'][0]
+    return self._hash['ns_in'][0]
 
   @property
   def lbs_inc_each(self):
@@ -51,8 +57,8 @@ class ResQuery:
     return self._hash['lbs_exc_any']
 
   def is_single_ns(self) -> bool:
-    cond_one = len(self.in_ns or []) == 1
-    cond_two = not self.not_in_ns
+    cond_one = len(self.ns_in or []) == 1
+    cond_two = not self.ns_not_in
     return cond_one and cond_two
 
   def has_lb_any_filters(self) -> bool:
@@ -78,14 +84,12 @@ class ResQuery:
     return [self.kat(raw_dep) for raw_dep in result]
 
   def perform_local_eval(self, deps):
-    if not self.is_single_ns():
-      deps = self.executor.filter_in_ns(self.in_ns, deps)
-      deps = self.executor.filter_nin_ns(self.not_in_ns, deps)
+    deps = self.executor.filter_ns_in(self.ns_in, deps)
+    deps = self.executor.filter_ns_nin(self.ns_not_in, deps)
 
-    deps = self.executor.filter_lb_inc_any(self.lbs_inc_any, deps)
-    deps = self.executor.filter_lb_exc_any(self.lbs_exc_any, deps)
-
-    if not self.has_lb_any_filters():
+    if self.has_lb_any_filters():
+      deps = self.executor.filter_lb_inc_any(self.lbs_inc_any, deps)
+      deps = self.executor.filter_lb_exc_any(self.lbs_exc_any, deps)
       deps = self.executor.filter_lb_inc_each(self.lbs_inc_each, deps)
       deps = self.executor.filter_lb_exc_each(self.lbs_exc_each, deps)
 
@@ -96,9 +100,10 @@ class ResQuery:
   @staticmethod
   def default_query_hash():
     return {
-      'in_ns': None,
-      'nin_ns': None,
+      'ns_in': None,
+      'ns_nin': None,
       'name_in': None,
+      'name_nin': None,
       'lbs_inc_each': None,
       'lbs_exc_each': None,
       'lbs_inc_any': None,
