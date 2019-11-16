@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 from k8_kat.base.kat_res import KatRes
 
@@ -23,5 +23,19 @@ class ResQueryExec:
   def filter_name_in(name_list: List[str], resources: List[KatRes]):
     if name_list is not None:
       return [res for res in resources if res.name in name_list]
+    else:
+      return resources
+
+  @staticmethod
+  def filter_lb_inc_any(label_tups: List[Tuple[str, str]], resources: List[KatRes]):
+    if label_tups is not None:
+      return [r for r in resources if set(label_tups) & set(r.label_tups)]
+    else:
+      return resources
+
+  @staticmethod
+  def filter_lb_exc_any(label_tups: List[Tuple[str, str]], resources: List[KatRes]):
+    if label_tups is not None:
+      return [r for r in resources if not set(label_tups) & set(r.label_tups)]
     else:
       return resources

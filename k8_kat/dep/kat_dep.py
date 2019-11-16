@@ -35,6 +35,10 @@ class KatDep(KatRes):
     return container_spec and container_spec.name
 
   @property
+  def pod_select_labels(self) -> Dict[str, str]:
+    return self.raw.spec.selector.match_labels
+
+  @property
   def commit(self) -> Dict[str, str]:
     every = self.raw.metadata.annotations
     return dict([(k, every.get(f"commit-{k}")) for k in COMMIT_KEYS])
@@ -44,6 +48,21 @@ class KatDep(KatRes):
 
   def pods(self) -> [KatSvc]:
     return self._assoced_pods
+
+  def with_friends(self):
+    self.find_and_assoc_pods()
+    self.find_and_assoc_svcs()
+    return self
+
+  def find_and_assoc_pods(self):
+    from k8_kat.base.k8_kat import K8kat
+    matchers = list(self.pod_select_labels.items())
+    self._assoced_pods = K8kat.pods(in_ns=self.ns).lbs_include(matchers).go()
+
+  def find_and_assoc_svcs(self):
+    from k8_kat.base.k8_kat import K8kat
+    matchers = list(self.pod_select_labels.items())
+    self._assoced_pods = K8kat.svcs(in_ns=self.ns).lbs_include(matchers).go()
 
   def assoc_pods(self, candidates: List[V1Pod]) -> None:
     checker = lambda pod: ResUtils.dep_owns_pod(self.raw, pod)

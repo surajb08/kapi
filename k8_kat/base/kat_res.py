@@ -1,3 +1,6 @@
+from typing import List, Tuple
+
+
 class KatRes:
 
   def __init__(self, raw):
@@ -17,6 +20,10 @@ class KatRes:
 
   @property
   def labels(self):
+    return self.raw.metadata.labels
+
+  @property
+  def label_tups(self) -> List[Tuple[str, str]]:
     return self.raw.metadata.labels
 
   def label(self, which):

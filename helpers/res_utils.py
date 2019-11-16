@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from kubernetes.client import V1Service, V1ReplicaSet, V1Pod, V1Deployment
 from kubernetes.client.rest import ApiException
@@ -9,6 +9,19 @@ from helpers.kube_broker import broker
 
 class ResUtils:
   LOG_REGEX = r"(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b) - - (.*)"
+
+  @staticmethod
+  def dep_by_ns() -> List[Dict[str, str]]:
+    from k8_kat.base.k8_kat import K8kat
+    deps = K8kat.deps().not_ns('kube-system').go()
+    output = []
+    for name in set([dep.name for dep in deps]):
+      appears_in = [dep.ns for dep in deps if dep.name == name]
+      output.append(dict(
+        name=name,
+        namespaces=set(appears_in)
+      ))
+    return output
 
   @staticmethod
   def find_svc(ns, name) -> Optional[V1Service]:

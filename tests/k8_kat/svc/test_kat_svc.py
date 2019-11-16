@@ -1,7 +1,8 @@
+import unittest
+
 from k8_kat.base.k8_kat import K8kat
 from k8_kat.svc.kat_svc import KatSvc
 from tests.k8_kat.base.k8_kat_test import K8katTest
-
 
 class TestKatSvc(K8katTest):
 
@@ -9,7 +10,6 @@ class TestKatSvc(K8katTest):
   def setUpClass(cls) -> None:
     super(TestKatSvc, cls).setUpClass()
     cls.create_svc('n1', 's1')
-    cls.nk('get svc', 'n1')
 
   def setUp(self) -> None:
     self.subject: KatSvc = K8kat.svcs().ns('n1').find('s1')
@@ -28,3 +28,7 @@ class TestKatSvc(K8katTest):
 
   def test_fqdn(self):
     self.assertEqual(self.subject.fqdn, 's1.n1.svc.cluster.local')
+
+
+if __name__ == '__main__':
+    unittest.main()

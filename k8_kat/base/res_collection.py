@@ -34,20 +34,25 @@ class ResCollection(list):
     actual = [_ns] if isinstance(_ns, str) else _ns
     return self.where(in_ns=actual)
 
-  def nins(self, namespaces):
-    return self.where(nin_ns=namespaces)
+  def not_ns(self, *_ns):
+    actual = [_ns] if isinstance(_ns, str) else _ns
+    return self.where(nin_ns=actual)
 
-  def every_lb(self, label_array: List[Tuple[str, str]]):
-    return self.where(and_yes_labels=label_array)
+  def lbs_inc_each(self, label_array=None, **kwargs):
+    label_array = list(dict(kwargs)) if kwargs else label_array
+    return self.where(lbs_inc_each=label_array)
 
-  def any_lb(self, label_array: List[Tuple[str, str]]):
-    return self.where(or_yes_labels=label_array)
+  def lbs_exc_each(self, label_array: List[Tuple[str, str]], **kwargs):
+    label_array = list(dict(kwargs)) if kwargs else label_array
+    return self.where(lbs_exc_each=label_array)
 
-  def not_every_lb(self, label_array: List[Tuple[str, str]]):
-    return self.where(and_no_labels=label_array)
+  def lbs_inc_any(self, label_array: List[Tuple[str, str]], **kwargs):
+    label_array = list(dict(kwargs)) if kwargs else label_array
+    return self.where(lbs_inc_any=label_array)
 
-  def not_any_lb(self, label_array: List[Tuple[str, str]]):
-    return self.where(or_no_labels=label_array)
+  def lbs_exc_any(self, label_array: List[Tuple[str, str]], **kwargs):
+    label_array = list(dict(kwargs)) if kwargs else label_array
+    return self.where(lbs_exc_any=label_array)
 
   def go(self):
     if not self._has_run:
@@ -57,3 +62,4 @@ class ResCollection(list):
 
   def create_query(self):
     raise Exception("Unimplemented!")
+

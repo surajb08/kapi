@@ -1,6 +1,6 @@
 from typing import Dict, Tuple, List, Any, Type
 from k8_kat.base.kat_res import KatRes
-from k8_kat.base.label_set_expressions import LabelSetExpressions
+from k8_kat.base.label_set_expressions import LabelLogic
 
 class ResQuery():
   def __init__(self, executor, kat: Type[KatRes]):
@@ -45,7 +45,7 @@ class ResQuery():
     return {k: total[k] for k in all_keys if k in keys}
 
   def gen_label_selector(self):
-    return LabelSetExpressions.label_conditions_to_expr(
+    return LabelLogic.label_conditions_to_expr(
       **self.label_query_kv()
     )
 
@@ -71,14 +71,12 @@ class ResQuery():
       'in_ns': None,
       'nin_ns': None,
       'name_in': None,
-      'and_yes_labels': None,
-      'and_no_labels': None,
-      'or_yes_labels': None,
-      'or_no_labels': None,
+      'lbs_inc_each': None,
+      'lbs_exc_each': None,
+      'lbs_inc_any': None,
+      'lbs_exc_any': None,
     }
 
   @staticmethod
   def label_query_keys():
-    return [
-      'and_yes_labels', 'and_no_labels', 'or_yes_labels', 'or_no_labels'
-    ]
+    return ['lbs_inc_each', 'lbs_exc_each']

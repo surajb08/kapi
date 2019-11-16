@@ -52,9 +52,6 @@ class TestDepComposer(K8katTest):
     deps = K8kat.deps().ns('n1', 'n2').go()
     self.assertEqual(self.the_pod_app_lbs(deps), ['d0', 'd11', 'd12', 'd21'])
 
-    # deps = K8kat.deps().ns('n1', 'n2').go()
-    # self.assertEqual(self.the_pod_app_lbs(deps), ['d11', 'd21'])
-
 
 if __name__ == '__main__':
     unittest.main()
