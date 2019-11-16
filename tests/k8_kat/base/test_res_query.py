@@ -35,7 +35,7 @@ class TestResQuery(unittest.TestCase):
     self.assertEqual(result, '')
 
   def test_has_lb_any_filters(self):
-    result = self.subject.has_lb_any_filters()
+    result = self.subject.has_any_lb_any_filters()
     self.assertFalse(result)
 
     self.subject.reset(
@@ -43,11 +43,11 @@ class TestResQuery(unittest.TestCase):
       lbs_exc_each=[('b', 'a')]
     )
 
-    result = self.subject.has_lb_any_filters()
+    result = self.subject.has_any_lb_any_filters()
     self.assertFalse(result)
 
     self.subject.update(lbs_inc_any=[('a', 'b')])
-    result = self.subject.has_lb_any_filters()
+    result = self.subject.has_any_lb_any_filters()
     self.assertTrue(result)
 
 

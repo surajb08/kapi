@@ -9,4 +9,5 @@ class PodSerialization:
       ip=pod.ip,
       updated_at=pod.updated_at,
       image_name=pod.image,
+      labels=pod.labels
     )

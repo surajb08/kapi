@@ -61,13 +61,13 @@ class ResQuery:
     cond_two = not self.ns_not_in
     return cond_one and cond_two
 
-  def has_lb_any_filters(self) -> bool:
+  def has_any_lb_any_filters(self) -> bool:
     inc_any = self.lbs_inc_any is not None
     exc_any = self.lbs_exc_any is not None
     return inc_any or exc_any
 
   def gen_server_label_selector(self) -> str:
-    if not self.has_lb_any_filters():
+    if not self.has_any_lb_any_filters():
       return LabelLogic.label_conditions_to_expr(
         self.lbs_inc_each or [],
         self.lbs_exc_each or []
@@ -88,7 +88,7 @@ class ResQuery:
     deps = self.executor.filter_ns_nin(self.ns_not_in, deps)
     deps = self.executor.filter_name_in(self.name_in, deps)
 
-    if self.has_lb_any_filters():
+    if self.has_any_lb_any_filters():
       deps = self.executor.filter_lb_inc_any(self.lbs_inc_any, deps)
       deps = self.executor.filter_lb_exc_any(self.lbs_exc_any, deps)
       deps = self.executor.filter_lb_inc_each(self.lbs_inc_each, deps)

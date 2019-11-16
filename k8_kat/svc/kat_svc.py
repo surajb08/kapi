@@ -1,5 +1,7 @@
 from kubernetes.client import V1ServicePort
 from k8_kat.base.kat_res import KatRes
+from utils.utils import Utils
+
 
 class KatSvc(KatRes):
 
@@ -15,8 +17,7 @@ class KatSvc(KatRes):
   @property
   def external_ip(self) -> str:
     load_bal = self.raw.status.load_balancer
-    ingress = load_bal and load_bal.ingress[0]
-    return ingress and ingress.ip
+    return Utils.try_or(lambda: load_bal.ingress[0].ip)
 
   @property
   def from_port(self) -> int:

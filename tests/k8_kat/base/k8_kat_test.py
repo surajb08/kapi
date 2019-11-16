@@ -72,6 +72,10 @@ class K8katTest(unittest.TestCase):
     if Utils.is_ci():
       me.k_apply('ci-perms')
 
+  @staticmethod
+  def ensure_no_pods(ns):
+    me.nk("delete pod --all", ns)
+
   @classmethod
   def setUpClass(cls) -> None:
     cls.prepare_cluster()

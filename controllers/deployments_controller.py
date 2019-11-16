@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-from typing import Tuple, List, Any
 
 from flask import Blueprint, request, jsonify
 
 from actions.annotator import Annotator
-from helpers.dep_helper import DepHelper
 from helpers.res_utils import ResUtils
+from k8_kat.base.k8_kat import K8kat
 from k8_kat.dep.dep_composer import DepComposer
 from k8_kat.dep.dep_serializers import DepSerialization as Ser
 from k8_kat.pod.pod_serialization import PodSerialization
-from utils.utils import Utils
-from k8_kat.base.k8_kat import K8kat
 
 controller = Blueprint('deployments_controller', __name__)
 
@@ -63,10 +60,6 @@ def params_to_deps():
   lb_white = True if lb_white == 'whitelist' else False
   lb_filters = request.args.get('lb_filters')
   lb_filters = lb_filters and eq_strs_to_tups(lb_filters)
-
-  print(f"TYPES {ns_white} {lb_white}")
-  print(f"NS FILT {ns_filters}")
-  print(f"LB FILT {lb_filters}")
 
   if ns_filters is not None:
     q = q.ns(ns_filters) if ns_white else q.not_ns(ns_filters)

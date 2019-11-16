@@ -37,9 +37,9 @@ class DepSerialization:
     svc_ser = SvcSerialization.standard
 
     if dep.assoced_pods is not None:
-      base = {**base, 'pods': [pod_ser(pod) for pod in dep.pods()]}
+      base = dict(**base, pods=[pod_ser(pod) for pod in dep.pods()])
 
     if dep.assoced_svcs is not None:
-      base = {**base, 'svcs': [svc_ser(pod) for pod in dep.svcs()]}
+      base = dict(**base, svcs=[svc_ser(svc) for svc in dep.svcs()])
 
     return base

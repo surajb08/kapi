@@ -13,6 +13,12 @@ class KatPod(KatRes):
     super().__init__(raw)
 
   @property
+  def labels(self):
+    base = super().labels
+    bad_key = 'pod-template-hash'
+    return {k: base[k] for k in base.keys() if k != bad_key}
+
+  @property
   def status(self):
     return PodUtils.true_pod_state(
       self.raw.status.phase,
@@ -55,9 +61,7 @@ class KatPod(KatRes):
 
   @property
   def updated_at(self):
-    if self.container_state:
-      return self.container_state.started_at
-    return None
+    return Utils.try_or(lambda: self.container_state.started_at)
 
   @property
   def is_running(self):
