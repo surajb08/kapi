@@ -73,8 +73,10 @@ class K8katTest(unittest.TestCase):
       me.k_apply('ci-perms')
 
   @staticmethod
-  def ensure_no_pods(ns):
-    me.nk("delete pod --all", ns)
+  def ensure_no_pods(namespaces=None):
+    namespaces = namespaces if namespaces else NAMESPACES
+    for ns in namespaces:
+      me.nk("delete pod --all", ns)
 
   @classmethod
   def setUpClass(cls) -> None:

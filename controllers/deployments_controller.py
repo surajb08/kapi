@@ -22,17 +22,16 @@ def index():
 def show(ns, name):
   dep = K8kat.deps().ns(ns).find(name).with_friends()
   serialized = dep.serialize(Ser.with_pods_and_svcs)
-  return jsonify(dict(data=serialized))
+  return jsonify(serialized)
 
 @controller.route('/api/deployments/across_namespaces')
 def across_namespaces():
   return jsonify(dict(data=ResUtils.dep_by_ns()))
 
 @controller.route('/api/deployments/<ns>/<name>/pods')
-def list_pods(ns, name):
+def deployment_pods(ns, name):
   dep = K8kat.deps().ns(ns).find(name)
-  pods = dep.pods()
-  serialized = [PodSerialization.standard(pod) for pod in pods]
+  serialized = [PodSerialization.standard(pod) for pod in dep.pods()]
   return jsonify(dict(data=serialized))
 
 @controller.route('/api/deployments/<ns>/<name>/annotate_git', methods=['POST'])

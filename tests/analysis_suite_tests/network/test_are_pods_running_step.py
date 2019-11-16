@@ -20,5 +20,6 @@ class ArePodsRunningStepTest(Base):
   def test_negative(self):
     self.mock_step_method("phase", 'Idle', self._test_negative)
 
+
 if __name__ == '__main__':
   unittest.main()

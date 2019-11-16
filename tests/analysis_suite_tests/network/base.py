@@ -1,10 +1,9 @@
 from unittest import mock
 from unittest.mock import PropertyMock, MagicMock
 
+from k8_kat.base.k8_kat import K8kat
 from tests.k8_kat.base.k8_kat_test import K8katTest
 from utils.utils import Utils
-from helpers.dep_helper import DepHelper
-from helpers.svc_helper import SvcHelper
 
 TESTING_NS = "n1"
 TESTING_DEP_NM = "simple-app-dep"
@@ -18,17 +17,17 @@ class Base(K8katTest):
 
   @classmethod
   def stdSetUpClass(cls, step_class):
-    cls.deployment = DepHelper.find(TESTING_NS, TESTING_DEP_NM)
-    cls.service = SvcHelper.find(TESTING_NS, TESTING_SVC_NM)
+    cls.dep = K8kat.deps().ns(TESTING_NS).find(TESTING_DEP_NM)
+    cls.svc = K8kat.svcs().ns(TESTING_NS).find(TESTING_SVC_NM)
     cls.step = step_class(
-      from_port=cls.service.spec.ports[0].port,
+      from_port=cls.svc.from_port,
       dep_ns=TESTING_NS,
       svc_name=TESTING_SVC_NM,
       dep_name=TESTING_DEP_NM,
     )
 
   def setUp(self):
-    self.step.from_port = self.service.spec.ports[0].port
+    self.step.from_port = self.svc.port
 
   def post_test_positive(self):
     self.assertTrue(self.step.outcome)
@@ -58,10 +57,4 @@ class Base(K8katTest):
       callback()
 
   def scale_to(self, amount):
-
-    worker = ImageReloader(
-      dp_namespace=self.deployment.metadata.namespace,
-      dp_name=self.deployment.metadata.name,
-      mode="scale"
-    )
-    worker.scale(amount)
+    self.dep.scale(amount)

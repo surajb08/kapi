@@ -10,6 +10,7 @@ class TestDeploymentsController(K8katTest):
   @classmethod
   def setUpClass(cls) -> None:
     super(TestDeploymentsController, cls).setUpClass()
+    cls.ensure_no_pods()
     cls.create_dep('n1', 'd1', [('l1', 'v1')])
     cls.create_dep('n1', 'd2', [('l2', 'v2')])
 
@@ -61,13 +62,26 @@ class TestDeploymentsController(K8katTest):
     resp = app.test_client().get(f'/api/deployments?{arg}&{arg2}')
     self.assertEqual(dep_called_svcs_names(resp, 'd1'), ['d1'])
 
-    self.ensure_no_pods('n2')
     arg = 'ns_filter_type=whitelist&ns_filters=n2'
     arg2 = '&svcs=true&pods=true'
     resp = app.test_client().get(f'/api/deployments?{arg}&{arg2}')
-    print(dep_called_pods_labels(resp, 'd1'))
     self.assertEqual(dep_called_pods_labels(resp, 'd1'), [dict(app='d1')])
     self.assertEqual(dep_called_svcs_names(resp, 'd1'), ['d1'])
+
+  def test_show(self):
+    resp = app.test_client().get('/api/deployments/n2/d1')
+    jdep = json.loads(resp.data)
+    self.assertEqual(jdep['name'], 'd1')
+    self.assertEqual(jdep['namespace'], 'n2')
+    self.assertEqual(len(jdep['pods']), 1)
+    self.assertEqual(len(jdep['svcs']), 1)
+
+  def test_deployment_pods(self):
+    resp = app.test_client().get('/api/deployments/n2/d1/pods')
+    jpods = json.loads(resp.data)['data']
+    self.assertEqual(len(jpods), 1)
+    self.assertEqual(jpods[0]['namespace'], 'n2')
+    self.assertEqual(jpods[0]['labels'], {'app': 'd1'})
 
   # def test_across_namespaces(self):
   #   resp = app.test_client().get('/api/deployments/across_namespaces')

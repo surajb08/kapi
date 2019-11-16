@@ -10,12 +10,15 @@ class ResCollection(list):
     self._has_run = False
 
   def __getitem__(self, y):
+    # self.go()
     return self._actual[y]
 
   def __iter__(self):
+    # self.go()
     return self._actual.__iter__()
 
   def __len__(self):
+    self.go()
     return len(self._actual)
 
   def find(self, name):

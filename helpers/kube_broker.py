@@ -61,6 +61,7 @@ class KubeBroker:
       configuration.api_key = {"authorization": f"Bearer {user_token}"}
       client.Configuration.set_default(configuration)
       urllib3.disable_warnings()
+      print(f"Connected with {KubeBroker.kubectl()}")
       return True
     except Exception as e:
       print(f"FAILED TO CONNECT {e}")

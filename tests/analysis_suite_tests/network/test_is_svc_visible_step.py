@@ -21,5 +21,6 @@ class IsSvcVisibleStepTest(Base):
   def test_negative(self):
     self.mock_step_prop("fqdn", "foo", self._test_negative)
 
+
 if __name__ == '__main__':
   unittest.main()
