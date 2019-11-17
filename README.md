@@ -12,11 +12,11 @@ K8Kat is a Python 3 (soon to be standalone) library for interfacing with Kuberne
 
 It lets you query, inspect, and manipulate Kubernetes objects with a fraction of the code you would need using the official library, TF/Pulumi, or `kubectl X | jq Y`. 
 
-K8Kat is obviously not not exhaustive - that's what the official lib is for - but it should help DRY things up and hopefully encourage you to grab your cluster by the horns (see Motivation).
+K8Kat is far from exhaustive - that's what the official lib is for - but it should help DRY things up and hopefully encourage you to grab your cluster by the horns (see Motivation).
 
+Playing with Deployments
 ## TLDR
 ```python
-
 alpha_deps = K8Kat.deps().ns("default", "nectar").lbs_inc_any(v='alpha',alpha=True)
 
 for dep in alpha_deps:
@@ -28,11 +28,8 @@ for dep in alpha_deps:
       pod.cmd("rake db:migrate")
 ```
 
+Debugging Bad Pods
 ```python
-   
-
-#-------Pod Troubleshooting ------
-
 bad_pods = K8kat.deps().not_ns("dev").find("nlp-main").pods().broken() 
 
 bad_pods.pretty_pluck("ns", "status", "image")
@@ -61,8 +58,15 @@ If it took 3 lines plus a test to serve JSON on the web, there wouldn't be as ma
 Hopefully, this moves us closer to properly programmable infrastructure.
 
 ## Getting Started
+Until it is moved to its own repo and package-ized, there's not yet a sane way to use K8Kat :/
 
+If you're brave enough to download the source, then clone, `pip3 install -r requirements.txt`, and `ENV=development flask shell`.
 
+## Getting Involved
+
+Slack group is here, happy to skype if you want to contribute. 
+
+If you would prefer to get paid though, and want to be a First Five hire in one of the most anticipated startups exiting stealth more, we're also [hiring](http://www.codenectar.com/werkwerkwerk) like savages: 2x backend, 1x platform/infra, 2x frontend, 1x designer, 1x CTO, 1 head of advocacy.
 
 # Backend
 
