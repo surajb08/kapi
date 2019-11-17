@@ -1,4 +1,4 @@
-# Kapi = K8Kat + Backend
+# Kapi = K8Kat and Backend
 
 Kapi - pronounced *Kapee* - acts as the local backend for the [Nectar MOSAIC](https://github.com/nectar-cs/mosaic) web application.
 
@@ -6,7 +6,7 @@ It is composed of two parts that  will soon be broken up: K8Kat and the backend.
 
 K8Kat will shortly published as a standalone Python3 lib. 
 
-# Component 1: K8Kat
+# K8Kat
 
 K8Kat is a Python 3 (soon to be standalone) library for interfacing with Kubernetes. It is built **on top of the official [kubernetes-client/python](https://github.com/kubernetes-client/python)**.
 
@@ -17,8 +17,6 @@ K8Kat is obviously not not exhaustive - that's what the official lib is for - bu
 ## TLDR
 ```python
 
-#-------Simple Deplyments Work------
-
 alpha_deps = K8Kat.deps().ns("default", "nectar").lbs_inc_any(v='alpha',alpha=True)
 
 for dep in alpha_deps:
@@ -28,6 +26,9 @@ for dep in alpha_deps:
    for pod in dep.pods():
       pod.wait_until(status="Running")      
       pod.cmd("rake db:migrate")
+```
+
+```python
    
 
 #-------Pod Troubleshooting ------
