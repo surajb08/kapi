@@ -1,59 +1,56 @@
-## Prerequisites
+# K8Kat + Backend
 
-You will need the following things properly installed on your computer:
+K8Kat will shortly published as a standalone library for Python. The need to scale Kubernetes resource ops came late in the MOSAIC project, so K8Kat didn't get built until just recently, which is why there hasn't been time to make it its own proper lib.
 
-* [Git](http://git-scm.com/)
-* [Python 3](https://www.python.org/)
-* [Docker](https://www.docker.com/)
-* [GCloud SDK](https://cloud.google.com/sdk/)
-    * Run gcloud init
-    * Connect with your gmail account
-    * Select "codenectarproject", and "sample-cluster"
-    * Run:'gcloud container clusters get-credentials sample-cluster --project codenectar --region us-central1-a'
- 
+# K8Kat
+
+K8Kat is a Python 3 (soon to be standalone) library for interfacing with Kubernetes. It is built **on top of the official [kubernetes-client/python](https://github.com/kubernetes-client/python)**.
+
+It lets you query, inspect, and manipulate Kubernetes objects with a fraction of the code you would need using the official library or `kubectl X | jq Y`. 
+
+### Querying
+K8Kat has an extensible querying layer that that decides what parts of the query should be done by Kubernetes, versus which must be done in memory. This means you can combine traditional filters like `labels` with K8Kat attributes like `status`.  
+
+
+Falling back to the official lib is easy though: `k8kat_res.raw`.
+
+## TLDR
+```
+
+#-------Simple Deplyments Work------
+
+alpha_deps = K8Kat.deps().ns("default", "nectar").lbs_inc_any(v='alpha',alpha=True)
+
+alpha_deps.tag_each(v='stable',alpha=False)
+
+for dep in alpha_deps:
+   dep.scale(by=5)
+   
+   for pod in dep.pods():
+      pod.wait_until(status="Running")      
+      pod.cmd("rake db:migrate")
    
 
-## Running
+#-------Pod Troubleshooting ------
 
-To run the project locally follow the following steps:
+bad_pods = K8kat.deps().not_ns("dev").find("nlp-main").pods().broken() 
 
-* change into the project directory
-* `docker build -t backend-api .`
-* `docker run -p 5000:5000 -v /HOST/PATH/TO/BACKEND/FOLDER:/app backend-api`
-
-
-### Example endpoint calls
-```
-curl http://0.0.0.0:5000/api/namespaces
-
-curl http://0.0.0.0:5000/api/deployments/frontend
-
-curl "0.0.0.0:5000/api/deployments?namespace=default
-
-curl 0.0.0.0:5000/api/namespaces/default/deployments
-
-curl 0.0.0.0:5000/api/namespaces/weave/deployments
-
-curl http://0.0.0.0:5000/api/namespaces/default/deployments/frontend
+bad_pods.pretty_pluck("ns", "status", "image")
+# [<nlp-main-8689d59f49-x74qd: production | CrashLoopBackoff | docker.io/nlp_main:latest>]
 
 
-curl "0.0.0.0:5000/api/deployments?namespace=weave&namespace=default"
+bad_pods[0].logs(3600)
 
-curl "0.0.0.0:5000/api/deployments?label=role:master&label=role:slave&label=tier:frontend"
 
-curl "0.0.0.0:5000/api/deployments?label=app:redis"
 
-curl "0.0.0.0:5000/api/deployments?label=app:guestbook&label=tier:frontend"
 
-# next one throws a 400 for malformed input
-curl "0.0.0.0:5000/api/deployments?label=app:guestbook&label=tierfrontend"
-
-# run a command inside pod
-curl --header "Content-Type: application/json" -X "POST" --data '{"command": "ls -la"}' 0.0.0.0:5000/api/namespaces/default/pods/frontend-654c699bc8-fnshk/run_cmd
-
- 
- # run a curl command from the test-pod
- curl --header "Content-Type: application/json" -X "POST" --data '{"method": "GET", "path": "/guestbook.php?cmd=get&key=messages", "headers": {}, "body": null }'  0.0.0.0:5000/api/namespaces/default/deployments/frontend/http_request
 ```
 
- 
+## Motivation & Direction
+
+To make the most of cloud nativity, we have need a wayyyyyyy more casual relationship with orchestrators' primitives.
+
+
+# Backend
+
+It's a backend.
