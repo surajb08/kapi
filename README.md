@@ -14,8 +14,9 @@ It lets you query, inspect, and manipulate Kubernetes objects with a fraction of
 
 K8Kat is far from exhaustive - that's what the official lib is for - but it should help DRY things up and hopefully encourage you to grab your cluster by the horns (see Motivation).
 
-Playing with Deployments
 ## TLDR
+
+Playing with Deployments
 ```python
 alpha_deps = K8Kat.deps().ns("default", "nectar").lbs_inc_any(v='alpha',alpha=True)
 
@@ -27,6 +28,7 @@ for dep in alpha_deps:
       pod.wait_until(status="Running")      
       pod.cmd("rake db:migrate")
 ```
+
 
 Debugging Bad Pods
 ```python
@@ -40,6 +42,15 @@ bad_pods[0].logs(3600)
 bad_pods[0].epxplain_error()
 ```
 
+
+Playing with Services
+```python
+problem_svc = K8kat.svcs().ns('default').find('my-svc')
+curler = CurlPod(target=target_svc.fqdn, ns='default')
+curler.curl('/api')
+```
+
+
 ### Querying
 K8Kat queries dynamically decide which parts of the query should be done by Kubernetes, versus which must be done with its own logic. You can therefore combine traditional filters like `labels` with K8Kat attributes like `status`, not caring about *how* the query gets executed.
 
@@ -49,13 +60,13 @@ Raw Kubernetes resources are wrapped in the KatRes to deliver all kinds of sugar
 ### Manipulating
 Using the wrapper described above, cluster-state-changing operations are also made faster, notably scaling, deleting, annotating, sending commands, and labelling.
 
-## Motivation
+## Motivation and Future
 
 To make the most of cloud nativity, we have need a wayyyyyyy more casual relationship with orchestrators' primitives.
 
 If it took 3 lines plus a test to serve JSON on the web, there wouldn't be as many APIs around today.
 
-Hopefully, this moves us closer to properly programmable infrastructure.
+We have big ambitions for K8Kat beyond query/inspect/manip. We want to get to the point where you can really reason about your infra like it was just an app, and K8Kat is an easy framework like Flask for controlling it.
 
 ## Getting Started
 Until it is moved to its own repo and package-ized, there's not yet a sane way to use K8Kat :/
@@ -66,7 +77,7 @@ If you're brave enough to download the source, then clone, `pip3 install -r requ
 
 Slack group is here, happy to skype if you want to contribute. 
 
-If you would prefer to get paid though, and want to be a First Five hire in one of the most anticipated startups exiting stealth more, we're also [hiring](http://www.codenectar.com/werkwerkwerk) like savages: 2x backend, 1x platform/infra, 2x frontend, 1x designer, 1x CTO, 1 head of advocacy.
+If you would prefer to get paid though, and want to be a First Five hire in one of the most anticipated startups coming out of stealth, we're [hiring](http://www.codenectar.com/werkwerkwerk) hard: 2x backend, 1x platform/infra, 2x frontend, 1x designer, 1x CTO, 1 head of advocacy.
 
 # Backend
 
