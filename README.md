@@ -43,11 +43,21 @@ bad_pods[0].epxplain_error()
 ```
 
 
-Playing with Services
+Debugging Bad Services
 ```python
 problem_svc = K8kat.svcs().ns('default').find('my-svc')
 curler = CurlPod(target=target_svc.fqdn, ns='default')
-curler.curl('/api')
+curler.curl('/api') # -> None
+
+problem_svc.pods() #to check if selectors working
+
+dns_pods = K8Kat.pods().system().lbs_inc_each(app=kube-dns)
+dns_pods.pretty_pluck('status')
+# [<kube-dns-67947d6c68-5dvn4: Running | docker.io/nlp_main:latest>]
+
+suspect = "failed" in dns_pods[0].logs(raw=true)
+
+curler.delete()
 ```
 
 
@@ -66,18 +76,20 @@ To make the most of cloud nativity, we have need a wayyyyyyy more casual relatio
 
 If it took 3 lines plus a test to serve JSON on the web, there wouldn't be as many APIs around today.
 
-We have big ambitions for K8Kat beyond query/inspect/manip. We want to get to the point where you can really reason about your infra like it was just an app, and K8Kat is an easy framework like Flask for controlling it.
+We want to get to the point where we can reason about infra like it was an app, and K8Kat is an easy framework like Flask for controlling it.
 
 ## Getting Started
 Until it is moved to its own repo and package-ized, there's not yet a sane way to use K8Kat :/
 
 If you're brave enough to download the source, then clone, `pip3 install -r requirements.txt`, and `ENV=development flask shell`.
 
+Or...
+
 ## Getting Involved
 
 Slack group is here, happy to skype if you want to contribute. 
 
-If you would prefer to get paid though, and want to be a First Five hire in one of the most anticipated startups coming out of stealth, we're [hiring](http://www.codenectar.com/werkwerkwerk) hard: 2x backend, 1x platform/infra, 2x frontend, 1x designer, 1x CTO, 1 head of advocacy.
+If you would prefer to get paid though, and want to be a First Five hire in one of the most anticipated startups coming out of stealth, we're [hiring](http://www.codenectar.com/werkwerkwerk) hard: 2 backend, 1 platform/infra, 2 frontend, 1 designer, CTO, 1 head of advocacy.
 
 # Backend
 
