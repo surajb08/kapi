@@ -18,6 +18,11 @@ class ResQuery:
       **kwargs
     }
 
+  def add_feature_filter(self, name, operator, values):
+    self.feature_filters.append(
+      dict(name=name, operator=operator, values=values)
+    )
+
   def reset(self, **kwargs):
     self._hash = {
       **self.default_query_hash(),
@@ -25,7 +30,7 @@ class ResQuery:
     }
 
   @property
-  def ns_in(self):
+  def ns_in(self) -> Optional[List[str]]:
     return self._hash['ns_in']
 
   @property
@@ -56,17 +61,26 @@ class ResQuery:
   def lbs_exc_any(self):
     return self._hash['lbs_exc_any']
 
+  @property
+  def feature_filters(self):
+    return self._hash['feature_filters']
+
   def is_single_ns(self) -> bool:
     cond_one = len(self.ns_in or []) == 1
     cond_two = not self.ns_not_in
     return cond_one and cond_two
+
+  def can_be_server_only(self):
+    needs_local_label_filtering = self.has_any_lb_any_filters()
+    needs_feature_filtering = self.feature_filters
+    return not needs_local_label_filtering and not needs_feature_filtering
 
   def has_any_lb_any_filters(self) -> bool:
     inc_any = self.lbs_inc_any is not None
     exc_any = self.lbs_exc_any is not None
     return inc_any or exc_any
 
-  def gen_server_label_selector(self) -> str:
+  def gen_server_label_selector(self) -> object:
     if not self.has_any_lb_any_filters():
       return LabelLogic.label_conditions_to_expr(
         self.lbs_inc_each or [],
@@ -94,7 +108,29 @@ class ResQuery:
       deps = self.executor.filter_lb_inc_each(self.lbs_inc_each, deps)
       deps = self.executor.filter_lb_exc_each(self.lbs_exc_each, deps)
 
+    for feature_filter in self.feature_filters:
+      deps = self.executor.filter_arbitrary_feature(
+        feature_filter['name'],
+        True if feature_filter['operator'] == 'in' else False,
+        feature_filter['values'],
+        deps
+      )
+
     return deps
+
+  def delete(self, actual_namespaces, actual_names):
+    label_match = self.gen_server_label_selector()
+    by_ns_deleter = self.executor.delete_by_label_in_ns
+    indiv_deleter = self.executor.delete_individual
+    del_by_ns_and_lb = lambda ns: by_ns_deleter(ns, label_match)
+
+    if self.can_be_server_only():
+      for namespace in actual_namespaces:
+        del_by_ns_and_lb(namespace)
+    else:
+      for namespace in actual_namespaces:
+        for name in actual_names:
+          indiv_deleter(namespace, name)
 
   @staticmethod
   def default_query_hash():
@@ -107,6 +143,7 @@ class ResQuery:
       'lbs_exc_each': None,
       'lbs_inc_any': None,
       'lbs_exc_any': None,
+      'feature_filters': []
     }
 
   @staticmethod

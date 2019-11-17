@@ -14,7 +14,8 @@ class DepSerialization:
       replicas=dep.raw.spec.replicas,
       image_name=dep.image_name,
       container_name=dep.container_name,
-      commit=dep.commit
+      commit=dep.commit,
+      image_pull_policy=dep.image_pull_policy
     )
 
   @staticmethod
@@ -26,7 +27,7 @@ class DepSerialization:
       **DepSerialization.standard(dep),
       **dict(
         pods=[pod_ser(pod) for pod in dep.pods()],
-        svcs=[svc_ser(pod) for pod in dep.svcs()]
+        services=[svc_ser(pod) for pod in dep.svcs()]
       )
     }
 
@@ -40,6 +41,6 @@ class DepSerialization:
       base = dict(**base, pods=[pod_ser(pod) for pod in dep.pods()])
 
     if dep.assoced_svcs is not None:
-      base = dict(**base, svcs=[svc_ser(svc) for svc in dep.svcs()])
+      base = dict(**base, services=[svc_ser(svc) for svc in dep.svcs()])
 
     return base

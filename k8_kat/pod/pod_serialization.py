@@ -5,7 +5,7 @@ class PodSerialization:
     return dict(
       name=pod.name,
       namespace=pod.namespace,
-      state=pod.full_status,
+      state=pod.status,
       ip=pod.ip,
       updated_at=pod.updated_at,
       image_name=pod.image,

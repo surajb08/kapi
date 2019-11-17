@@ -1,3 +1,4 @@
+from typing import List
 
 from k8_kat.base.res_query import ResQuery
 
@@ -55,6 +56,41 @@ class ResCollection(list):
   def lbs_exc_any(self, label_array=None, **kwargs):
     label_array = list(kwargs.items()) if kwargs else label_array
     return self.where(lbs_exc_any=label_array)
+
+  def pluck(self, feature_name, unique=False):
+    resolved = [getattr(r, feature_name) for r in self.go()]
+    return list(set(resolved)) if unique else resolved
+
+  # def pluck_nice(self, feature_names):
+  #   for_one = lambda x: []
+  #   resolved = [getattr(r, f) for r in self.go()]
+  #   return list(set(resolved)) if unique else resolved
+
+  def feature_in(self, feature: str, possibilities: List[str]):
+    self.query.add_feature_filter(
+      feature, 'in', possibilities
+    )
+    return self
+
+  def feature_not_in(self, feature: str, possibilities: List[str]):
+    self.query.add_feature_filter(
+      feature, 'not_in', possibilities
+    )
+    return self
+
+  def feature_is(self, feature: str, challenge):
+    return self.feature_in(feature, [challenge])
+
+  def feature_is_not(self, feature: str, challenge):
+    return self.feature_not_in(feature, [challenge])
+
+  def delete_all(self):
+    actual_namespaces = self.pluck('namespace', True)
+    actual_names = self.pluck('name', True)
+    self.query.delete(actual_namespaces, actual_names)
+
+  def serialize(self, serializer):
+    return [serializer(res) for res in self.go()]
 
   def go(self):
     if not self._has_run:

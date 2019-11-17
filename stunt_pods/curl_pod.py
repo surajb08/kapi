@@ -83,13 +83,3 @@ class CurlPod(StuntPod):
         namespace=pod.metadata.namespace
       )
     return len(names)
-
-  @staticmethod
-  def play():
-    curler = CurlPod(
-      pod_name="curl-man",
-      delete_after=False,
-      url="10.0.20.109:80"
-    )
-    out = curler.run()
-    print(out['status'])

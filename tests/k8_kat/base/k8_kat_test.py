@@ -44,6 +44,12 @@ class K8katTest(unittest.TestCase):
     create(ns, subs)
 
   @staticmethod
+  def create_pod(ns: str, name: str, subs=None):
+    from tests.k8_kat.fixtures.simple_pod import create
+    subs = {**(subs or {}), **dict(name=name, ns=ns)}
+    create(subs)
+
+  @staticmethod
   def create_dep_svc(ns: str, dep_name):
     me.nk(f"expose deployment/{dep_name} --port 80", ns)
 

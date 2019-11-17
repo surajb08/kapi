@@ -67,6 +67,10 @@ class KatPod(KatRes):
   def is_running(self):
     return self.status == 'Running'
 
+  @property
+  def wtf(self):
+    return 'soon!'
+
   def logs(self, seconds=60):
     try:
       log_dump = broker.coreV1.read_namespaced_pod_log(

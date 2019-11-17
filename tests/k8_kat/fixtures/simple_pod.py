@@ -13,7 +13,7 @@ def create(subs):
       containers=[
         V1Container(
           name="primary",
-          image=subs.get('image'),
+          image=subs.get('image', 'nginx'),
           image_pull_policy="Always"
         )
       ]

@@ -49,6 +49,11 @@ class KatDep(KatRes):
   def desired_replicas(self):
     return self.raw.spec.replicas
 
+  @property
+  def image_pull_policy(self):
+    cont_spec = self.raw_container_spec
+    return cont_spec and cont_spec.image_pull_policy
+
   def svcs(self, force_reload=False) -> [KatSvc]:
     if force_reload or self.assoced_svcs is None:
       self.find_and_assoc_svcs()

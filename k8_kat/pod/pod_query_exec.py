@@ -13,7 +13,20 @@ class PodQueryExec(ResQueryExec):
 
   @staticmethod
   def fetch_for_all_ns(label_exp):
-    return broker.appsV1Api.list_pod_for_all_namespaces(
+    return broker.coreV1.list_pod_for_all_namespaces(
       label_selector=label_exp
     ).items
 
+  @staticmethod
+  def delete_by_label_in_ns(ns, label_exp):
+    broker.coreV1.delete_collection_namespaced_pod(
+      namespace=ns,
+      label_selector=label_exp
+    )
+
+  @staticmethod
+  def delete_individual(ns, name):
+    broker.coreV1.delete_namespaced_pod(
+      namespace=ns,
+      name=name
+    )

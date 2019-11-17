@@ -4,6 +4,8 @@ from helpers.res_utils import ResUtils
 from helpers.kube_broker import broker
 import time
 from kubernetes.stream import stream
+
+from k8_kat.base.k8_kat import K8kat
 from utils.utils import Utils
 
 
@@ -40,7 +42,8 @@ class StuntPod:
     return self._image
 
   def find(self):
-    return ResUtils.find(self.namespace, self.pod_name)
+    pod = K8kat.pods().ns(self.namespace).find(self.pod_name)
+    return pod.raw
 
   def delete(self):
     broker.coreV1.delete_namespaced_pod(
@@ -101,15 +104,6 @@ class StuntPod:
     return {"nectar-type": "stunt-pod"}
 
   @staticmethod
-  def stunt_pods():
-    return ResUtils.find_by_label(None, StuntPod.labels())
-
-  @staticmethod
   def kill_stunt_pods():
-    pods = StuntPod.stunt_pods()
-    namespaces = set([p.metadata.namespace for p in pods])
-    for namespace in namespaces:
-      broker.coreV1.delete_collection_namespaced_pod(
-        namespace=namespace,
-        label_selector=Utils.dict_to_eq_str(StuntPod.labels())
-      )
+    pods = K8kat.pods().lbs_inc_each(StuntPod.labels())
+    pods.delete_all()
