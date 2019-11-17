@@ -35,11 +35,11 @@ Debugging Bad Pods
 bad_pods = K8kat.deps().not_ns("dev").find("nlp-main").pods().broken() 
 
 bad_pods.pretty_pluck("ns", "status", "image")
-# [<nlp-main-8689d59f49-x74qd: production | CrashLoopBackoff | docker.io/nlp_main:latest>]
+# [<nlp-main-8689d59f49-x74qd: production | CrashLoopBackoff | hooli/nlp_main:latest>]
 
 bad_pods[0].logs(3600)
 
-bad_pods[0].epxplain_error()
+bad_pods[0].explain_error()
 ```
 
 
