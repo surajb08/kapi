@@ -51,11 +51,11 @@ curler.curl('/api') # -> None
 
 problem_svc.pods() #to check if selectors working
 
-dns_pods = K8Kat.pods().system().lbs_inc_each(app=kube-dns)
+dns_pods = K8Kat.pods().system().lbs_inc_each(app='kube-dns')
 dns_pods.pretty_pluck('status')
 # [<kube-dns-67947d6c68-5dvn4: Running | docker.io/nlp_main:latest>]
 
-suspect = "failed" in dns_pods[0].logs(raw=true)
+suspect = "failed" in dns_pods[0].logs(raw=True)
 
 curler.delete()
 ```
