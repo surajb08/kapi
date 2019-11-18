@@ -1,15 +1,14 @@
 from analysis_suites.network.network_suite import BaseNetworkStep
-from helpers.pod_helper import PodHelper
+from k8_kat.base.k8_kat import K8kat
 
 
 class DoesDnsWorkStep(BaseNetworkStep):
 
   def perform(self):
-    k_pods = PodHelper.find_by_label("kube-system", {"k8s-app": "kube-dns"})
-    c_pods = PodHelper.find_by_label("kube-system", {"k8s-app": "core-dns"})
-    pods = k_pods + c_pods
-    running = [pod for pod in pods if pod.status.phase == 'Running']
-    outputs = [f"{pod.metadata.name}: {pod.status.phase}" for pod in pods]
+    possible_labels = [('k8s-app', 'kube-dns'), ('k8s-app', 'core-dns')]
+    pods = K8kat.pods().ns("kube-system").lbs_inc_any(possible_labels).go()
+    running = [pod for pod in pods if pod.status == 'Running']
+    outputs = [f"{pod.name}: {pod.phase}" for pod in pods]
 
     return self.record_step_performed(
       outcome=len(running) > 0,

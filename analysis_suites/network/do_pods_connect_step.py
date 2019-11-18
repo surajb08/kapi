@@ -1,5 +1,4 @@
 from analysis_suites.network.network_suite import BaseNetworkStep
-from helpers.pod_helper import PodHelper
 
 
 class DoPodsConnectStep(BaseNetworkStep):
@@ -21,7 +20,7 @@ class DoPodsConnectStep(BaseNetworkStep):
     }
 
   def perform(self):
-    pods = PodHelper.pods_for_dep(self.deployment, False)
+    pods = self.dep.pods()
     results = [self.curl_pass_fail(pod) for pod in pods]
     failures = [result for result in results if not result['pass']]
     culprits = ", ".join([result['name'] for result in failures])

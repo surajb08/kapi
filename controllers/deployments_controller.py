@@ -1,94 +1,77 @@
 #!/usr/bin/env python3
-from flask import Blueprint, request
+
+from flask import Blueprint, request, jsonify
 
 from actions.annotator import Annotator
-from helpers.dep_helper import DepHelper
-from helpers.kube_broker import broker
-from helpers.pod_helper import PodHelper
-from utils.utils import Utils
-from k8_kats.k8_kat import K8Kat as K
+from helpers.res_utils import ResUtils
+from k8_kat.base.k8_kat import K8kat
+from k8_kat.dep.dep_composer import DepComposer
+from k8_kat.dep.dep_serializers import DepSerialization as Ser
+from k8_kat.pod.pod_serialization import PodSerialization
 
 controller = Blueprint('deployments_controller', __name__)
 
-@controller.route('/api/deployments/<namespace>/<name>/annotate_git', methods=['POST'])
-def annotate(namespace, name):
+
+@controller.route('/api/deployments')
+def index():
+  deps = params_to_deps()
+  serialized = [Ser.as_needed(dep) for dep in deps]
+  return jsonify(dict(data=serialized))
+
+@controller.route('/api/deployments/<ns>/<name>')
+def show(ns, name):
+  dep = K8kat.deps().ns(ns).find(name).with_friends()
+  serialized = dep.serialize(Ser.with_pods_and_svcs)
+  return jsonify(serialized)
+
+@controller.route('/api/deployments/across_namespaces')
+def across_namespaces():
+  return jsonify(dict(data=ResUtils.dep_by_ns()))
+
+@controller.route('/api/deployments/<ns>/<name>/pods')
+def deployment_pods(ns, name):
+  dep = K8kat.deps().ns(ns).find(name)
+  serialized = [PodSerialization.standard(pod) for pod in dep.pods()]
+  return jsonify(dict(data=serialized))
+
+@controller.route('/api/deployments/<ns>/<name>/annotate_git', methods=['POST'])
+def annotate(ns, name):
   annotator = Annotator(
-    namespace=namespace,
+    namespace=ns,
     name=name,
     **request.json
   )
   annotations = annotator.annotate()
-  return {"annotations": annotations}
+  return jsonify(dict(annotations=annotations))
 
-
-@controller.route('/api/deployments/across_namespaces')
-def across_namespaces():
-
-  def bundle(dep):
-    return {
-      "name": dep.metadata.name,
-      "namespace": dep.metadata.namespace
-    }
-
-  broker.check_connected()
-  all_deps = broker.appsV1Api.list_deployment_for_all_namespaces().items
-  my_deps = [d for d in all_deps if d.metadata.namespace != 'kube-system']
-  serialized = [bundle(dep) for dep in my_deps]
-  unique_names = set([dep['name'] for dep in serialized])
-
-  output = []
-
-  for name in unique_names:
-    matching_deps = list(filter(lambda d: d['name'] == name, serialized))
-    corresponding_namespaces = list(map(lambda d: d['namespace'], matching_deps))
-    output.append({
-      "name": name,
-      "namespaces": corresponding_namespaces
-    })
-
-  return { "data": output }
-
-@controller.route('/api/deployments/filtered')
-def filtered():
-  broker.check_connected()
-  result = list(map(DepHelper.simple_ser, params_to_deps()))
-  return {"data": result}
-
-
-@controller.route('/api/deployments/<namespace>/<name>')
-def show(namespace, name):
-  broker.check_connected()
-  deployment = DepHelper.find(namespace, name)
-  return DepHelper.full_single(deployment)
-
-@controller.route('/api/deployments')
-def index():
-  broker.check_connected()
-  filtered_deployments = params_to_deps()
-
-  if request.args.get('full') == 'true':
-    payload = DepHelper.full_list(filtered_deployments)
-  else:
-    payload = list(map(DepHelper.simple_ser, params_to_deps()))
-  return { 'data': payload }
-
-@controller.route('/api/deployments/<namespace>/<name>/pods')
-def list_pods(namespace, name):
-  deployment = DepHelper.find(namespace, name)
-  pods = PodHelper.pods_for_dep(deployment)
-  serialized = list(map(PodHelper.full_ser, pods))
-  return { 'data': serialized }
+def eq_strs_to_tups(as_str: str):
+  return [tuple(eq.split(':')) for eq in as_str.split(',')]
 
 def params_to_deps():
-  ns_filters = request.args.get('ns_filters', '').split(',')
-  ns_filter_type = request.args.get('ns_filter_type', 'whitelist')
-  lb_filters = Utils.parse_dict_array(request.args.get('lb_filters', ''))
-  lb_filter_type = request.args.get('lb_filter_type', 'blacklist')
+  q = K8kat.deps()
 
-  query = K.deps().for_ns(ns_filter_type, ns_filters)
-  query = query.for_lbs(lb_filter_type, lb_filters)
-  print(f"DICT ARRAY {lb_filters}")
-  result = query.go()
+  ns_white = request.args.get('ns_filter_type', 'whitelist')
+  ns_white = True if ns_white == 'whitelist' else False
+  ns_filters = request.args.get('ns_filters')
+  ns_filters = ns_filters and ns_filters.split(',') or None
 
-  print(f"GOT {result}")
-  return [dep.raw for dep in result]
+  lb_white = request.args.get('lb_filter_type', 'blacklist')
+  lb_white = True if lb_white == 'whitelist' else False
+  lb_filters = request.args.get('lb_filters')
+  lb_filters = lb_filters and eq_strs_to_tups(lb_filters)
+
+  if ns_filters is not None:
+    q = q.ns(ns_filters) if ns_white else q.not_ns(ns_filters)
+
+  if lb_filters is not None:
+    q = q.lbs_inc_each(lb_filters) if lb_white else q.lbs_exc_each(lb_filters)
+
+  deps = q.go()
+
+  if request.args.get('svcs') == 'true':
+    DepComposer.associate_svcs(deps)
+
+  if request.args.get('pods') == 'true':
+    DepComposer.associate_pods(deps)
+
+  return deps

@@ -1,7 +1,11 @@
-from helpers.pod_helper import PodHelper
+from kubernetes.client import V1Pod, V1ObjectMeta, V1PodSpec, V1Container
+
+from helpers.res_utils import ResUtils
 from helpers.kube_broker import broker
 import time
 from kubernetes.stream import stream
+
+from k8_kat.base.k8_kat import K8kat
 from utils.utils import Utils
 
 
@@ -12,15 +16,15 @@ class StuntPod:
     self._image = "xnectar/curler:latest"
 
   def create(self):
-    pod = broker.client.V1Pod(
+    pod = V1Pod(
       api_version='v1',
-      metadata=broker.client.V1ObjectMeta(
+      metadata=V1ObjectMeta(
         name=self.pod_name,
         labels=self.labels()
       ),
-      spec=broker.client.V1PodSpec(
+      spec=V1PodSpec(
         containers=[
-          broker.client.V1Container(
+          V1Container(
             name="primary",
             image=self.image(),
             image_pull_policy="Always"
@@ -38,7 +42,8 @@ class StuntPod:
     return self._image
 
   def find(self):
-    return PodHelper.find(self.namespace, self.pod_name)
+    pod = K8kat.pods().ns(self.namespace).find(self.pod_name)
+    return pod.raw
 
   def delete(self):
     broker.coreV1.delete_namespaced_pod(
@@ -80,7 +85,6 @@ class StuntPod:
     )
 
   def run(self, command):
-    broker.connect()
     if self.find_or_create():
       return self.execute_command(command)
     else:
@@ -99,15 +103,6 @@ class StuntPod:
     return {"nectar-type": "stunt-pod"}
 
   @staticmethod
-  def stunt_pods():
-    return PodHelper.find_by_label(None, StuntPod.labels())
-
-  @staticmethod
   def kill_stunt_pods():
-    pods = StuntPod.stunt_pods()
-    namespaces = set([p.metadata.namespace for p in pods])
-    for namespace in namespaces:
-      broker.coreV1.delete_collection_namespaced_pod(
-        namespace=namespace,
-        label_selector=Utils.dict_to_eq_str(StuntPod.labels())
-      )
+    pods = K8kat.pods().lbs_inc_each(StuntPod.labels())
+    pods.delete_all()

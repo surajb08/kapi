@@ -1,8 +1,7 @@
 from analysis_suites.base.analysis_step import AnalysisStep
 from analysis_suites.network.copy import copy_tree
-from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
-from helpers.svc_helper import SvcHelper
+from k8_kat.base.k8_kat import K8kat
 from stunt_pods.curl_pod import CurlPod
 from utils.utils import Utils
 
@@ -11,59 +10,27 @@ class BaseNetworkStep(AnalysisStep):
   def __init__(self, **args):
     super().__init__()
     self.from_port = args['from_port']
-    self.deployment = DepHelper.find(args['dep_ns'], args['dep_name'])
-    self.service = SvcHelper.find(args['dep_ns'],args['svc_name'])
+    self.dep = K8kat.deps().ns(args['dep_ns']).find(args['dep_name'])
+    self.svc = K8kat.svcs().ns(args['dep_ns']).find(args['svc_name'])
     self._stunt_pod = None
 
   @property
   def port_bundle(self):
-    bundles = self.service.spec.ports
+    bundles = self.svc.spec.ports
     matches = [b for b in bundles if str(b.port) == str(self.from_port)]
     return matches[0]
 
   @property
   def to_port(self):
-      return self.port_bundle.target_port
-
-  @property
-  def svc_name(self):
-    return self.service.metadata.name
-
-  @property
-  def dep_name(self):
-    return self.service.metadata.name
-
-  @property
-  def ns(self):
-    return self.service.metadata.namespace
-
-  @property
-  def port(self):
-    return int(self.from_port)
-
-  @property
-  def target_port(self):
-    return int(self.port_bundle.target_port)
+    return self.port_bundle.target_port
 
   @property
   def target_url(self):
-    return f"{self.tfqdn}:{self.port}"
-
-  @property
-  def fqdn(self):
-    return f"{self.svc_name}.{self.ns}"
-
-  @property
-  def tfqdn(self):
-    return f"{self.fqdn}.svc.cluster.local"
-
-  @property
-  def svc_ip(self):
-    return self.service.spec.cluster_ip
+    return f"{self.svc.fqdn}:{self.svc.from_port}"
 
   @property
   def pod_label_comp(self):
-    dep_labels = self.deployment.spec.selector.match_labels
+    dep_labels = self.dep.spec.selector.match_labels
     return Utils.dict_to_eq_str(dep_labels)
 
   @property
@@ -71,7 +38,7 @@ class BaseNetworkStep(AnalysisStep):
     if self._stunt_pod is None:
       self._stunt_pod = CurlPod(
         pod_name="net-debug-pod",
-        namespace=self.ns,
+        namespace=self.dep.ns,
       )
       self._stunt_pod.find_or_create()
     return self._stunt_pod
@@ -82,20 +49,20 @@ class BaseNetworkStep(AnalysisStep):
 
   def _copy_bundle(self):
 
-    img = Utils.try_or(lambda: self.deployment.spec.containers[0].image)
+    img = self.dep.image_name
 
     return {
-      "dep_name": self.svc_name,
-      "svc_name": self.service.metadata.name,
+      "dep_name": self.dep.name,
+      "svc_name": self.svc.name,
       "img": img,
       "port": self.port,
       "target_port": self.target_port,
-      "ns": self.ns,
+      "ns": self.dep.ns,
       "pod_name": "network_debug",
       "target_url": self.target_url,
-      "fqdn": self.fqdn,
-      "tfqdn": self.tfqdn,
-      "svc_ip": self.svc_ip,
+      "fqdn": self.svc.short_dns,
+      "tfqdn": self.svc.fqdn,
+      "svc_ip": self.svc.ip,
       "pod_label_comp": self.pod_label_comp
     }
 

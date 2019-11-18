@@ -1,10 +1,37 @@
+import os
 import random
 import string
 
 class Utils:
 
   @staticmethod
+  def run_env():
+    return os.environ.get('ENV')
+
+  @staticmethod
+  def is_test():
+    return Utils.run_env() == 'test'
+
+  @staticmethod
+  def is_ci():
+    return Utils.is_test() and os.environ.get('CI')
+
+  @staticmethod
+  def is_ci_keep():
+    return os.environ.get("CI") == 'keep'
+
+  @staticmethod
+  def is_dev():
+    return Utils.run_env() == 'development'
+
+  @staticmethod
+  def is_prod():
+    return Utils.run_env() == 'production'
+
+  @staticmethod
   def is_non_trivial(dict_array):
+    if not dict_array:
+      return False
     return [e for e in dict_array if e]
 
   @staticmethod
@@ -34,16 +61,12 @@ class Utils:
     return [Utils.parse_dict(part) for part in parts]
 
   @staticmethod
-  def parse_dict(_string):
-    print(f"GIVEN {_string}")
-    if _string:
-      result_dict = {}
-      for encoded_dict in _string.split(','):
-        [key, value] = encoded_dict.split(':')
-        result_dict[key] = value
-      return result_dict
-    else:
-      return {}
+  def parse_dict(encoded_dict):
+    result_dict = {}
+    for encoded_kv in encoded_dict.split(','):
+      key, value = encoded_kv.split(':')
+      result_dict[key] = value
+    return result_dict
 
   @staticmethod
   def rand_str(string_len=10):
@@ -57,3 +80,14 @@ class Utils:
       return o.__class__.__name__
     else:
       return module + '.' + o.__class__.__name__
+
+  @staticmethod
+  def coerce_cmd_format(cmd):
+    if isinstance(cmd, str):
+      return cmd.split(" ")
+    else:
+      return cmd
+
+  @staticmethod
+  def flatten(l):
+    return [item for sublist in l for item in sublist]

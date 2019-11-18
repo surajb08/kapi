@@ -6,14 +6,14 @@ from kubernetes.client import V1Job, V1ObjectMeta, V1JobSpec, V1PodTemplateSpec,
 from kubernetes.client.rest import ApiException
 
 from helpers.kube_broker import broker
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
 from utils.utils import Utils
 
 class DockerOp:
 
   @staticmethod
   def find(_id):
-    pod = PodHelper.find('nectar', _id)
+    pod = ResUtils.find('nectar', _id)
     return __class__(pod.metadata.name)
 
   @staticmethod
@@ -51,7 +51,7 @@ class DockerOp:
 
   def pod(self, force = False):
     if (self._pod is None) or force:
-      self._pod = PodHelper.find('nectar', self.pod_name)
+      self._pod = ResUtils.find('nectar', self.pod_name)
     return self._pod
 
   def is_pod_ready(self):

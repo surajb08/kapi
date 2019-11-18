@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-from flask import Blueprint
+from flask import Blueprint, jsonify
 
 from helpers.kube_broker import broker
-from helpers.cluster_helper import ClusterHelper
-from helpers.pod_helper import PodHelper
+from helpers.res_utils import ResUtils
+from k8_kat.base.k8_kat import K8kat
+from k8_kat.pod.pod_serialization import PodSerialization
 from stunt_pods.stunt_pod import StuntPod
 
 controller = Blueprint('cluster_controller', __name__)
@@ -11,22 +12,24 @@ controller = Blueprint('cluster_controller', __name__)
 @controller.route('/api/cluster/namespaces')
 def namespaces():
   broker.check_connected()
-  _namespaces = ClusterHelper.list_namespaces()
-  return {"data": _namespaces}
+  _namespaces = ResUtils.list_namespaces()
+  return jsonify(data=_namespaces)
 
 @controller.route('/api/cluster/label_combinations')
 def label_combinations():
   broker.check_connected()
-  combinations = ClusterHelper.label_combinations()
-  return {"data": list(set(combinations))}
+  combinations = ResUtils.label_combinations()
+  return jsonify(data=list(set(combinations)))
 
 @controller.route('/api/cluster/stunt_pods')
 def stunt_pods():
   broker.check_connected()
-  ser = [PodHelper.full_ser(pod) for pod in StuntPod.stunt_pods()]
-  return {"data": ser}
+  garbage = K8kat.pods().lbs_inc_each(StuntPod.labels()).go()
+  ser = garbage.serialize(PodSerialization.standard)
+  return jsonify(data=ser)
 
 @controller.route('/api/cluster/kill_stunt_pods', methods=['POST'])
 def kill_stunt_pods():
-  StuntPod.kill_stunt_pods()
-  return {"data": "done"}
+  garbage = K8kat.pods().lbs_inc_each(StuntPod.labels())
+  garbage.delete_all()
+  return jsonify(status='done')

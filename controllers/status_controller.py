@@ -14,8 +14,9 @@ def status():
 
 @controller.route('/api/status/restart', methods=['POST'])
 def restart():
-  DepHelper.restart_nectar_deps(request.json['deployments'])
-  return { "status": "working" }
+  for which in request.json['deployments']:
+    DepHelper.restart_nectar_pods(which)
+  return dict(status='working')
 
 @controller.route('/api/status/connect')
 def connect():
@@ -24,15 +25,12 @@ def connect():
   return status_body()
 
 def status_body():
-  return {
-    "think_am_connected": broker.is_connected,
-    "auth_type": broker.auth_type,
-    "auth_type_var": broker.env_auth_type(),
-    "sanity": '1'
-  }
+  return dict(
+    think_am_connected=broker.is_connected,
+    auth_type=broker.auth_type,
+    auth_type_var=broker.env_auth_type()
+  )
 
 @controller.route('/api/status/revision')
 def revision():
-  return{
-    "sha": os.environ.get('REVISION')
-  }
+  return dict(sha=os.environ.get('REVISION'))

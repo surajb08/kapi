@@ -1,22 +1,15 @@
 from analysis_suites.network.network_suite import BaseNetworkStep
-from helpers.pod_helper import PodHelper
 
 
 class ArePodsRunningStep(BaseNetworkStep):
 
   @staticmethod
-  def phase(pod):
-    return PodHelper.easy_state(pod, True)
-
-  def result_str(self, pod):
-    return f"{pod.metadata.name} --> {self.phase(pod)}"
-
-  def is_running(self, pod):
-    return self.phase(pod) == 'Running'
+  def result_str(pod):
+    return f"{pod.name} --> {pod.status}"
 
   def perform(self):
-    pods = PodHelper.pods_for_dep(self.deployment, False)
-    running = [pod for pod in pods if self.is_running(pod)]
+    pods = self.dep.pods()
+    running = [pod for pod in pods if pod.is_running()]
     outputs = [self.result_str(pod) for pod in pods]
     return self.record_step_performed(
       outcome=len(running) > 0,

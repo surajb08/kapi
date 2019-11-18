@@ -35,31 +35,29 @@ app.register_blueprint(pods_controller.controller)
 
 @app.shell_context_processor
 def make_shell_context():
-  from helpers.pod_helper import PodHelper
+  from helpers.res_utils import ResUtils
   from helpers.dep_helper import DepHelper
   from stunt_pods.curl_pod import CurlPod
-  from actions.image_reloader import ImageReloader
   from actions.docker_op import DockerOp
   from actions.docker_build_op import DockerBuildOp
   from actions.docker_push_op import DockerPushOp
   from actions.annotator import Annotator
   from utils.utils import Utils
-  from k8_kats.k8_kat import K8Kat
+  from k8_kat.base.k8_kat import K8kat
 
   return {
     'broker': broker,
-    'ph': PodHelper,
+    'ph': ResUtils,
     'dh': DepHelper,
     'sh': SvcHelper,
     'cp': CurlPod,
-    'ir': ImageReloader,
     'ic': ImageChanger,
     'do': DockerOp,
     'DockerBuildOp': DockerBuildOp,
     f"{DockerPushOp.__name__}": DockerPushOp,
     f"{Annotator.__name__}": Annotator,
     f"{Utils.__name__}": Utils,
-    f"{K8Kat.__name__}": K8Kat,
+    f"{K8kat.__name__}": K8kat,
   }
 
 @app.errorhandler(BrokerNotConnectedException)
