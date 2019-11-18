@@ -19,6 +19,9 @@ class ResQuery:
     }
 
   def add_feature_filter(self, name, operator, values):
+    if name in ['name', 'namespace', 'ns']:
+      raise Exception("No using feature_filters for reserved keys!")
+
     self.feature_filters.append(
       dict(name=name, operator=operator, values=values)
     )

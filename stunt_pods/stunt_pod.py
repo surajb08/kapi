@@ -85,7 +85,6 @@ class StuntPod:
     )
 
   def run(self, command):
-    broker.connect()
     if self.find_or_create():
       return self.execute_command(command)
     else:

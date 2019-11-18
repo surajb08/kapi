@@ -61,10 +61,12 @@ class ResCollection(list):
     resolved = [getattr(r, feature_name) for r in self.go()]
     return list(set(resolved)) if unique else resolved
 
-  # def pluck_nice(self, feature_names):
-  #   for_one = lambda x: []
-  #   resolved = [getattr(r, f) for r in self.go()]
-  #   return list(set(resolved)) if unique else resolved
+  def pretty_pluck(self, feature_names):
+    val = lambda res, feat: getattr(res, feat)
+    line_feats = lambda res: [val(res, f) for f in feature_names]
+    line_feats_str = lambda res: " | ".join(line_feats(res))
+    line = lambda res: f"<{res.name} : {line_feats_str(res)}>"
+    return [line(res) for res in self.go()]
 
   def feature_in(self, feature: str, possibilities: List[str]):
     self.query.add_feature_filter(
