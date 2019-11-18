@@ -11,6 +11,8 @@ class DepSerialization:
       name=dep.name,
       namespace=dep.namespace,
       labels=dep.labels,
+      template_labels=dep.template_labels,
+      selector_labels=dep.pod_select_labels,
       replicas=dep.raw.spec.replicas,
       image_name=dep.image_name,
       container_name=dep.container_name,

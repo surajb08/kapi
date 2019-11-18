@@ -7,6 +7,7 @@ from helpers.res_utils import ResUtils
 from k8_kat.base.k8_kat import K8kat
 from k8_kat.dep.dep_composer import DepComposer
 from k8_kat.dep.dep_serializers import DepSerialization as Ser
+from k8_kat.dep.dep_warnings import DepWarnings
 from k8_kat.pod.pod_serialization import PodSerialization
 
 controller = Blueprint('deployments_controller', __name__)
@@ -43,6 +44,17 @@ def annotate(ns, name):
   )
   annotations = annotator.annotate()
   return jsonify(dict(annotations=annotations))
+
+@controller.route('/api/deployments/<ns>/<name>/validate_labels', methods=['POST'])
+def validate_labels(ns, name):
+  dep = K8kat.deps().ns(ns).find(name)
+  v = DepWarnings
+  return jsonify(dict(
+    template_covers=v.check_pod_template_inclusive(dep),
+    no_eavesdrop=v.check_no_pods_eavesdrop(dep),
+    labels_unique=v.check_labels_unique(dep),
+    pods_same_ns=v.check_pods_in_same_ns(dep)
+  ))
 
 def eq_strs_to_tups(as_str: str):
   return [tuple(eq.split(':')) for eq in as_str.split(',')]

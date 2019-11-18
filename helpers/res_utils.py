@@ -26,7 +26,11 @@ class ResUtils:
       # noinspection PyTypeChecker
       booleans.insert(0, row_names[i])
       row_values.append(booleans)
-    return dict(col_names=col_names, row_values=row_values)
+    return dict(
+      col_names=col_names,
+      row_names=row_names,
+      row_values=row_values
+    )
 
   @staticmethod
   def list_namespaces():

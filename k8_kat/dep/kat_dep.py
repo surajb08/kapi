@@ -41,6 +41,10 @@ class KatDep(KatRes):
     return self.raw.spec.selector.match_labels
 
   @property
+  def template_labels(self):
+    return self.raw.spec.template.metadata.labels
+
+  @property
   def commit(self) -> Dict[str, str]:
     every = self.raw.metadata.annotations
     return dict([(k, every.get(f"commit-{k}")) for k in COMMIT_KEYS])
@@ -59,7 +63,7 @@ class KatDep(KatRes):
       self.find_and_assoc_svcs()
     return self.assoced_svcs
 
-  def pods(self, force_reload=False) -> [KatSvc]:
+  def pods(self, force_reload=False) -> [KatPod]:
     if force_reload or self.assoced_pods is None:
       self.find_and_assoc_pods()
     return self.assoced_pods

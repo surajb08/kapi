@@ -7,6 +7,11 @@ from utils.utils import Utils
 
 class KatSvc(KatRes):
 
+  def __init__(self, raw):
+    super().__init__(raw)
+    self.assoced_pods = None
+    self._am_dirty = raw is not None
+
   @property
   def pod_select_labels(self) -> Dict[str, str]:
     return self.raw.spec.selector or {}
@@ -46,6 +51,16 @@ class KatSvc(KatRes):
   @property
   def type(self) -> str:
     return self.raw.spec.type
+
+  def pods(self, force_reload=False):
+    if force_reload or self.assoced_pods is None:
+      self.find_and_assoc_pods()
+    return self.assoced_pods
+
+  def find_and_assoc_pods(self):
+    from k8_kat.base.k8_kat import K8kat
+    matchers = list(self.pod_select_labels.items())
+    self.assoced_pods = K8kat.pods().ns(self.ns).lbs_inc_each(matchers).go()
 
   def __repr__(self):
     return f"Svc[{self.ns}:{self.name}({self.internal_ip})]"

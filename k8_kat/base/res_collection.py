@@ -29,6 +29,10 @@ class ResCollection(list):
     actual = list(_names[0]) if isinstance(_names[0], list) else list(_names)
     return self.where(name_in=actual)
 
+  def not_names(self, *_names):
+    actual = list(_names[0]) if isinstance(_names[0], list) else list(_names)
+    return self.where(name_not_in=actual)
+
   def where(self, **query_hash):
     self.query.update(**query_hash)
     return self

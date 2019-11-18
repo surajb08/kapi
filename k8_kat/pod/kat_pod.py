@@ -44,7 +44,7 @@ class KatPod(KatRes):
 
   @property
   def ip(self):
-    return Utils.try_or(lambda: self.status.pod_ip)
+    return Utils.try_or(lambda: self.raw.status.pod_ip)
 
   @property
   def image(self):
@@ -69,7 +69,7 @@ class KatPod(KatRes):
 
   @property
   def wtf(self):
-    return 'soon!'
+    return 'coming soon!'
 
   def _perform_patch_self(self):
     broker.coreV1.patch_namespaced_pod(
@@ -77,7 +77,6 @@ class KatPod(KatRes):
       namespace=self.namespace,
       body=self.raw
     )
-
 
   def logs(self, seconds=60):
     try:
