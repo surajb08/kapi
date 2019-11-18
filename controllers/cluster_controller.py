@@ -30,10 +30,10 @@ def stunt_pods():
 
 @controller.route('/api/cluster/label_matrix')
 def label_matrix():
-  matcher_type, args = request.args, request.args['matcher_type']
-  matcher_ns, matcher_name = args['matcher_ns'], args['matcher_name']
-  method = K8kat.deps if matcher_type == 'deployment' else K8kat.svcs
-  matcher = method().ns(matcher_ns).find(matcher_name)
+  get = lambda *keys: [request.args.get(k) for k in keys]
+  _type, ns, name = get('matcher_type', 'matcher_ns', 'matcher_name')
+  collection = K8kat.deps() if _type == 'deployment' else K8kat.svcs()
+  matcher = collection.ns(ns).find(name)
   result = ResUtils.label_matrix(matcher)
   return jsonify(result)
 
