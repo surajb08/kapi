@@ -87,9 +87,12 @@ class KatDep(KatRes):
     checker = lambda svc: ResUtils.dep_matches_svc(self.raw, svc)
     self.assoced_svcs = [KatSvc(svc) for svc in candidates if checker(svc)]
 
-  def release_assocs(self):
-    self.assoced_pods = None
-    self.assoced_svcs = None
+  def _perform_patch_self(self):
+    broker.appsV1Api.patch_namespaced_deployment(
+      name=self.name,
+      namespace=self.namespace,
+      body=self.raw
+    )
 
   def scale(self, replicas):
     broker.appsV1Api.patch_namespaced_deployment_scale(
@@ -104,14 +107,8 @@ class KatDep(KatRes):
     self._am_dirty = True
 
   def replace_image(self, new_image_name):
-    raw = self.raw
-    raw.spec.template.spec.containers[0].image = new_image_name
-    broker.appsV1Api.patch_namespaced_deployment(
-      namespace=self.ns,
-      name=self.name,
-      body=raw
-    )
-    self._am_dirty = True
+    self.raw.spec.template.spec.containers[0].image = new_image_name
+    self._perform_patch_self()
 
   def restart_pods(self):
     remember_replicas = self.desired_replicas

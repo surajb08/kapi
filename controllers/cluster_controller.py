@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from helpers.kube_broker import broker
 from helpers.res_utils import ResUtils
@@ -27,6 +27,15 @@ def stunt_pods():
   garbage = K8kat.pods().lbs_inc_each(StuntPod.labels()).go()
   ser = garbage.serialize(PodSerialization.standard)
   return jsonify(data=ser)
+
+@controller.route('/api/cluster/label_matrix')
+def label_matrix():
+  matcher_type, args = request.args, request.args['matcher_type']
+  matcher_ns, matcher_name = args['matcher_ns'], args['matcher_name']
+  method = K8kat.deps if matcher_type == 'deployment' else K8kat.svcs
+  matcher = method().ns(matcher_ns).find(matcher_name)
+  result = ResUtils.label_matrix(matcher)
+  return jsonify(result)
 
 @controller.route('/api/cluster/kill_stunt_pods', methods=['POST'])
 def kill_stunt_pods():

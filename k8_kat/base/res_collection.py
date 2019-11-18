@@ -61,9 +61,10 @@ class ResCollection(list):
     resolved = [getattr(r, feature_name) for r in self.go()]
     return list(set(resolved)) if unique else resolved
 
-  def pretty_pluck(self, feature_names):
+  def pretty_pluck(self, *f_names):
+    actual = list(f_names[0]) if isinstance(f_names[0], list) else list(f_names)
     val = lambda res, feat: getattr(res, feat)
-    line_feats = lambda res: [val(res, f) for f in feature_names]
+    line_feats = lambda res: [val(res, f) for f in actual]
     line_feats_str = lambda res: " | ".join(line_feats(res))
     line = lambda res: f"<{res.name} : {line_feats_str(res)}>"
     return [line(res) for res in self.go()]

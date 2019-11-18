@@ -47,7 +47,7 @@ def make_shell_context():
 
   return {
     'broker': broker,
-    'ph': ResUtils,
+    f"{ResUtils.__name__}": ResUtils,
     'dh': DepHelper,
     'sh': SvcHelper,
     'cp': CurlPod,

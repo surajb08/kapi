@@ -53,6 +53,7 @@ class KubeBroker:
       raise Exception("Out cluster auth not for production!")
 
     try:
+      print(f"Connecting with {KubeBroker.kubectl()}")
       user_token = KubeBroker.read_target_cluster_user_token()
       configuration = client.Configuration()
       configuration.host = KubeBroker.read_target_cluster_ip()

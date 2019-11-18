@@ -1,9 +1,10 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 
 class KatRes:
 
   def __init__(self, raw):
+    self.is_dirty = False
     self.raw = raw
 
   @property
@@ -28,6 +29,19 @@ class KatRes:
 
   def label(self, which):
     return self.labels.get(which)
+
+  @property
+  def pod_select_labels(self) -> Dict[str, str]:
+    raise Exception("Unimplemented!")
+
+  def set_label(self, **labels):
+    new_label_dict = {**self.labels, **labels}
+    self.raw.metadata.labels = new_label_dict
+    self._perform_patch_self()
+
+  def _perform_patch_self(self):
+    raise Exception("Unimplemented!")
+
 
   def serialize(self, serializer):
     return serializer(self)

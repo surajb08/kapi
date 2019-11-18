@@ -5,10 +5,22 @@ from kubernetes.client import V1Service, V1ReplicaSet, V1Pod, V1Deployment
 from kubernetes.client.rest import ApiException
 
 from helpers.kube_broker import broker
+from k8_kat.base.kat_res import KatRes
+from utils.utils import Utils
 
 
 class ResUtils:
   LOG_REGEX = r"(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b) - - (.*)"
+
+  @staticmethod
+  def label_matrix(matcher):
+    pods = matcher.pods()
+    all_labels = Utils.flatten([pod.label_tups for pod in pods])
+    all_labels = list(set(all_labels))
+    all_selectors = list(matcher.pod_select_labels.items())
+    col_names = [f"{t[0]}:{t[1]}" for t in all_labels]
+    row_names = [f"{t[0]}:{t[1]}" for t in all_selectors]
+    return dict(col_names=col_names, row_names=row_names)
 
   @staticmethod
   def list_namespaces():

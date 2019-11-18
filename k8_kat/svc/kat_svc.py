@@ -1,9 +1,15 @@
+from typing import Dict
+
 from kubernetes.client import V1ServicePort
 from k8_kat.base.kat_res import KatRes
 from utils.utils import Utils
 
 
 class KatSvc(KatRes):
+
+  @property
+  def pod_select_labels(self) -> Dict[str, str]:
+    return self.raw.spec.selector or {}
 
   @property
   def main_port_obj(self) -> V1ServicePort:

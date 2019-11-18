@@ -71,6 +71,14 @@ class KatPod(KatRes):
   def wtf(self):
     return 'soon!'
 
+  def _perform_patch_self(self):
+    broker.coreV1.patch_namespaced_pod(
+      name=self.name,
+      namespace=self.namespace,
+      body=self.raw
+    )
+
+
   def logs(self, seconds=60):
     try:
       log_dump = broker.coreV1.read_namespaced_pod_log(
