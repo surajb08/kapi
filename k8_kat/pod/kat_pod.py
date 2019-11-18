@@ -13,6 +13,10 @@ class KatPod(KatRes):
     super().__init__(raw)
 
   @property
+  def kind(self):
+    return "Pod"
+
+  @property
   def labels(self):
     base = super().labels
     bad_key = 'pod-template-hash'

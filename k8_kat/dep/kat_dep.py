@@ -18,6 +18,10 @@ class KatDep(KatRes):
     self._am_dirty = raw is not None
 
   @property
+  def kind(self):
+    return "Deployment"
+
+  @property
   def raw_pod_spec(self) -> V1PodSpec:
     return self.raw.spec.template.spec
 

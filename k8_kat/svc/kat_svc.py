@@ -13,6 +13,10 @@ class KatSvc(KatRes):
     self._am_dirty = raw is not None
 
   @property
+  def kind(self):
+    return "Service"
+
+  @property
   def pod_select_labels(self) -> Dict[str, str]:
     return self.raw.spec.selector or {}
 
