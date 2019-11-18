@@ -20,7 +20,13 @@ class ResUtils:
     all_selectors = list(matcher.pod_select_labels.items())
     col_names = [f"{t[0]}:{t[1]}" for t in all_labels]
     row_names = [f"{t[0]}:{t[1]}" for t in all_selectors]
-    return dict(col_names=col_names, row_names=row_names)
+    row_values = []
+    for i, sel in enumerate(all_selectors):
+      booleans = [sel == lb for lb in all_labels]
+      # noinspection PyTypeChecker
+      booleans.insert(0, row_names[i])
+      row_values.append(booleans)
+    return dict(col_names=col_names, row_values=row_values)
 
   @staticmethod
   def list_namespaces():
