@@ -55,12 +55,9 @@ class AnalysisStep:
 
   def copy_key(self):
     class_name = self.__class__.__name__.replace("Step", '')
-    print(f"Class name: {class_name}")
-    print(f"Key name: {inflection.underscore(class_name)}")
     return inflection.underscore(class_name)
 
   def load_copy_tree(self):
-    print(f"BASE FUNC")
     return {}
 
   def _copy_bundle(self):

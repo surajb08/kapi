@@ -5,6 +5,14 @@ class KatEvent:
     self.raw = raw
 
   @property
+  def name(self):
+    return self.raw.metadata.name
+
+  @property
+  def namespace(self):
+    return self.raw.metadata.namespace
+
+  @property
   def for_uid(self):
     return self.raw.involved_object.uid
 
@@ -26,7 +34,27 @@ class KatEvent:
 
   @property
   def message(self):
-    return self.message
+    return self.raw.message
+
+  @property
+  def severity(self):
+    return self.raw.type
+
+  @property
+  def occurred_at(self):
+    return self.raw.first_timestamp
+
+  def meaning(self):
+    if self.is_config_map_err():
+      return "This suggests it's not reading a ConfigMap right."
+    elif self.is_secrets_err():
+      return "This suggests it's not reading a Secret right."
+    elif self.is_probe_err():
+      return "This suggests your liveness probe is failing."
+    elif self.is_insufficient_cpu():
+      return "This suggests your pod may be CPU starved."
+    elif self.is_app_crashing():
+      return "This suggests the app inside the container keeps crashing at launch."
 
   def is_for(self, kat_res):
     return self.for_uid == kat_res.uid
@@ -39,6 +67,9 @@ class KatEvent:
 
   def is_probe_err(self):
     return self.reason == 'Unhealthy'
+
+  def is_app_crashing(self):
+    return "Back-off restarting" in self.message
 
   def is_insufficient_cpu(self):
     return "Insufficient cpu" in self.message

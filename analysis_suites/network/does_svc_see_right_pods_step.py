@@ -19,19 +19,21 @@ class DoesSvcSeeRightPodsStep(BaseNetworkStep):
     return [item for sublist in addr_groups for item in sublist]
 
   def is_pod_ours(self, pod_name):
-    pod = ResUtils.find(self.ns, pod_name)
+    dep_pods = self.dep.pods(force_reload=True)
+    belongs = pod_name in [p.name for p in dep_pods]
+
     return {
       "name": pod_name,
-      "belongs": ResUtils.belongs_to_dep(pod, self.dep)
+      "belongs": belongs
     }
 
   def belonging_str(self, bundle):
     prefix = "" if bundle['belongs'] else "NOT "
-    return f"{bundle['name']} --> {prefix}{self.dep_name}"
+    return f"{bundle['name']} --> {prefix}{self.dep.name}"
 
   def perform(self):
     try:
-      endpoint = self.api.read_namespaced_endpoints(self.svc_name, self.ns)
+      endpoint = self.api.read_namespaced_endpoints(self.svc.name, self.svc.ns)
       pod_names = self.agg_subsets(endpoint.subsets or [])
       belongings = [self.is_pod_ours(pod) for pod in pod_names]
       intruders = [bun for bun in belongings if not bun['belongs']]

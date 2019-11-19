@@ -16,7 +16,7 @@ class BaseNetworkStep(AnalysisStep):
 
   @property
   def port_bundle(self):
-    bundles = self.svc.spec.ports
+    bundles = self.svc.raw.spec.ports
     matches = [b for b in bundles if str(b.port) == str(self.from_port)]
     return matches[0]
 
@@ -30,7 +30,7 @@ class BaseNetworkStep(AnalysisStep):
 
   @property
   def pod_label_comp(self):
-    dep_labels = self.dep.spec.selector.match_labels
+    dep_labels = self.dep.pod_select_labels
     return Utils.dict_to_eq_str(dep_labels)
 
   @property
@@ -55,14 +55,14 @@ class BaseNetworkStep(AnalysisStep):
       "dep_name": self.dep.name,
       "svc_name": self.svc.name,
       "img": img,
-      "port": self.port,
-      "target_port": self.target_port,
+      "port": self.svc.from_port,
+      "target_port": self.svc.to_port,
       "ns": self.dep.ns,
       "pod_name": "network_debug",
       "target_url": self.target_url,
       "fqdn": self.svc.short_dns,
       "tfqdn": self.svc.fqdn,
-      "svc_ip": self.svc.ip,
+      "svc_ip": self.svc.internal_ip,
       "pod_label_comp": self.pod_label_comp
     }
 
