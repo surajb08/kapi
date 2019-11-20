@@ -133,7 +133,7 @@ class ResUtils:
       dep_pod_labels = dep.spec.template.metadata.labels
       svc_matchers = svc.spec.selector
       if dep_pod_labels is None or svc_matchers is None: return False
-      return svc_matchers.items() >= dep_pod_labels.items()
+      return dep_pod_labels.items() >= svc_matchers.items()
     else:
       return False
 
