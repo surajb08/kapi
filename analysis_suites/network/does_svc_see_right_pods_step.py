@@ -1,8 +1,6 @@
-import kubernetes
 from kubernetes.client.rest import ApiException
 
 from analysis_suites.network.network_suite import BaseNetworkStep
-from helpers.res_utils import ResUtils
 
 
 class DoesSvcSeeRightPodsStep(BaseNetworkStep):

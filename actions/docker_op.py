@@ -1,19 +1,19 @@
 import os
-import time
 
 import kubernetes
-from kubernetes.client import V1Job, V1ObjectMeta, V1JobSpec, V1PodTemplateSpec, V1PodSpec, V1Container, V1EnvVar, V1Pod
+from kubernetes.client import V1ObjectMeta, V1PodSpec, V1Container, V1EnvVar, V1Pod
 from kubernetes.client.rest import ApiException
 
 from helpers.kube_broker import broker
-from helpers.res_utils import ResUtils
+from k8_kat.base.k8_kat import K8Kat
 from utils.utils import Utils
+
 
 class DockerOp:
 
   @staticmethod
   def find(_id):
-    pod = ResUtils.find('nectar', _id)
+    pod = K8Kat.pods().ns('nectar').find(_id).raw
     return __class__(pod.metadata.name)
 
   @staticmethod
@@ -51,7 +51,7 @@ class DockerOp:
 
   def pod(self, force = False):
     if (self._pod is None) or force:
-      self._pod = ResUtils.find('nectar', self.pod_name)
+      self._pod = K8Kat.pods().ns('nectar').find(self.pod_name).raw
     return self._pod
 
   def is_pod_ready(self):
@@ -62,8 +62,6 @@ class DockerOp:
   def daemon_host(self):
     if self._daemon_host is None:
       from_env = os.environ.get('DOCKER_HOST')
-      if not from_env:
-        print("DANGER DOCKER_HOST IS MISSING")
       implied = "tcp://dind.nectar:2375"
       self._daemon_host = from_env or implied
     return self._daemon_host
@@ -102,7 +100,6 @@ class DockerOp:
         namespace='nectar',
         name=self.pod_name
       )
-      print(f"SSSSSSSSSSSSSSSSSSSS {self.pod_name}")
     except ApiException:
       pass
 
@@ -120,13 +117,3 @@ class DockerOp:
       namespace='nectar',
       label_selector=Utils.dict_to_eq_str(DockerOp.pod_labels())
     )
-
-  def debug(self):
-    while not self.is_pod_ready():
-      print(f"Wait for pod birth...")
-      time.sleep(1)
-
-    while True:
-      print(f"-------------------------STATUS {self.status()}--------------------------")
-      print(self.logs())
-      time.sleep(3)

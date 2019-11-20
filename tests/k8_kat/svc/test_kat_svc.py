@@ -1,6 +1,6 @@
 import unittest
 
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 from k8_kat.svc.kat_svc import KatSvc
 from tests.k8_kat.base.k8_kat_test import K8katTest
 
@@ -12,7 +12,7 @@ class TestKatSvc(K8katTest):
     cls.create_svc('n1', 's1')
 
   def setUp(self) -> None:
-    self.subject: KatSvc = K8kat.svcs().ns('n1').find('s1')
+    self.subject: KatSvc = K8Kat.svcs().ns('n1').find('s1')
 
   def test_internal_ip(self):
     self.assertIsNotNone(self.subject.internal_ip)

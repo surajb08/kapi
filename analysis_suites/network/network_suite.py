@@ -1,7 +1,7 @@
 from analysis_suites.base.analysis_step import AnalysisStep
 from analysis_suites.network.copy import copy_tree
 from helpers.kube_broker import broker
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 from stunt_pods.curl_pod import CurlPod
 from utils.utils import Utils
 
@@ -10,8 +10,8 @@ class BaseNetworkStep(AnalysisStep):
   def __init__(self, **args):
     super().__init__()
     self.from_port = args['from_port']
-    self.dep = K8kat.deps().ns(args['dep_ns']).find(args['dep_name'])
-    self.svc = K8kat.svcs().ns(args['dep_ns']).find(args['svc_name'])
+    self.dep = K8Kat.deps().ns(args['dep_ns']).find(args['dep_name'])
+    self.svc = K8Kat.svcs().ns(args['dep_ns']).find(args['svc_name'])
     self._stunt_pod = None
 
   @property

@@ -53,8 +53,8 @@ class ResUtils:
 
   @staticmethod
   def dep_by_ns() -> List[Dict[str, str]]:
-    from k8_kat.base.k8_kat import K8kat
-    deps = K8kat.deps().not_ns('kube-system').go()
+    from k8_kat.base.k8_kat import K8Kat
+    deps = K8Kat.deps().not_ns('kube-system').go()
     output = []
     for name in set([dep.name for dep in deps]):
       appears_in = set([dep.ns for dep in deps if dep.name == name])

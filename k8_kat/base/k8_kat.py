@@ -3,7 +3,7 @@ from k8_kat.pod.pod_collection import PodCollection
 from k8_kat.svc.svc_collection import SvcCollection
 
 
-class K8kat:
+class K8Kat:
 
   @staticmethod
   def deps(**kwargs) -> DepCollection:

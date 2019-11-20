@@ -78,13 +78,13 @@ class KatDep(KatRes):
     return self
 
   def find_and_assoc_pods(self):
-    from k8_kat.base.k8_kat import K8kat
+    from k8_kat.base.k8_kat import K8Kat
     matchers = list(self.pod_select_labels.items())
-    self.assoced_pods = K8kat.pods().ns(self.ns).lbs_inc_each(matchers).go()
+    self.assoced_pods = K8Kat.pods().ns(self.ns).lbs_inc_each(matchers).go()
 
   def find_and_assoc_svcs(self):
-    from k8_kat.base.k8_kat import K8kat
-    candidate_svcs = K8kat.svcs().ns(self.ns).go()
+    from k8_kat.base.k8_kat import K8Kat
+    candidate_svcs = K8Kat.svcs().ns(self.ns).go()
     checker = lambda svc: ResUtils.dep_matches_svc(self.raw, svc.raw)
     self.assoced_svcs = [s for s in candidate_svcs if checker(s)]
 

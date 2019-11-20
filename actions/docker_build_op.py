@@ -28,11 +28,4 @@ class DockerBuildOp(DockerOp):
     return f"wget -O {TAR_NAME} {self.repo_tar_url} -q && " \
            f"mkdir {WORK_DIR} && " \
            f"tar xzf {TAR_NAME} -C {WORK_DIR} --strip-components=1 && " \
-           f"docker build {self.full_paths()} -t {self.output_img} " \
-
-  @staticmethod
-  def play2():
-    _zip = "https://storage.googleapis.com/nectar-mosaic-public/news_crawler.tar.gz"
-    worker = DockerBuildOp(_zip, "/", "/Dockerfile", 'xavierdevact/web-app:latest')
-    worker.create_work_pod()
-    worker.debug()
+           f"docker build {self.full_paths()} -t {self.output_img} "

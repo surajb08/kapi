@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 
 from actions.annotator import Annotator
 from helpers.res_utils import ResUtils
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 from k8_kat.dep.dep_composer import DepComposer
 from k8_kat.dep.dep_serializers import DepSerialization as Ser
 from k8_kat.dep.dep_warnings import DepWarnings
@@ -21,7 +21,7 @@ def index():
 
 @controller.route('/api/deployments/<ns>/<name>')
 def show(ns, name):
-  dep = K8kat.deps().ns(ns).find(name).with_friends()
+  dep = K8Kat.deps().ns(ns).find(name).with_friends()
   serialized = dep.serialize(Ser.with_pods_and_svcs)
   return jsonify(serialized)
 
@@ -31,7 +31,7 @@ def across_namespaces():
 
 @controller.route('/api/deployments/<ns>/<name>/pods')
 def deployment_pods(ns, name):
-  dep = K8kat.deps().ns(ns).find(name)
+  dep = K8Kat.deps().ns(ns).find(name)
   serialized = [PodSerialization.standard(pod) for pod in dep.pods()]
   return jsonify(dict(data=serialized))
 
@@ -47,7 +47,7 @@ def annotate(ns, name):
 
 @controller.route('/api/deployments/<ns>/<name>/validate_labels', methods=['POST'])
 def validate_labels(ns, name):
-  dep = K8kat.deps().ns(ns).find(name)
+  dep = K8Kat.deps().ns(ns).find(name)
   v = DepWarnings
   return jsonify(dict(
     template_covers=v.check_pod_template_inclusive(dep),
@@ -60,7 +60,7 @@ def eq_strs_to_tups(as_str: str):
   return [tuple(eq.split(':')) for eq in as_str.split(',')]
 
 def params_to_deps():
-  q = K8kat.deps()
+  q = K8Kat.deps()
 
   ns_white = request.args.get('ns_filter_type', 'whitelist')
   ns_white = True if ns_white == 'whitelist' else False

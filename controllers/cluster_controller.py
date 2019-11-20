@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 
 from helpers.kube_broker import broker
 from helpers.res_utils import ResUtils
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 from k8_kat.pod.pod_serialization import PodSerialization
 from stunt_pods.stunt_pod import StuntPod
 
@@ -24,7 +24,7 @@ def label_combinations():
 @controller.route('/api/cluster/stunt_pods')
 def stunt_pods():
   broker.check_connected()
-  garbage = K8kat.pods().lbs_inc_each(StuntPod.labels()).go()
+  garbage = K8Kat.pods().lbs_inc_each(StuntPod.labels()).go()
   ser = garbage.serialize(PodSerialization.standard)
   return jsonify(data=ser)
 
@@ -32,13 +32,13 @@ def stunt_pods():
 def label_matrix():
   get = lambda *keys: [request.args.get(k) for k in keys]
   _type, ns, name = get('matcher_type', 'matcher_ns', 'matcher_name')
-  collection = K8kat.deps() if _type == 'deployment' else K8kat.svcs()
+  collection = K8Kat.deps() if _type == 'deployment' else K8Kat.svcs()
   matcher = collection.ns(ns).find(name)
   result = ResUtils.label_matrix(matcher)
   return jsonify(result)
 
 @controller.route('/api/cluster/kill_stunt_pods', methods=['POST'])
 def kill_stunt_pods():
-  garbage = K8kat.pods().lbs_inc_each(StuntPod.labels())
+  garbage = K8Kat.pods().lbs_inc_each(StuntPod.labels())
   garbage.delete_all()
   return jsonify(status='done')

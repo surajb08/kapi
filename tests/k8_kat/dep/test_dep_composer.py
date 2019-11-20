@@ -1,6 +1,6 @@
 import unittest
 
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 from k8_kat.dep.dep_composer import DepComposer
 from tests.k8_kat.base.k8_kat_test import K8katTest
 from utils.utils import Utils
@@ -33,23 +33,23 @@ class TestDepComposer(K8katTest):
     return [pod.label('app') for pod in flat_pods]
 
   def test_associate_svcs(self):
-    deps = K8kat.deps().names('d0').go()
+    deps = K8Kat.deps().names('d0').go()
     self.assertEqual(self.the_svc_names(deps), [])
 
-    deps = K8kat.deps().names('d11').go()
+    deps = K8Kat.deps().names('d11').go()
     self.assertEqual(self.the_svc_names(deps), ['d11'])
 
-    deps = K8kat.deps().names('d11', 'd12').go()
+    deps = K8Kat.deps().names('d11', 'd12').go()
     self.assertEqual(self.the_svc_names(deps), ['d11'])
 
-    deps = K8kat.deps().ns('n1', 'n2').go()
+    deps = K8Kat.deps().ns('n1', 'n2').go()
     self.assertEqual(self.the_svc_names(deps), ['d11', 'd21'])
 
   def test_associate_pods(self):
-    deps = K8kat.deps().names('d11').go()
+    deps = K8Kat.deps().names('d11').go()
     self.assertEqual(self.the_pod_app_lbs(deps), ['d11'])
 
-    deps = K8kat.deps().ns('n1', 'n2').go()
+    deps = K8Kat.deps().ns('n1', 'n2').go()
     self.assertEqual(self.the_pod_app_lbs(deps), ['d0', 'd11', 'd12', 'd21'])
 
 

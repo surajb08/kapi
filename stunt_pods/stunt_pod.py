@@ -5,7 +5,7 @@ from helpers.kube_broker import broker
 import time
 from kubernetes.stream import stream
 
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 from utils.utils import Utils
 
 
@@ -42,7 +42,7 @@ class StuntPod:
     return self._image
 
   def find(self):
-    pod = K8kat.pods().ns(self.namespace).find(self.pod_name)
+    pod = K8Kat.pods().ns(self.namespace).find(self.pod_name)
     return pod.raw
 
   def delete(self):
@@ -104,5 +104,5 @@ class StuntPod:
 
   @staticmethod
   def kill_stunt_pods():
-    pods = K8kat.pods().lbs_inc_each(StuntPod.labels())
+    pods = K8Kat.pods().lbs_inc_each(StuntPod.labels())
     pods.delete_all()

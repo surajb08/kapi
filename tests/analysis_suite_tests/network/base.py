@@ -1,7 +1,7 @@
 from unittest import mock
 from unittest.mock import PropertyMock, MagicMock
 
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 from tests.k8_kat.base.k8_kat_test import K8katTest
 from utils.utils import Utils
 
@@ -17,8 +17,8 @@ class Base(K8katTest):
 
   @classmethod
   def stdSetUpClass(cls, step_class):
-    cls.dep = K8kat.deps().ns(TESTING_NS).find(TESTING_DEP_NM)
-    cls.svc = K8kat.svcs().ns(TESTING_NS).find(TESTING_SVC_NM)
+    cls.dep = K8Kat.deps().ns(TESTING_NS).find(TESTING_DEP_NM)
+    cls.svc = K8Kat.svcs().ns(TESTING_NS).find(TESTING_SVC_NM)
     cls.step = step_class(
       from_port=cls.svc.from_port,
       dep_ns=TESTING_NS,

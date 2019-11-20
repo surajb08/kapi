@@ -1,4 +1,4 @@
-from k8_kat.base.k8_kat import K8kat
+from k8_kat.base.k8_kat import K8Kat
 
 
 class DepWarnings:
@@ -11,14 +11,14 @@ class DepWarnings:
   @staticmethod
   def check_no_pods_eavesdrop(dep):
     template = dep.template_labels.items()
-    other_ns_deps = K8kat.deps().ns(dep.ns).not_names(dep.name)
+    other_ns_deps = K8Kat.deps().ns(dep.ns).not_names(dep.name)
     drops = lambda o_dep: dep.pod_select_labels.items() <= template
     eavesdroppers = [d for d in other_ns_deps if drops(d)]
     return len(eavesdroppers) == 0
 
   @staticmethod
   def check_labels_unique(dep):
-    twins = K8kat.deps().ns(dep.ns).lbs_inc_each(dep.labels)
+    twins = K8Kat.deps().ns(dep.ns).lbs_inc_each(dep.labels)
     return len(twins.go()) == 0
 
   @staticmethod
