@@ -9,7 +9,7 @@ class ArePodsRunningStep(BaseNetworkStep):
 
   def perform(self):
     pods = self.dep.pods()
-    running = [pod for pod in pods if pod.is_running()]
+    running = [pod for pod in pods if pod.is_running]
     outputs = [self.result_str(pod) for pod in pods]
     return self.record_step_performed(
       outcome=len(running) > 0,

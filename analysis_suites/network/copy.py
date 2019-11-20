@@ -79,7 +79,7 @@ copy_tree = {
     ],
     "commands": lambda args: [
       f"kubectl get endpoints {args['svc_name']} -n {args['ns']}",
-      f"BUILD ME"
+      f"kubectl get pods -l {args['pod_label_comp']} -n {args['ns']}"
     ],
     "conclusion": {
       "positive": lambda args: [

@@ -96,7 +96,7 @@ terminals = {
       f"If you're lucky it's because the deployment {args['dep_name']}"
       "has replicas scaled down to 0.",
       f"Otherwise, you have to debug your pods. ",
-      f"Jokes! Mosaic's does that too dawg! Go to Infra Debugging -> Pods not Running"
+      f"Jokes! Mosaic's does that too! Go to Infra Debugging -> Pods not Running"
     ],
     "commands": lambda args: [
       "Do it from Mosaic. Go to Infra Debugging -> Pods not Running"
