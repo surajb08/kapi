@@ -42,11 +42,11 @@ class KatDep(KatRes):
 
   @property
   def pod_select_labels(self) -> Dict[str, str]:
-    return self.raw.spec.selector.match_labels
+    return self.raw.spec.selector.match_labels or {}
 
   @property
   def template_labels(self):
-    return self.raw.spec.template.metadata.labels
+    return self.raw.spec.template.metadata.labels or {}
 
   @property
   def commit(self) -> Dict[str, str]:
