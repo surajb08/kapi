@@ -36,7 +36,7 @@ class KatRes:
 
   @property
   def labels(self):
-    return self.raw.metadata.labels
+    return self.raw.metadata.labels or {}
 
   @property
   def label_tups(self) -> List[Tuple[str, str]]:
