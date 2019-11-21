@@ -39,7 +39,8 @@ def make_shell_context():
   from helpers.res_utils import ResUtils
   from k8_kat.base.k8_kat import K8Kat
   classes = [ResUtils, K8Kat, Utils]
-  return { klass.__name__: klass for klass in classes }
+  classes = { klass.__name__: klass for klass in classes }
+  return dict(**classes, broker=broker)
 
 @app.errorhandler(BrokerConnException)
 def all_exception_handler(error):
