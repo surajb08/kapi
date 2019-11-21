@@ -1,6 +1,5 @@
 from kubernetes.client import V1Pod, V1ObjectMeta, V1PodSpec, V1Container
 
-from helpers.res_utils import ResUtils
 from helpers.kube_broker import broker
 import time
 from kubernetes.stream import stream
@@ -43,7 +42,7 @@ class StuntPod:
 
   def find(self):
     pod = K8Kat.pods().ns(self.namespace).find(self.pod_name)
-    return pod.raw
+    return pod and pod.raw
 
   def delete(self):
     broker.coreV1.delete_namespaced_pod(

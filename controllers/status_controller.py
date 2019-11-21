@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 from helpers.dep_helper import DepHelper
 from helpers.kube_broker import broker
@@ -16,7 +16,7 @@ def status():
 def restart():
   for which in request.json['deployments']:
     DepHelper.restart_nectar_pods(which)
-  return dict(status='working')
+  return jsonify(status='working')
 
 @controller.route('/api/status/connect')
 def connect():
@@ -25,7 +25,7 @@ def connect():
   return status_body()
 
 def status_body():
-  return dict(
+  return jsonify(
     think_am_connected=broker.is_connected,
     auth_type=broker.auth_type,
     auth_type_var=broker.env_auth_type()
@@ -33,4 +33,4 @@ def status_body():
 
 @controller.route('/api/status/revision')
 def revision():
-  return dict(sha=os.environ.get('REVISION'))
+  return jsonify(sha=os.environ.get('REVISION'))

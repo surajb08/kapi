@@ -23,7 +23,8 @@ class ResCollection(list):
     return len(self._actual)
 
   def find(self, name):
-    return self.names(name).go()[0]
+    candidates = self.names(name).go()
+    return len(candidates) and candidates[0]
 
   def names(self, *_names):
     actual = list(_names[0]) if isinstance(_names[0], list) else list(_names)
