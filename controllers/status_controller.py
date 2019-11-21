@@ -21,7 +21,7 @@ def restart():
 @controller.route('/api/status/connect')
 def connect():
   broker.connect()
-  broker.check_connected()
+  broker.check_connected_or_raise()
   return status_body()
 
 def status_body():

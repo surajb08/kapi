@@ -8,7 +8,7 @@ import urllib3
 from utils.utils import Utils
 
 
-class BrokerNotConnectedException(Exception):
+class BrokerConnException(Exception):
   def __init__(self, message):
     super().__init__(message)
 
@@ -20,40 +20,34 @@ class KubeBroker:
     self.coreV1 = None
     self.appsV1Api = None
     self.client = None
-    self.batchV1 = None
     self.auth_type = None
 
   def connect(self, force_type=None):
-    auth_type = force_type or self.env_auth_type()
-    if auth_type == 'local':
-      is_connected = self.in_cluster_connect()
-      self.auth_type = 'local'
-    else:
-      is_connected = self.out_cluster_connect()
-      self.auth_type = 'remote'
+    self.auth_type = force_type or self.env_auth_type('remote')
+    is_local = self.auth_type == 'local'
+    connect = self.in_cluster_connect if is_local else self.out_cluster_connect
+    self.is_connected = connect()
 
-    self.is_connected = is_connected
-    self.auth_type = self.auth_type if is_connected else None
-    self.client = client if is_connected else None
-    self.coreV1 = client.CoreV1Api() if is_connected else None
-    self.appsV1Api = client.AppsV1Api() if is_connected else None
-    self.batchV1 = client.BatchV1Api() if is_connected else None
-    return is_connected
+    if self.is_connected:
+      self.auth_type = self.auth_type
+      self.client = client
+      self.coreV1 = client.CoreV1Api()
+      self.appsV1Api = client.AppsV1Api()
+
+    return self.is_connected
 
   def in_cluster_connect(self):
     try:
       config.load_incluster_config()
       return True
-    except Exception as e1:
-      self.last_error = e1
+    except Exception as e:
+      print(f"[KubeBroker] In-cluster auth Failed: {e}")
+      self.last_error = e
       return False
 
   def out_cluster_connect(self):
-    if Utils.is_prod():
-      raise Exception("Out cluster auth not for production!")
-
     try:
-      print(f"Connecting with {KubeBroker.kubectl()}")
+      print(f"[KubeBroker] Cred discovery with {KubeBroker.kubectl()}")
       user_token = KubeBroker.read_target_cluster_user_token()
       configuration = client.Configuration()
       configuration.host = KubeBroker.read_target_cluster_ip()
@@ -62,10 +56,11 @@ class KubeBroker:
       configuration.api_key = {"authorization": f"Bearer {user_token}"}
       client.Configuration.set_default(configuration)
       urllib3.disable_warnings()
-      print(f"Connected with {KubeBroker.kubectl()}")
+      print(f"[KubeBroker] Creds discovered with {KubeBroker.kubectl()}")
       return True
     except Exception as e:
       print(f"FAILED TO CONNECT {e}")
+      self.last_error = e
       return False
 
   @staticmethod
@@ -84,7 +79,7 @@ class KubeBroker:
   @staticmethod
   def read_target_cluster_user_token():
     k = KubeBroker.kubectl()
-    sa_bundle = KubeBroker.jcmd(f"{k} get sa/nectar-d -o json")
+    sa_bundle = KubeBroker.jcmd(f"{k} get sa/nectar-dev -o json")
     secret_name = sa_bundle['secrets'][0]['name']
     secret_bundle = KubeBroker.jcmd(f"{k} get secret {secret_name} -o json")
     b64_user_token = secret_bundle['data']['token']
@@ -102,15 +97,12 @@ class KubeBroker:
     return output
 
   @staticmethod
-  def env_auth_type():
-    return os.environ.get('K8S_AUTH_TYPE')
+  def env_auth_type(fallback=None):
+    return os.environ.get('K8S_AUTH_TYPE', fallback)
 
-  def check_connected(self, attempt=True):
+  def check_connected_or_raise(self):
     if not self.is_connected:
-      if attempt:
-        if self.connect():
-          return
-      raise BrokerNotConnectedException(self.last_error or "unknown")
+      if not self.connect():
+        raise BrokerConnException(self.last_error or "unknown")
 
 broker = KubeBroker()
-broker.connect()

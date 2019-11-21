@@ -6,7 +6,7 @@ class Utils:
 
   @staticmethod
   def run_env():
-    return os.environ.get('ENV')
+    return os.environ.get('FLASK_ENV')
 
   @staticmethod
   def is_test():
