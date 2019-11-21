@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from flask import Flask, jsonify, abort, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from controllers import analysis_controller, deployments_controller, run_controller, cluster_controller, \

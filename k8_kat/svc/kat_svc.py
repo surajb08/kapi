@@ -1,6 +1,8 @@
 from typing import Dict
 
 from kubernetes.client import V1ServicePort
+
+from helpers.kube_broker import broker
 from k8_kat.base.kat_res import KatRes
 from utils.utils import Utils
 
@@ -65,6 +67,15 @@ class KatSvc(KatRes):
     from k8_kat.base.k8_kat import K8Kat
     matchers = list(self.pod_select_labels.items())
     self.assoced_pods = K8Kat.pods().ns(self.ns).lbs_inc_each(matchers).go()
+
+  def raw_endpoints(self):
+    return broker.coreV1.read_namespaced_endpoints(self.name, self.ns)
+
+  @property
+  def endpoint_ips(self):
+    raw_endpoints = self.raw_endpoints()
+    per_sub = lambda sub: [addr.ip for addr in sub.addresses]
+    return Utils.flatten([per_sub(sub) for sub in raw_endpoints.subsets])
 
   def __repr__(self):
     return f"Svc[{self.ns}:{self.name}({self.internal_ip})]"
