@@ -25,7 +25,7 @@ class KubeBroker:
 
   def connect(self, force_type=None):
     auth_type = force_type or self.env_auth_type()
-    if auth_type == 'inside':
+    if auth_type == 'local':
       is_connected = self.in_cluster_connect()
       self.auth_type = 'local'
     else:
@@ -84,7 +84,7 @@ class KubeBroker:
   @staticmethod
   def read_target_cluster_user_token():
     k = KubeBroker.kubectl()
-    sa_bundle = KubeBroker.jcmd(f"{k} get sa/nectar -o json")
+    sa_bundle = KubeBroker.jcmd(f"{k} get sa/nectar-d -o json")
     secret_name = sa_bundle['secrets'][0]['name']
     secret_bundle = KubeBroker.jcmd(f"{k} get secret {secret_name} -o json")
     b64_user_token = secret_bundle['data']['token']
