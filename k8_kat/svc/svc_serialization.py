@@ -21,5 +21,6 @@ class SvcSerialization:
       "short_dns": svc.short_dns,
       "long_dns": svc.fqdn,
       "ports": port_bundles,
-      "type": svc.type
+      "type": svc.type,
+      "selector_labels": svc.pod_select_labels
     }
