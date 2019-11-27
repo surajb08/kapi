@@ -9,6 +9,7 @@ from k8_kat.dep.dep_composer import DepComposer
 from k8_kat.dep.dep_serializers import DepSerialization as Ser
 from k8_kat.dep.dep_warnings import DepWarnings
 from k8_kat.pod.pod_serialization import PodSerialization
+from k8_kat.svc.svc_serialization import SvcSerialization
 
 controller = Blueprint('deployments_controller', __name__)
 
@@ -33,6 +34,13 @@ def across_namespaces():
 def deployment_pods(ns, name):
   dep = K8Kat.deps().ns(ns).find(name)
   serialized = [PodSerialization.standard(pod) for pod in dep.pods()]
+  return jsonify(dict(data=serialized))
+
+@controller.route('/api/deployments/<ns>/<name>/services')
+def deployment_services(ns, name):
+  dep = K8Kat.deps().ns(ns).find(name)
+  svcs = dep.svcs()
+  serialized = [SvcSerialization.with_endpoints(svc) for svc in svcs]
   return jsonify(dict(data=serialized))
 
 @controller.route('/api/deployments/<ns>/<name>/annotate_git', methods=['POST'])

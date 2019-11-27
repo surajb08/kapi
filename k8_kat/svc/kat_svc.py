@@ -71,11 +71,14 @@ class KatSvc(KatRes):
   def raw_endpoints(self):
     return broker.coreV1.read_namespaced_endpoints(self.name, self.ns)
 
+  def flat_endpoints(self):
+    raw_endpoints = self.raw_endpoints()
+    per_sub = lambda sub: [addr for addr in sub.addresses]
+    return Utils.flatten([per_sub(sub) for sub in raw_endpoints.subsets])
+
   @property
   def endpoint_ips(self):
-    raw_endpoints = self.raw_endpoints()
-    per_sub = lambda sub: [addr.ip for addr in sub.addresses]
-    return Utils.flatten([per_sub(sub) for sub in raw_endpoints.subsets])
+    return [ep.ip for ep in self.flat_endpoints()]
 
   def __repr__(self):
     return f"Svc[{self.ns}:{self.name}({self.internal_ip})]"

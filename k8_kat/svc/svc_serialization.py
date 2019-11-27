@@ -24,3 +24,22 @@ class SvcSerialization:
       "type": svc.type,
       "selector_labels": svc.pod_select_labels
     }
+
+  @staticmethod
+  def serialize_endpoint(endpoint):
+    return dict(
+      target_ip=endpoint.ip,
+      target_res=endpoint.target_ref.kind,
+      target_name=endpoint.target_ref.name,
+      target_ns=endpoint.target_ref.namespace
+    )
+
+  @staticmethod
+  def with_endpoints(svc):
+    endpoint_ser = SvcSerialization.serialize_endpoint
+    ser_endpoints = [endpoint_ser(ep) for ep in svc.flat_endpoints()]
+    return dict(
+      **SvcSerialization.standard(svc),
+      endpoints=ser_endpoints
+    )
+
