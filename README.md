@@ -109,4 +109,12 @@ Drop me a line at xavier@codenectar.com or on the K8s slack.
 
 # Backend
 
-It's a backend built with Flask.
+It's a backend built with Flask. To run, `FLASK_ENV=development flask run`
+
+## Environment
+
+The main thing is to get Kapi talking to your cluster. There are two mores of operation:
++ Kapi is inside your cluster. Problem there is it needs to run *inside* during dev't, which is suboptimal.
++ Kapi is outside your cluster. This is what I do for dev't, but it requires some config.
+
+Take a look at the `KubeBroker` class to see how it works.
